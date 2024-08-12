@@ -1,0 +1,12 @@
+/myenv
+
+# python 项目
+*.pyc
+__pycache__
+*.pyo
+
+# IDE
+.idea
+
+# os
+.DS_Store
