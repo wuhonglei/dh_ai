@@ -1,4 +1,5 @@
 /myenv
+/test/
 
 # python 项目
 *.pyc
