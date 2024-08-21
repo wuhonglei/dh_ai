@@ -4,3 +4,4 @@ scikit-learn>=1.5.1
 scipy>=1.6.0
 pandas>=2.2.2
 numpy<2.0.0
+import-ipynb
