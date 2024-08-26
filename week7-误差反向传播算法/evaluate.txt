@@ -65,3 +65,15 @@ transform = transforms.Compose([
 {0: 8, 1: 2, 2: 26, 3: 22, 4: 20, 5: 24, 6: 12, 7: 16, 8: 19, 9: 30}
 error-count: 179
 Accuracy of the network on the 10000 test images: 98.21%
+
+---
+
+transform = transforms.Compose([
+    transforms.RandomRotation(12),      # 随机旋转
+    transforms.ToTensor(),
+    AddGaussianNoise(mean=0.0, std=0.1),  # 添加高斯噪声
+])
+
+{0: 12, 1: 10, 2: 8, 3: 7, 4: 12, 5: 27, 6: 14, 7: 27, 8: 16, 9: 29}
+error-count: 162
+Accuracy of the network on the 10000 test images: 98.38%
