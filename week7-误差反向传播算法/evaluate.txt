@@ -1,0 +1,44 @@
+self.fc1 = nn.Linear(28 * 28, 256)
+self.fc2 = nn.Linear(256, 10)
+epochs = 5
+
+Epoch [5/5], Iter [1800/1875] Loss: 0.0076
+Accuracy of the network on the 10000 test images: 97.58%
+
+Epoch [10/5], Iter [1800/1875] Loss: 0.0010
+Accuracy of the network on the 10000 test images: 97.96 %
+----
+
+
+self.fc1 = nn.Linear(28 * 28, 256)
+self.fc2 = nn.Linear(256, 128)
+self.fc3 = nn.Linear(128, 10)
+
+epochs = 5
+Epoch [5/5], Iter [1800/1875] Loss: 0.0195
+Accuracy of the network on the 10000 test images: 97.74 %
+
+epochs = 10
+Epoch [10/5], Iter [1800/1875] Loss: 0.0015
+Accuracy of the network on the 10000 test images: 97.88 %
+
+epochs = 15
+Epoch [15/5], Iter [1800/1875] Loss: 0.0021
+Accuracy of the network on the 10000 test images: 97.97 %
+
+--- 
+weights = torch.ones(10)
+weights[5] = 2.0  # 为数字5赋予更高的权重
+criterion = nn.CrossEntropyLoss(weight=weights)
+
+{0: 10, 1: 11, 2: 15, 3: 12, 4: 23, 5: 31, 6: 14, 7: 27, 8: 33, 9: 30}
+error-count: 206
+Accuracy of the network on the 10000 test images: 97.94%
+
+---
+
+criterion = nn.CrossEntropyLoss()
+
+{0: 9, 1: 10, 2: 18, 3: 16, 4: 34, 5: 22, 6: 16, 7: 21, 8: 16, 9: 31}
+error-count: 193
+Accuracy of the network on the 10000 test images: 98.07%
