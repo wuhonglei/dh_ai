@@ -7,3 +7,4 @@ numpy<2.0.0
 import-ipynb
 seaborn
 torchvision
+opencv-python
