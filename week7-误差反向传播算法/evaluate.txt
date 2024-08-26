@@ -42,3 +42,15 @@ criterion = nn.CrossEntropyLoss()
 {0: 9, 1: 10, 2: 18, 3: 16, 4: 34, 5: 22, 6: 16, 7: 21, 8: 16, 9: 31}
 error-count: 193
 Accuracy of the network on the 10000 test images: 98.07%
+
+---
+
+transform = transforms.Compose([
+    transforms.RandomRotation(10),      # 随机旋转
+    transforms.RandomAffine(0, translate=(0.1, 0.1)),  # 随机平移
+    transforms.ToTensor()
+])
+
+{0: 12, 1: 5, 2: 16, 3: 27, 4: 21, 5: 9, 6: 15, 7: 20, 8: 34, 9: 32}
+error-count: 191
+Accuracy of the network on the 10000 test images: 98.09%
