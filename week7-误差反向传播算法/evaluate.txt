@@ -54,3 +54,14 @@ transform = transforms.Compose([
 {0: 12, 1: 5, 2: 16, 3: 27, 4: 21, 5: 9, 6: 15, 7: 20, 8: 34, 9: 32}
 error-count: 191
 Accuracy of the network on the 10000 test images: 98.09%
+
+--- 
+
+transform = transforms.Compose([
+    transforms.RandomRotation(12),      # 随机旋转
+    transforms.ToTensor()
+])
+
+{0: 8, 1: 2, 2: 26, 3: 22, 4: 20, 5: 24, 6: 12, 7: 16, 8: 19, 9: 30}
+error-count: 179
+Accuracy of the network on the 10000 test images: 98.21%
