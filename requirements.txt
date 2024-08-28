@@ -8,3 +8,4 @@ import-ipynb
 seaborn
 torchvision
 opencv-python
+wandb
