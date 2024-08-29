@@ -5,14 +5,15 @@ var undoButton = wrapper.querySelector("[data-action=undo]");
 var savePNGButton = wrapper.querySelector("[data-action=save-png]");
 var saveJPGButton = wrapper.querySelector("[data-action=save-jpg]");
 var saveSVGButton = wrapper.querySelector("[data-action=save-svg]");
+const identityButton = document.querySelector("[data-action=identify]");
 var canvas = wrapper.querySelector("canvas");
 var signaturePad = new SignaturePad(canvas, {
   // It's Necessary to use an opaque color when saving image as JPEG;
   // this option can be omitted if only saving as PNG or SVG
-  backgroundColor: 'rgb(0, 0, 0)',
-  penColor: 'rgb(255, 255, 255)',
-  minWidth: 4,             // 设置线条的最小宽度
-  maxWidth: 8,             // 设置线条的最大宽度
+  backgroundColor: "rgb(0, 0, 0)",
+  penColor: "rgb(255, 255, 255)",
+  minWidth: 20, // 设置线条的最小宽度
+  maxWidth: 24, // 设置线条的最大宽度
 });
 
 // Adjust canvas coordinate space taking into account pixel ratio,
@@ -22,7 +23,7 @@ function resizeCanvas() {
   // When zoomed out to less than 100%, for some very strange reason,
   // some browsers report devicePixelRatio as less than 1
   // and only part of the canvas is cleared then.
-  var ratio =  Math.max(window.devicePixelRatio || 1, 1);
+  var ratio = Math.max(window.devicePixelRatio || 1, 1);
 
   // This part causes the canvas to be cleared
   canvas.width = canvas.offsetWidth * ratio;
@@ -39,7 +40,7 @@ function resizeCanvas() {
 
 // On mobile devices it might make more sense to listen to orientation change,
 // rather than window resize events.
-window.onresize = resizeCanvas;
+// window.onresize = resizeCanvas;
 resizeCanvas();
 
 function download(dataURL, filename) {
@@ -61,7 +62,7 @@ function download(dataURL, filename) {
 // that it can be done using result of SignaturePad#toDataURL.
 function dataURLToBlob(dataURL) {
   // Code taken from https://github.com/ebidel/filer.js
-  var parts = dataURL.split(';base64,');
+  var parts = dataURL.split(";base64,");
   var contentType = parts[0].split(":")[1];
   var raw = window.atob(parts[1]);
   var rawLength = raw.length;
@@ -74,11 +75,11 @@ function dataURLToBlob(dataURL) {
   return new Blob([uInt8Array], { type: contentType });
 }
 
-clearButton.addEventListener("click", function (event) {
+clearButton?.addEventListener("click", function (event) {
   signaturePad.clear();
 });
 
-undoButton.addEventListener("click", function (event) {
+undoButton?.addEventListener("click", function (event) {
   var data = signaturePad.toData();
 
   if (data) {
@@ -87,16 +88,16 @@ undoButton.addEventListener("click", function (event) {
   }
 });
 
-changeColorButton.addEventListener("click", function (event) {
+changeColorButton?.addEventListener("click", function (event) {
   var r = Math.round(Math.random() * 255);
   var g = Math.round(Math.random() * 255);
   var b = Math.round(Math.random() * 255);
-  var color = "rgb(" + r + "," + g + "," + b +")";
+  var color = "rgb(" + r + "," + g + "," + b + ")";
 
   signaturePad.penColor = color;
 });
 
-savePNGButton.addEventListener("click", function (event) {
+savePNGButton?.addEventListener("click", function (event) {
   if (signaturePad.isEmpty()) {
     alert("Please provide a signature first.");
   } else {
@@ -105,26 +106,80 @@ savePNGButton.addEventListener("click", function (event) {
   }
 });
 
-saveJPGButton.addEventListener("click", function (event) {
+saveJPGButton?.addEventListener("click", function (event) {
   if (signaturePad.isEmpty()) {
     alert("Please provide a signature first.");
   } else {
-    const input = document.querySelector('.name')
-    const name = input.value || "signature.jpg"
-    const pattern = /\d_(\d+)/
-    const match = name.match(pattern)
+    const input = document.querySelector(".name");
+    const name = input.value || "signature.jpg";
+    const pattern = /\d_(\d+)/;
+    const match = name.match(pattern);
     var dataURL = signaturePad.toDataURL("image/jpeg");
-    input.value = match ? match[0].replace(`_${match[1]}`, `_${Number(match[1]) + 1}`): ''
+    input.value = match
+      ? match[0].replace(`_${match[1]}`, `_${Number(match[1]) + 1}`)
+      : "";
     download(dataURL, name);
     signaturePad.clear();
   }
 });
 
-saveSVGButton.addEventListener("click", function (event) {
+saveSVGButton?.addEventListener("click", function (event) {
   if (signaturePad.isEmpty()) {
     alert("Please provide a signature first.");
   } else {
-    var dataURL = signaturePad.toDataURL('image/svg+xml');
+    var dataURL = signaturePad.toDataURL("image/svg+xml");
     download(dataURL, "signature.svg");
+  }
+});
+
+identityButton?.addEventListener("click", async function (event) {
+  if (signaturePad.isEmpty()) {
+    alert("Please provide a signature first.");
+  } else {
+    const input = document.querySelector(".name");
+    const predictDigit = document.querySelector("#predict-digit");
+    const predictProb = document.querySelector("#predict-prob");
+    const predictList = document.querySelector("#predict-list");
+
+    const name = input.value || "signature.jpg";
+    const pattern = /(\d)(_\d+)?/;
+    const match = name.match(pattern);
+    const label = match ? Number(match?.[1]) : undefined;
+
+    var dataURL = signaturePad.toDataURL("image/jpeg");
+    const res = await fetch("/predict", {
+      method: "POST", // 使用 POST 方法
+      headers: {
+        "Content-Type": "application/json", // 指定请求体的内容类型为 JSON
+      },
+      body: JSON.stringify({
+        label,
+        dataURL,
+      }),
+    });
+    const { prediction, probability, probabilities } = await res.json();
+    predictDigit.textContent = prediction;
+    predictProb.textContent = `${(probability * 100).toFixed(2)}%`;
+    predictList.innerHTML = probabilities
+      .map((prob, index) => {
+        const li = document.createElement("li");
+        li.textContent = `${index}: ${(prob * 100).toFixed(2)}%`;
+        if (index === prediction) {
+          li.classList.add("predict-index");
+        }
+        if (label == index) {
+          li.classList.add("predict-success");
+        }
+
+        return li.outerHTML;
+      })
+      .join("");
+  }
+});
+
+document.addEventListener("keydown", function (event) {
+  if ((event.metaKey || event.ctrlKey) && event.key === "z") {
+    // 你的处理逻辑
+    undoButton?.click();
   }
 });

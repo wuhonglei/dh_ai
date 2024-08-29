@@ -9,3 +9,4 @@ seaborn
 torchvision
 opencv-python
 wandb
+Flask
