@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [watchPublic()],
   server: {
     proxy: {
-      "/predict": "http://localhost:5000",
+      "/predict": "http://127.0.0.1:5000",
     },
   },
 });

@@ -71,8 +71,8 @@ def predict():
 
     # 使用 PIL.Image 读取图像
     img = Image.open(io.BytesIO(image_data)).convert("L").resize((28, 28))
-    img_array = np.array(img)
-    print(img_array.mean())
+    # img_array = np.array(img)
+    # print(img_array.mean())
     # 预览图像
     # img.show()
 
