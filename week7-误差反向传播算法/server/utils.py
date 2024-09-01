@@ -20,11 +20,12 @@ def center_img(img):
     top, bottom = get_pixel_range(img, axis=1)
     img = img[top:bottom+1, left:right+1]
     h, w = img.shape
-    new_image = np.full((old_h, old_w), 0, dtype=np.uint8)
-    # print(new_image.shape)
-    row_start = (old_h - h) // 2
-    col_start = (old_w - w) // 2
-    new_image[row_start:row_start+h, col_start:col_start+w] = img
+    pad_h_start = (old_h - h) // 2
+    pad_h_end = old_h - h - pad_h_start
+    pad_w_start = (old_w - w) // 2
+    pad_w_end = old_w - w - pad_w_start
+    new_image = np.pad(img, ((pad_h_start, pad_h_end),
+                       (pad_w_start, pad_w_end)), 'constant', constant_values=0)
     return Image.fromarray(new_image)
 
 
