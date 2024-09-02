@@ -41,6 +41,19 @@
       <div class="signature-pad--body">
         <canvas></canvas>
       </div>
+      <section class="predict-container-left">
+        <h3>CNN</h3>
+        <div>
+          <span>predict-digit: </span>
+          <span class="predict-digit">-</span>
+        </div>
+        <div>
+          <span>predict-prob: </span>
+          <span class="predict-prob">-</span>
+        </div>
+        <hr />
+        <ul class="predict-list"></ul>
+      </section>
       <div class="signature-pad--footer">
         <div class="description">
           Sign above
@@ -65,7 +78,9 @@
             </button>
           </div>
           <div>
-            <button type="button" class="button save" data-action="identify">identify</button>
+            <button type="button" class="button save" data-action="identify">
+              identify
+            </button>
             <button type="button" class="button save" data-action="save-jpg">
               Save as JPG
             </button>
@@ -75,17 +90,18 @@
           </div>
         </div>
       </div>
-      <section class="predict-container">
+      <section class="predict-container-right">
+        <h3>ANN</h3>
         <div>
           <span>predict-digit: </span>
-          <span id="predict-digit">-</span>
+          <span class="predict-digit">-</span>
         </div>
         <div>
           <span>predict-prob: </span>
-          <span id="predict-prob">-</span>
+          <span class="predict-prob">-</span>
         </div>
         <hr />
-        <ul id="predict-list"></ul>
+        <ul class="predict-list"></ul>
       </section>
     </div>
 

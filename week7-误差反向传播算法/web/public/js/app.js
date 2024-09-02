@@ -7,6 +7,7 @@ var saveJPGButton = wrapper.querySelector("[data-action=save-jpg]");
 var saveSVGButton = wrapper.querySelector("[data-action=save-svg]");
 const identityButton = document.querySelector("[data-action=identify]");
 var canvas = wrapper.querySelector("canvas");
+
 var signaturePad = new SignaturePad(canvas, {
   // It's Necessary to use an opaque color when saving image as JPEG;
   // this option can be omitted if only saving as PNG or SVG
@@ -132,22 +133,9 @@ saveSVGButton?.addEventListener("click", function (event) {
   }
 });
 
-identityButton?.addEventListener("click", async function (event) {
-  if (signaturePad.isEmpty()) {
-    alert("Please provide a signature first.");
-  } else {
-    const input = document.querySelector(".name");
-    const predictDigit = document.querySelector("#predict-digit");
-    const predictProb = document.querySelector("#predict-prob");
-    const predictList = document.querySelector("#predict-list");
-
-    const name = input.value || "signature.jpg";
-    const pattern = /(\d)(_\d+)?/;
-    const match = name.match(pattern);
-    const label = match ? Number(match?.[1]) : undefined;
-
-    var dataURL = signaturePad.toDataURL("image/jpeg");
-    const res = await fetch("/predict", {
+async function predictFetchList(dataURL, label) {
+  const promise = ["cnn_model.pth", "ann_model.pth"].map((modelName) =>
+    fetch("/predict", {
       method: "POST", // 使用 POST 方法
       headers: {
         "Content-Type": "application/json", // 指定请求体的内容类型为 JSON
@@ -155,25 +143,54 @@ identityButton?.addEventListener("click", async function (event) {
       body: JSON.stringify({
         label,
         dataURL,
+        modelName: modelName,
       }),
-    });
-    const { prediction, probability, probabilities } = await res.json();
-    predictDigit.textContent = prediction;
-    predictProb.textContent = `${(probability * 100).toFixed(2)}%`;
-    predictList.innerHTML = probabilities
-      .map((prob, index) => {
-        const li = document.createElement("li");
-        li.textContent = `${index}: ${(prob * 100).toFixed(2)}%`;
-        if (index === prediction) {
-          li.classList.add("predict-index");
-        }
-        if (label == index) {
-          li.classList.add("predict-success");
-        }
+    }).then((res) => res.json())
+  );
 
-        return li.outerHTML;
-      })
-      .join("");
+  const resList = await Promise.all(promise);
+  return resList; // [{ prediction, probability, probabilities }]
+}
+
+identityButton?.addEventListener("click", async function (event) {
+  if (signaturePad.isEmpty()) {
+    alert("Please provide a signature first.");
+  } else {
+    const input = document.querySelector(".name");
+
+    const name = input.value || "signature.jpg";
+    const pattern = /(\d)(_\d+)?/;
+    const match = name.match(pattern);
+    const label = match ? Number(match?.[1]) : undefined;
+
+    var dataURL = signaturePad.toDataURL("image/jpeg");
+    const resList = await predictFetchList(dataURL, label);
+    [".predict-container-left", ".predict-container-right"].forEach(
+      (selector, index) => {
+        const container = document.querySelector(selector);
+        const predictDigit = container.querySelector(".predict-digit");
+        const predictProb = container.querySelector(".predict-prob");
+        const predictList = container.querySelector(".predict-list");
+
+        const { prediction, probability, probabilities } = resList[index];
+        predictDigit.textContent = prediction;
+        predictProb.textContent = `${(probability * 100).toFixed(2)}%`;
+        predictList.innerHTML = probabilities
+          .map((prob, index) => {
+            const li = document.createElement("li");
+            li.textContent = `${index}: ${(prob * 100).toFixed(2)}%`;
+            if (index === prediction) {
+              li.classList.add("predict-index");
+            }
+            if (label == index) {
+              li.classList.add("predict-success");
+            }
+
+            return li.outerHTML;
+          })
+          .join("");
+      }
+    );
   }
 });
 

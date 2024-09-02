@@ -7,15 +7,21 @@ import io
 import base64
 import numpy as np
 
-from model import MyModel
+from ann_model import AnnModel
+from cnn_model import LeNet
 from train import train
 from utils import center_img, parse_request, img_transform
 
-
 # 加载模型
-model = MyModel()
-model.load_state_dict(torch.load('model.pth'))
-model.eval()
+ann_model = AnnModel()
+ann_model.load_state_dict(torch.load(
+    'ann_model.pth', map_location=torch.device('cpu')))
+ann_model.eval()
+
+cnn_model = LeNet()
+cnn_model.load_state_dict(torch.load(
+    'cnn_model.pth', map_location=torch.device('cpu')))
+cnn_model.eval()
 
 app = Flask(__name__)
 
@@ -27,7 +33,8 @@ def predict():
     # 获取 JSON 数据
     data = request.get_json()
     # 使用 PIL.Image 读取图像
-    label, img = parse_request(data)
+    model_name, label, img = parse_request(data)
+    model = ann_model if model_name == 'ann_model.pth' else cnn_model
     # 将数字居中
     img = center_img(img)
 
@@ -45,7 +52,7 @@ def predict():
         print('Prediction is wrong. Label:',
               label, 'Prediction:', index.item())
         print('Retraining...')
-        train(model, img, label)
+        train(model, img, label, model_name)
         index, prob, prob_list = model.predict(img)
         print('Retraining finished. New prediction:', index.item())
 

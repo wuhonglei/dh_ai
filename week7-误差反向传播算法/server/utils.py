@@ -32,11 +32,12 @@ def center_img(img):
 def parse_request(data):
     label = data['label'] if 'label' in data else None
     data_url = data['dataURL']
+    model_name = data['modelName']
     header, encoded = data_url.split(",", 1)
     # 解码 Base64 字符串为二进制数据
     image_data = base64.b64decode(encoded)
     img = Image.open(io.BytesIO(image_data)).convert("L").resize((28, 28))
-    return label, img
+    return model_name, label, img
 
 
 def img_transform(img):

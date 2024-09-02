@@ -116,11 +116,10 @@ body {
   }
 }
 
-.predict-container {
+.predict-container-left,
+.predict-container-right {
   position: absolute;
   top: 0;
-  left: 100%;
-  margin-left: 16px;
   width: 50%;
   height: 100%;
   padding: 16px;
@@ -130,8 +129,14 @@ body {
   background-color: rgb(245, 245, 245);
 }
 
-.predict-container::selection {
-  background-color: yellow;
+.predict-container-left {
+  right: 100%;
+  margin-right: 16px;
+}
+
+.predict-container-right {
+  left: 100%;
+  margin-left: 16px;
 }
 
 #predict-digit,
