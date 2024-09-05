@@ -10,3 +10,4 @@ torchvision
 opencv-python
 wandb
 Flask
+captcha
