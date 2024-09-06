@@ -12,6 +12,29 @@ from evaluate import evaluate_model
 
 wandb.require("core")
 
+# 早停策略
+
+
+class EarlyStopping:
+    def __init__(self, patience=5, delta=0.0001):
+        self.patience = patience
+        self.delta = delta
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+
+    def __call__(self, loss):
+        if self.best_loss is None:
+            self.best_loss = loss
+        elif self.best_loss - loss > self.delta:
+            self.best_loss = loss
+            self.counter = 0
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+        return self.early_stop
+
 
 def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, model_path: str):
     config = load_config()
@@ -32,6 +55,8 @@ def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, mod
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    early_stopping = EarlyStopping()
+
     for epoch in range(epochs):
         loss_sum = 0.0
         acc_sum = 0.0
@@ -51,12 +76,20 @@ def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, mod
 
         test_loss, test_accuracy = evaluate_model(
             config['testing']['test_dir'], model)
+        train_loss, train_accuracy = loss_sum / \
+            len(train_dataset), acc_sum / len(train_dataset)
+
         wandb.log({
-            'train_loss': loss_sum / len(train_dataset),
-            'train_accuracy': acc_sum / len(train_dataset),
+            'train_loss': train_loss,
+            'train_accuracy': train_accuracy,
             'test_loss': test_loss,
             'test_accuracy': test_accuracy
         })
+
+        early_stopping(test_loss)
+        if early_stopping.early_stop:
+            print('Early stopping in epoch:', epoch)
+            break
 
     torch.save(model.state_dict(), model_path)
     wandb.finish()

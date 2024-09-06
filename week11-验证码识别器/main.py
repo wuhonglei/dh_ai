@@ -8,10 +8,11 @@ def main():
     config = load_config()
 
     dataset_config = config['dataset']
-    generate_captcha(total=dataset_config['train_total'], captcha_length=dataset_config['captcha_length'],
-                     width=dataset_config['width'], height=dataset_config['height'], characters=dataset_config['characters'], dist_dir=dataset_config['train_dir'])
-    generate_captcha(total=dataset_config['test_total'], captcha_length=dataset_config['captcha_length'], width=dataset_config['width'], height=dataset_config['height'], dist_dir=dataset_config['test_dir'],
-                     characters=dataset_config['characters'])
+    if dataset_config['generate']:
+        generate_captcha(total=dataset_config['train_total'], captcha_length=dataset_config['captcha_length'],
+                         width=dataset_config['width'], height=dataset_config['height'], characters=dataset_config['characters'], dist_dir=dataset_config['train_dir'])
+        generate_captcha(total=dataset_config['test_total'], captcha_length=dataset_config['captcha_length'], width=dataset_config['width'], height=dataset_config['height'], dist_dir=dataset_config['test_dir'],
+                         characters=dataset_config['characters'])
 
     training_config = config['training']
     print('training_config', training_config)
