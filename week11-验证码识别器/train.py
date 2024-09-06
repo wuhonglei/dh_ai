@@ -16,14 +16,18 @@ wandb.require("core")
 
 
 class EarlyStopping:
-    def __init__(self, patience=5, delta=0.0001):
+    def __init__(self, enable=True, patience=5, min_delta=0.0001):
+        self.enable = enable
         self.patience = patience
-        self.delta = delta
+        self.delta = min_delta
         self.counter = 0
         self.best_loss = None
         self.early_stop = False
 
     def __call__(self, loss):
+        if not self.enable:
+            return False
+
         if self.best_loss is None:
             self.best_loss = loss
         elif self.best_loss - loss > self.delta:
@@ -36,8 +40,7 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, model_path: str):
-    config = load_config()
+def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, model_path: str, early_stopping={}):
     wandb.init(**get_wandb_config(), job_type='train')
 
     transform = transforms.Compose([
@@ -55,7 +58,7 @@ def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, mod
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    early_stopping = EarlyStopping()
+    early_stopping = EarlyStopping(**early_stopping)
 
     for epoch in range(epochs):
         loss_sum = 0.0
@@ -74,8 +77,7 @@ def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, mod
                 print(
                     f'Epoch: {epoch+1}/{epochs} | Batch: {batch_ids}/{len(train_loader)} | Loss: {loss.item()}')
 
-        test_loss, test_accuracy = evaluate_model(
-            config['testing']['test_dir'], model)
+        test_loss, test_accuracy = evaluate_model(test_dir, model)
         train_loss, train_accuracy = loss_sum / \
             len(train_dataset), acc_sum / len(train_dataset)
 
@@ -96,5 +98,5 @@ def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, mod
 
 
 if __name__ == '__main__':
-    train(data_dir='./data/train', batch_size=64,
+    train(data_dir='./data/train', test_dir='./data/test', batch_size=64,
           epochs=20,  model_path='./model/model.pth', learning_rate=0.001)

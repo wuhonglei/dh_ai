@@ -17,7 +17,13 @@ def main():
     training_config = config['training']
     print('training_config', training_config)
     train(data_dir=dataset_config['train_dir'],
-          batch_size=training_config['batch_size'], epochs=training_config['epochs'], learning_rate=training_config['learning_rate'], model_path=training_config['model_path'])
+          test_dir=dataset_config['test_dir'],
+          batch_size=training_config['batch_size'],
+          epochs=training_config['epochs'],
+          learning_rate=training_config['learning_rate'],
+          model_path=training_config['model_path'],
+          early_stopping=config['early_stopping']
+          )
 
     testing_config = config['testing']
     evaluate(data_dir=dataset_config['test_dir'],
