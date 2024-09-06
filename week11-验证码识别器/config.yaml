@@ -2,8 +2,8 @@ name: "验证码识别"
 dataset:
   name: "captcha"
   generate: True
-  train_total: 100
-  test_total: 10
+  train_total: 10000
+  test_total: 1000
   captcha_length: 4
   width: 200
   height: 100
