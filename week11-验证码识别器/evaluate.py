@@ -7,8 +7,8 @@ from torch.utils.data import DataLoader
 from dataset import CaptchaDataset
 
 
-def evaluate(data_dir, model_path, captcha_length: int):
-    model = CNNModel(captcha_length * 10)
+def evaluate(data_dir, model_path, captcha_length: int, class_num: int = 10):
+    model = CNNModel(captcha_length, class_num)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
@@ -47,7 +47,7 @@ def evaluate_model(data_dir, model, captcha_length):
         correct += (predict == labels.view_as(predict)).sum().item()
 
     test_loss = loss_sum / total
-    test_accuracy = 1.0 * correct / total
+    test_accuracy = 1.0 * correct / (total * captcha_length)
 
     print(f'Test Loss: {test_loss}')
     print(f'Test Accuracy: {100 * test_accuracy}%')
@@ -56,4 +56,5 @@ def evaluate_model(data_dir, model, captcha_length):
 
 
 if __name__ == '__main__':
-    evaluate(data_dir='./data/test', model_path='./model/model.pth')
+    evaluate(data_dir='./data/test', model_path='./model/model.pth',
+             captcha_length=4, class_num=10, )

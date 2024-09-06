@@ -21,6 +21,7 @@ def main():
           batch_size=training_config['batch_size'],
           epochs=training_config['epochs'],
           captcha_length=dataset_config['captcha_length'],
+          class_num=len(dataset_config['characters']),
           learning_rate=training_config['learning_rate'],
           model_path=training_config['model_path'],
           early_stopping=config['early_stopping']

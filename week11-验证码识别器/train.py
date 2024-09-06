@@ -40,7 +40,7 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, captcha_length: int, model_path: str, early_stopping={}):
+def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, captcha_length: int, class_num: int, model_path: str, early_stopping={}):
     wandb.init(**get_wandb_config(), job_type='train')
 
     transform = transforms.Compose([
@@ -54,7 +54,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
         train_dataset, batch_size=batch_size, shuffle=True)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = CNNModel(output_size=captcha_length * 10)
+    model = CNNModel(captcha_length, class_num)
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -84,7 +84,8 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
         test_loss, test_accuracy = evaluate_model(
             test_dir, model, captcha_length)
         train_loss, train_accuracy = loss_sum / \
-            len(train_dataset), acc_sum / len(train_dataset)
+            (len(train_dataset) * captcha_length), acc_sum / \
+            (len(train_dataset) * captcha_length)
 
         wandb.log({
             'train_loss': train_loss,
@@ -94,14 +95,14 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
         })
 
         early_stopping(test_loss)
+        torch.save(model.state_dict(), model_path)
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
             break
 
-    torch.save(model.state_dict(), model_path)
     wandb.finish()
 
 
 if __name__ == '__main__':
     train(data_dir='./data/train', test_dir='./data/test', batch_size=64,
-          epochs=2, captcha_length=4, model_path='./model/model.pth', learning_rate=0.001)
+          epochs=2, captcha_length=4, class_num=10, model_path='./model/model.pth', learning_rate=0.001)
