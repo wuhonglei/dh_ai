@@ -20,6 +20,7 @@ def main():
           test_dir=dataset_config['test_dir'],
           batch_size=training_config['batch_size'],
           epochs=training_config['epochs'],
+          captcha_length=dataset_config['captcha_length'],
           learning_rate=training_config['learning_rate'],
           model_path=training_config['model_path'],
           early_stopping=config['early_stopping']
@@ -27,7 +28,9 @@ def main():
 
     testing_config = config['testing']
     evaluate(data_dir=dataset_config['test_dir'],
-             model_path=testing_config['model_path'])
+             model_path=testing_config['model_path'],
+             captcha_length=dataset_config['captcha_length'],
+             )
 
 
 if __name__ == '__main__':
