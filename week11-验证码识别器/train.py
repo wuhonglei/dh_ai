@@ -35,6 +35,7 @@ def train(data_dir: str, batch_size: int, epochs: int, learning_rate: float, mod
     for epoch in range(epochs):
         loss_sum = 0.0
         acc_sum = 0.0
+        model.train()
         for batch_ids, (imgs, labels) in enumerate(train_loader):
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad()
