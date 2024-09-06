@@ -1,0 +1,28 @@
+name: "验证码识别"
+dataset:
+  name: "captcha"
+  train_total: 10000
+  test_total: 1000
+  captcha_length: 1
+  width: 200
+  height: 100
+  characters: "0123456789"
+  train_dir: "data/train"
+  test_dir: "data/test"
+
+model:
+  type: "CNN"
+  layers: 5
+  activation: "relu"
+
+training:
+  train_dir: "data/train"
+  batch_size: 128
+  learning_rate: 0.001
+  epochs: 50
+  evaluate_epoch: True # 每次 epoch 结束后进行评估
+  model_path: "./model/model.pth"
+
+testing:
+  test_dir: "data/test"
+  model_path: "./model/model.pth"
