@@ -19,7 +19,7 @@ model:
 training:
   train_dir: "data/train"
   batch_size: 128
-  learning_rate: 0.001
+  learning_rate: 0.0001
   epochs: 5
   evaluate_epoch: True # 每次 epoch 结束后进行评估
   model_path: "./model/model.pth"
@@ -29,6 +29,6 @@ testing:
   model_path: "./model/model.pth"
 
 early_stopping:
-  enable: True
+  enable: False
   patience: 10
   min_delta: 0.0001

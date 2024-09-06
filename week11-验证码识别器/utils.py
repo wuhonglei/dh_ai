@@ -33,6 +33,8 @@ def get_wandb_config():
             "learning_rate": config['training']['learning_rate'],
             "architecture": f"{config['model']['type']}-{config['model']['layers']}",
             "epochs": config['training']['epochs'],
+            "train_dataset_size": config['dataset']['train_total'],
+            "test_dataset_size": config['dataset']['test_total'],
         },
         'reinit': True
     }
