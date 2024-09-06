@@ -34,7 +34,7 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir)
 
 
 if __name__ == '__main__':
-    generate_captcha(total=2000, captcha_length=1, width=200,
+    generate_captcha(total=20, captcha_length=4, width=200,
                      height=100, characters=string.digits, dist_dir='./data/train')
-    generate_captcha(total=1000, captcha_length=1, width=200,
+    generate_captcha(total=10, captcha_length=4, width=200,
                      height=100, characters=string.digits, dist_dir='./data/test')

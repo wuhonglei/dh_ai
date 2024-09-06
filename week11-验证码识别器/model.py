@@ -2,8 +2,9 @@ import torch.nn as nn
 
 
 class CNNModel(nn.Module):
-    def __init__(self):
+    def __init__(self, output_size=10):
         super(CNNModel, self).__init__()
+        self.output_size = output_size
 
         """
         Conv2d: 1 * 128 * 128 -> 8 * 128 * 128 -> 8 * 64 * 64
@@ -59,10 +60,10 @@ class CNNModel(nn.Module):
         )
 
         """
-        Linear: 128 -> 10
+        Linear: 128 -> output_size
         """
         self.fc2 = nn.Sequential(
-            nn.Linear(128, 10),
+            nn.Linear(128, self.output_size),
         )
 
     def forward(self, x):
@@ -75,11 +76,11 @@ class CNNModel(nn.Module):
         x = x.view(-1, 16 * 16 * 16)
         x = self.fc1(x)
         logits = self.fc2(x)
-        return logits
+        return logits.view(-1, self.output_size // 10, 10)
 
 
 if __name__ == '__main__':
-    model = CNNModel()
+    model = CNNModel(output_size=40)
 
     def print_parameters(model):
         param_count = 0

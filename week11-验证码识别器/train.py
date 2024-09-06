@@ -40,7 +40,7 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, model_path: str, early_stopping={}):
+def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, captcha_length: int, model_path: str, early_stopping={}):
     wandb.init(**get_wandb_config(), job_type='train')
 
     transform = transforms.Compose([
@@ -54,7 +54,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
         train_dataset, batch_size=batch_size, shuffle=True)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = CNNModel()
+    model = CNNModel(output_size=captcha_length * 10)
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -68,8 +68,12 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad()
             output = model(imgs)
-            loss = criterion(output, labels)
-            acc_sum += (output.argmax(dim=1) == labels).sum().item()
+            loss = torch.tensor(0.0).to(device)
+            for i in range(captcha_length):
+                loss += criterion(output[:, i, :], labels[:, i])
+
+            predict = output.argmax(dim=2, keepdim=True)
+            acc_sum += (predict == labels.view_as(predict)).sum().item()
             loss_sum += loss.item() * imgs.size(0)
             loss.backward()
             optimizer.step()
@@ -77,7 +81,8 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
                 print(
                     f'Epoch: {epoch+1}/{epochs} | Batch: {batch_ids}/{len(train_loader)} | Loss: {loss.item()}')
 
-        test_loss, test_accuracy = evaluate_model(test_dir, model)
+        test_loss, test_accuracy = evaluate_model(
+            test_dir, model, captcha_length)
         train_loss, train_accuracy = loss_sum / \
             len(train_dataset), acc_sum / len(train_dataset)
 
@@ -99,4 +104,4 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
 
 if __name__ == '__main__':
     train(data_dir='./data/train', test_dir='./data/test', batch_size=64,
-          epochs=20,  model_path='./model/model.pth', learning_rate=0.001)
+          epochs=2, captcha_length=4, model_path='./model/model.pth', learning_rate=0.001)

@@ -7,17 +7,17 @@ from torch.utils.data import DataLoader
 from dataset import CaptchaDataset
 
 
-def evaluate(data_dir, model_path):
-    model = CNNModel()
+def evaluate(data_dir, model_path, captcha_length: int):
+    model = CNNModel(captcha_length * 10)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
     model.eval()
 
-    return evaluate_model(data_dir, model)
+    return evaluate_model(data_dir, model, captcha_length)
 
 
-def evaluate_model(data_dir, model):
+def evaluate_model(data_dir, model, captcha_length):
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
         transforms.Grayscale(num_output_channels=1),
@@ -37,11 +37,14 @@ def evaluate_model(data_dir, model):
         imgs, labels = imgs.to(device), labels.to(device)
         with torch.no_grad():
             output = model(imgs)
-        loss = criterion(output, labels)
+
+        loss = torch.tensor(0.0).to(device)
+        for i in range(captcha_length):
+            loss += criterion(output[:, i, :], labels[:, i])
         loss_sum += loss.item() * imgs.size(0)
-        predicted = torch.argmax(output.data, dim=1)
+        predict = output.argmax(dim=2, keepdim=True)
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        correct += (predict == labels.view_as(predict)).sum().item()
 
     test_loss = loss_sum / total
     test_accuracy = 1.0 * correct / total
