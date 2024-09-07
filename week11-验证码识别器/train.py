@@ -4,6 +4,7 @@ import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import wandb
+import os
 
 from model import CNNModel
 from dataset import CaptchaDataset
@@ -40,7 +41,7 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, captcha_length: int, class_num: int, model_path: str, early_stopping={}):
+def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, model_path: str, early_stopping={}):
     wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
@@ -55,6 +56,8 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = CNNModel(captcha_length, class_num)
+    if pretrained and os.path.exists(model_path):
+        model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -108,5 +111,5 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
 
 
 if __name__ == '__main__':
-    train(data_dir='./data/train', test_dir='./data/test', batch_size=64,
+    train(data_dir='./data/train', test_dir='./data/test', batch_size=64, pretrained=False,
           epochs=2, captcha_length=4, class_num=10, model_path='./model/model.pth', learning_rate=0.001)

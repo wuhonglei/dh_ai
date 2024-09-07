@@ -29,6 +29,7 @@ def main():
           epochs=training_config['epochs'],
           captcha_length=captcha_length,
           class_num=class_num,
+          pretrained=training_config['pretrained'],
           learning_rate=training_config['learning_rate'],
           model_path=model_path,
           early_stopping=config['early_stopping']
