@@ -68,12 +68,16 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad()
             output = model(imgs)
-            loss = torch.tensor(0.0).to(device)
-            for i in range(captcha_length):
-                loss += criterion(output[:, i, :], labels[:, i])
-
             predict = output.argmax(dim=2, keepdim=True)
-            acc_sum += (predict == labels.view_as(predict)).sum().item()
+            acc_sum += (predict == labels.view_as(predict)
+                        ).all(dim=1).sum().item()
+
+            # (batch_size * captcha_length, class_num)
+            output = output.view(-1, class_num)
+            # (batch_size * captcha_length)
+            labels = labels.view(-1)
+            loss = criterion(output, labels)
+
             loss_sum += loss.item() * imgs.size(0)
             loss.backward()
             optimizer.step()
@@ -82,10 +86,10 @@ def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_r
                     f'Epoch: {epoch+1}/{epochs} | Batch: {batch_ids}/{len(train_loader)} | Loss: {loss.item()}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length)
+            test_dir, model, captcha_length, class_num)
         train_loss, train_accuracy = loss_sum / \
-            (len(train_dataset) * captcha_length), acc_sum / \
-            (len(train_dataset) * captcha_length)
+            (len(train_dataset)), acc_sum / \
+            (len(train_dataset))
 
         wandb.log({
             'train_loss': train_loss,

@@ -7,17 +7,18 @@ from torch.utils.data import DataLoader
 from dataset import CaptchaDataset
 
 
-def evaluate(data_dir, model_path, captcha_length: int, class_num: int = 10):
+def evaluate(data_dir, model_path, captcha_length: int, class_num):
     model = CNNModel(captcha_length, class_num)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(
+        model_path, map_location=device, weights_only=True))
     model.to(device)
     model.eval()
 
-    return evaluate_model(data_dir, model, captcha_length)
+    return evaluate_model(data_dir, model, captcha_length, class_num)
 
 
-def evaluate_model(data_dir, model, captcha_length):
+def evaluate_model(data_dir, model, captcha_length, class_num):
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
         transforms.Grayscale(num_output_channels=1),
@@ -38,16 +39,20 @@ def evaluate_model(data_dir, model, captcha_length):
         with torch.no_grad():
             output = model(imgs)
 
-        loss = torch.tensor(0.0).to(device)
-        for i in range(captcha_length):
-            loss += criterion(output[:, i, :], labels[:, i])
-        loss_sum += loss.item() * imgs.size(0)
         predict = output.argmax(dim=2, keepdim=True)
+        correct += (predict == labels.view_as(predict)).all(dim=1).sum().item()
+
+        # output: (batch_size, captcha_length, class_num)
+        output = output.view(-1, class_num)
+        # (batch_size * captcha_length)
+        labels = labels.view(-1)
+
+        loss = criterion(output, labels)
+        loss_sum += loss.item() * imgs.size(0)
         total += labels.size(0)
-        correct += (predict == labels.view_as(predict)).sum().item()
 
     test_loss = loss_sum / total
-    test_accuracy = 1.0 * correct / (total * captcha_length)
+    test_accuracy = 1.0 * correct / (total)
 
     print(f'Test Loss: {test_loss}')
     print(f'Test Accuracy: {100 * test_accuracy}%')

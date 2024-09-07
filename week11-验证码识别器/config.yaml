@@ -1,10 +1,10 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: True
+  generate: False
   train_total: 10000
   test_total: 1000
-  captcha_length: 4
+  captcha_length: 2
   width: 200
   height: 100
   characters: "0123456789"
@@ -18,17 +18,16 @@ model:
 
 training:
   train_dir: "data/train"
-  batch_size: 128
+  batch_size: 256
   learning_rate: 0.0001
-  epochs: 5
-  evaluate_epoch: True # 每次 epoch 结束后进行评估
-  model_path: "./model/model.pth"
+  epochs: 50
+  model_path: "./models/model.pth"
 
 testing:
   test_dir: "data/test"
-  model_path: "./model/model.pth"
+  model_path: "./models/model.pth"
 
 early_stopping:
-  enable: False
+  enable: True
   patience: 10
   min_delta: 0.0001
