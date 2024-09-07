@@ -25,10 +25,10 @@ def load_config(config_file='./config.yaml'):
     return config
 
 
-def get_wandb_config():
+def get_wandb_config(captcha_length: int):
     config = load_config()
     wandb_init_args = {
-        'project': f'{config["name"]}-字符长度 {config["dataset"]["captcha_length"]}',
+        'project': f'{config["name"]}-字符长度 {captcha_length}',
         'config': {
             "learning_rate": config['training']['learning_rate'],
             "architecture": f"{config['model']['type']}-{config['model']['layers']}",

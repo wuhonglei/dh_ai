@@ -41,7 +41,7 @@ class EarlyStopping:
 
 
 def train(data_dir: str, test_dir: str, batch_size: int, epochs: int, learning_rate: float, captcha_length: int, class_num: int, model_path: str, early_stopping={}):
-    wandb.init(**get_wandb_config(), job_type='train')
+    wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
