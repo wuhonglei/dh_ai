@@ -1,10 +1,10 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: False
+  generate: True
   train_total: 10000
   test_total: 1000
-  captcha_length: 2
+  captcha_length: 1
   width: 200
   height: 100
   characters: "0123456789"
@@ -19,7 +19,7 @@ model:
 training:
   train_dir: "data/train"
   batch_size: 256
-  learning_rate: 0.0001
+  learning_rate: 0.001
   epochs: 50
   model_path: "./models/model.pth"
 
