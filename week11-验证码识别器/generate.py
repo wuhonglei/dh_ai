@@ -27,8 +27,6 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir)
         # 生成验证码图片
         captcha = ImageCaptcha(width=width, height=height)
         img = captcha.generate_image(chars)
-        captcha.create_noise_dots(img, '#000000', 4, 40)  # type: ignore
-        captcha.create_noise_curve(img, '#000000')  # type: ignore
         img.save(os.path.join(dist_dir, f'{chars}_{i}.png'))
         print(f'generate captcha {i}')
 

@@ -79,6 +79,11 @@ class CNNModel(nn.Module):
         logits = self.fc2(x)
         return logits.view(-1, self.captcha_length, self.class_num)
 
+    def predict(self, x):
+        logits = self.forward(x)
+        _, pred = logits.max(dim=2)
+        return pred, torch.softmax(logits, dim=2)
+
 
 if __name__ == '__main__':
     import torch
@@ -174,14 +179,15 @@ if __name__ == '__main__':
             6: '6_1741.png',
             7: '7_7229.png',
             8: '8_7736.png',
-            9: '9_9883.png'
+            9: '9_9883.png',
         }
         input_image = transform(Image.open(
-            f'./data/train/{img_path_dict[6]}')).unsqueeze(0)
-        output = model(input_image)
+            f'9_0.png')).unsqueeze(0)
+        predict, prob = model.predict(input_image)
+        print('predict', predict[0].item(), prob[0].max().item())
         # plot_original_image(input_image)
-        # visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
-        visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
+        visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
+        # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
 
     # print(model)
     # print_parameters(model)
