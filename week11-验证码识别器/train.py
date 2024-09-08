@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
+from torch.amp import autocast, GradScaler
 import wandb
 import os
 
@@ -50,10 +51,12 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
         transforms.ToTensor()
     ])
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    is_cuda = device.type == 'cuda'
+    loader_config = {'num_workers': 8, 'pin_memory': True} if is_cuda else {}
     train_dataset = CaptchaDataset(data_dir, transform=transform)
     train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
     model = CNNModel(captcha_length, class_num)
     if pretrained and os.path.exists(model_path):

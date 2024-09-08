@@ -25,9 +25,11 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
         transforms.ToTensor()
     ])
 
-    eval_dataset = CaptchaDataset(data_dir, transform=transform)
-    eval_loader = DataLoader(eval_dataset, batch_size=1)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    is_cuda = device.type == 'cuda'
+    loader_config = {'num_workers': 8, 'pin_memory': True} if is_cuda else {}
+    eval_dataset = CaptchaDataset(data_dir, transform=transform)
+    eval_loader = DataLoader(eval_dataset, batch_size=1, **loader_config)
 
     loss_sum = 0.0
     correct = 0
