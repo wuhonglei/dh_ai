@@ -81,7 +81,14 @@ class CNNModel(nn.Module):
 
 
 if __name__ == '__main__':
-    model = CNNModel(captcha_length=4, class_num=10)
+    import torch
+    from torchvision import transforms
+    from PIL import Image
+    import matplotlib.pyplot as plt
+
+    model = CNNModel(captcha_length=1, class_num=10)
+    model.load_state_dict(torch.load(
+        './models/1-model.pth', weights_only=True))
 
     def print_parameters(model):
         param_count = 0
@@ -101,6 +108,82 @@ if __name__ == '__main__':
             print(f'name: {name}, output: {x.size()}')
             print()
 
-    print(model)
-    print_parameters(model)
+    def display_feature_maps(model):
+        # 钩子函数，用于保存每个卷积层的输出
+        activation = {}
+
+        def get_activation(name):
+            def hook(model, input, output):
+                activation[name] = output.detach()  # 保存输出并分离梯度计算图
+            return hook
+
+        def plot_original_image(img_tensor):
+            plt.imshow(img_tensor.squeeze(0).permute(1, 2, 0).numpy())
+            plt.axis('off')
+            plt.show()
+
+        def visualize_layer_output(activation, layer_names: list[str]):
+            max_num_channels = max(
+                [activation[layer_name].size(1) for layer_name in layer_names]
+            )
+            fig, axes = plt.subplots(
+                nrows=len(layer_names), ncols=max_num_channels)
+
+            for i, layer_name in enumerate(layer_names):
+                act = activation[layer_name].squeeze(0)  # 去掉 batch 维度
+                num_channels = act.size(0)
+                print('num_channels', num_channels)
+                for j in range(num_channels):
+                    axes[i, j].imshow(act[j].cpu().numpy(), cmap='gray')
+                    axes[i, j].set_title(f'{i+1}/{j+1}')
+                    axes[i, j].axis('off')
+
+            # 移除空的 subplot
+            for i in range(len(layer_names)):
+                for j in range(max_num_channels):
+                    if not axes[i, j].has_data():
+                        axes[i, j].remove()
+
+            # plt.tight_layout()  # 自动调整布局，使子图之间不重叠
+            plt.show()
+
+        def visualize_layer_output_avg(activation, layer_names: list[str]):
+            fig, axes = plt.subplots(
+                nrows=1, ncols=len(layer_names))
+
+            for i, layer_name in enumerate(layer_names):
+                act = activation[layer_name].squeeze(0)  # 去掉 batch 维度
+                axes[i].imshow(act.cpu().numpy().sum(axis=0), cmap='gray')
+            plt.show()
+
+        model.conv1.register_forward_hook(get_activation('conv1'))
+        model.conv2.register_forward_hook(get_activation('conv2'))
+        model.conv3.register_forward_hook(get_activation('conv3'))
+        transform = transforms.Compose([
+            transforms.Resize((128, 128)),
+            transforms.Grayscale(num_output_channels=1),
+            transforms.ToTensor()
+        ])
+        img_path_dict = {
+            0: '0_5.png',
+            1: '1_563.png',
+            2: '2_1652.png',
+            3: '3_1739.png',
+            4: '4_1619.png',
+            5: '5_1691.png',
+            6: '6_1741.png',
+            7: '7_7229.png',
+            8: '8_7736.png',
+            9: '9_9883.png'
+        }
+        input_image = transform(Image.open(
+            f'./data/train/{img_path_dict[6]}')).unsqueeze(0)
+        output = model(input_image)
+        # plot_original_image(input_image)
+        # visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
+        visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
+
+    # print(model)
+    # print_parameters(model)
     # print_forward(model)
+    display_feature_maps(model)
