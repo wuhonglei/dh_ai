@@ -1,3 +1,4 @@
-data/
+data/test
+data/train
 mnist/
 models/

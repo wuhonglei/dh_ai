@@ -169,7 +169,7 @@ if __name__ == '__main__':
         transform = transforms.Compose([
             transforms.Resize((128, 128)),
             transforms.Grayscale(num_output_channels=1),
-            transforms.RandomAffine(degrees=0, translate=(0.8, 0)),  # 仿射变换
+            # transforms.RandomAffine(degrees=0, translate=(0.8, 0)),  # 仿射变换
             transforms.ToTensor()
         ])
         for img_name in os.listdir('./data/demo'):
@@ -177,20 +177,21 @@ if __name__ == '__main__':
             label = img_name.split('_')[0]
             image = Image.open(img_path)
             width, height = image.size
-            # input_image = transform(Image.open(img_path)).unsqueeze(0)
+            input_image = transform(Image.open(img_path)).unsqueeze(0)
             # 计算平移的像素距离，向右平移时为正值
-            max_dx = int(0.5 * width)
-            input_image = F.affine(
-                Image.open(img_path), angle=0, translate=(0, 0), scale=1.0, shear=0)
+            # max_dx = int(0.5 * width)
+            # input_image = F.affine(
+            #     Image.open(img_path), angle=0, translate=(max_dx, 0), scale=1.0, shear=0)
             # 显示图像
-            input_image = transforms.ToTensor()(input_image).unsqueeze(0)
-            # predict, prob = model.predict(input_image)
-            # print('label', label)
-            # print('predict', predict[0].item(), prob[0].max().item())
-            plot_original_image(input_image)
+            # input_image = transforms.ToTensor()(input_image).unsqueeze(0)
+            predict, prob = model.predict(input_image)
+            print('label', label)
+            print('predict', predict[0].item(), prob[0].max().item())
+            print()
+            # plot_original_image(input_image)
             # visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
             # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
-            break
+            # break
 
     # print(model)
     # print_parameters(model)
