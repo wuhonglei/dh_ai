@@ -29,15 +29,17 @@ class LocalizationNetwork(nn.Module):
     def forward(self, x):
         # 卷积层 + 池化
         # 输入: (128x128), 输出: (61x61)
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2(x), 2))  # 输入: (61x61), 输出: (29x29)
-        x = F.relu(F.max_pool2d(self.conv3(x), 2))  # 输入: (29x29), 输出: (12x12)
+        x = torch.relu(torch.max_pool2d(self.conv1(x), 2))
+        # 输入: (61x61), 输出: (29x29)
+        x = torch.relu(torch.max_pool2d(self.conv2(x), 2))
+        # 输入: (29x29), 输出: (12x12)
+        x = torch.relu(torch.max_pool2d(self.conv3(x), 2))
 
         # 展平为全连接层输入
         x = x.view(-1, 64 * 12 * 12)
 
         # 全连接层
-        x = F.relu(self.fc1(x))
+        x = torch.relu(self.fc1(x))
 
         # 输出仿射变换参数
         theta = self.fc2(x)
@@ -117,8 +119,8 @@ class CNNModel(nn.Module):
     def stn(self, x):
         # STN 前向传播
         theta = self.localization_network(x)
-        grid = F.affine_grid(theta, x.size())
-        x = F.grid_sample(x, grid)
+        grid = torch.nn.functional.affine_grid(theta, x.size())
+        x = torch.nn.functional.grid_sample(x, grid)
         return x
 
     def forward(self, x):
@@ -151,7 +153,7 @@ if __name__ == '__main__':
 
     model = CNNModel(captcha_length=1, class_num=10)
     model.load_state_dict(torch.load(
-        './models/1-model.pth', weights_only=True, map_location='cpu'))
+        './models/1-model-stn.pth', weights_only=True, map_location='cpu'))
 
     def print_parameters(model):
         param_count = 0
@@ -225,10 +227,9 @@ if __name__ == '__main__':
         transform = transforms.Compose([
             transforms.Resize((128, 128)),
             transforms.Grayscale(num_output_channels=1),
-            # transforms.RandomAffine(degrees=0, translate=(0.8, 0)),  # 仿射变换
             transforms.ToTensor()
         ])
-        for img_name in os.listdir('./data/demo'):
+        for img_name in ['9_右侧 1.png']:
             img_path = os.path.join('./data/demo', img_name)
             label = img_name.split('_')[0]
             image = Image.open(img_path)
@@ -240,14 +241,17 @@ if __name__ == '__main__':
             #     Image.open(img_path), angle=0, translate=(max_dx, 0), scale=1.0, shear=0)
             # 显示图像
             # input_image = transforms.ToTensor()(input_image).unsqueeze(0)
-            predict, prob = model.predict(input_image)
-            print('label', label)
-            print('predict', predict[0].item(), prob[0].max().item())
-            print()
-            # plot_original_image(input_image)
+            # predict, prob = model.predict(input_image)
+            # print('label', label)
+            # print('predict', predict[0].item(), prob[0].max().item())
+            # print()
+            with torch.no_grad():
+                plot_original_image(input_image)
+                plot_original_image(model.stn(input_image))
+
             # visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
             # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
-            # break
+            break
 
     # print(model)
     # print_parameters(model)
