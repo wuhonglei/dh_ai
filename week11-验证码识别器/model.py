@@ -87,13 +87,15 @@ class CNNModel(nn.Module):
 
 if __name__ == '__main__':
     import torch
+    import os
     from torchvision import transforms
     from PIL import Image
     import matplotlib.pyplot as plt
+    import torchvision.transforms.functional as F
 
     model = CNNModel(captcha_length=1, class_num=10)
     model.load_state_dict(torch.load(
-        './models/1-model.pth', weights_only=True))
+        './models/1-model.pth', weights_only=True, map_location='cpu'))
 
     def print_parameters(model):
         param_count = 0
@@ -167,27 +169,28 @@ if __name__ == '__main__':
         transform = transforms.Compose([
             transforms.Resize((128, 128)),
             transforms.Grayscale(num_output_channels=1),
+            transforms.RandomAffine(degrees=0, translate=(0.8, 0)),  # 仿射变换
             transforms.ToTensor()
         ])
-        img_path_dict = {
-            0: '0_5.png',
-            1: '1_563.png',
-            2: '2_1652.png',
-            3: '3_1739.png',
-            4: '4_1619.png',
-            5: '5_1691.png',
-            6: '6_1741.png',
-            7: '7_7229.png',
-            8: '8_7736.png',
-            9: '9_9883.png',
-        }
-        input_image = transform(Image.open(
-            f'9_0.png')).unsqueeze(0)
-        predict, prob = model.predict(input_image)
-        print('predict', predict[0].item(), prob[0].max().item())
-        # plot_original_image(input_image)
-        visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
-        # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
+        for img_name in os.listdir('./data/demo'):
+            img_path = os.path.join('./data/demo', img_name)
+            label = img_name.split('_')[0]
+            image = Image.open(img_path)
+            width, height = image.size
+            # input_image = transform(Image.open(img_path)).unsqueeze(0)
+            # 计算平移的像素距离，向右平移时为正值
+            max_dx = int(0.5 * width)
+            input_image = F.affine(
+                Image.open(img_path), angle=0, translate=(0, 0), scale=1.0, shear=0)
+            # 显示图像
+            input_image = transforms.ToTensor()(input_image).unsqueeze(0)
+            # predict, prob = model.predict(input_image)
+            # print('label', label)
+            # print('predict', predict[0].item(), prob[0].max().item())
+            plot_original_image(input_image)
+            # visualize_layer_output_avg(activation, ['conv1', 'conv2', 'conv3'])
+            # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
+            break
 
     # print(model)
     # print_parameters(model)
