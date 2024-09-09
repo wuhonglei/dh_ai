@@ -8,12 +8,12 @@ class CNNModel(nn.Module):
         self.class_num = class_num
 
         """
-        Conv2d: 1 * 128 * 128 -> 8 * 128 * 128 -> 8 * 64 * 64
+        Conv2d: 1 * 128 * 128 -> 32 * 128 * 128 -> 32 * 64 * 64
         """
         self.conv1 = nn.Sequential(
             nn.Conv2d(
                 in_channels=1,
-                out_channels=8,
+                out_channels=32,
                 kernel_size=3,
                 padding='same',
                 stride=1,
@@ -23,51 +23,48 @@ class CNNModel(nn.Module):
         )
 
         """
-        Conv2d: 8 * 64 * 64 -> 16 * 64 * 64 -> 16 * 32 * 32
+        Conv2d: 32 * 64 * 64 -> 64 * 64 * 64 -> 64 * 32 * 32
         """
         self.conv2 = nn.Sequential(
             nn.Conv2d(
-                in_channels=8,
-                out_channels=16,
+                in_channels=32,
+                out_channels=64,
                 kernel_size=3,
                 padding='same',
                 stride=1,
             ),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
-
         )
 
         """
-        Conv2d: 16 * 32 * 32 -> 16 * 32 * 32 -> 16 * 16 * 16
+        Conv2d: 64 * 32 * 32 -> 64 * 32 * 32 -> 64 * 1 * 1
         """
         self.conv3 = nn.Sequential(
             nn.Conv2d(
-                in_channels=16,
-                out_channels=16,
+                in_channels=64,
+                out_channels=64,
                 kernel_size=3,
                 padding='same',
                 stride=1,
             ),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Dropout(0.25),
+            nn.AdaptiveAvgPool2d((1, 1)),
         )
 
         """
-        Linear: 16 * 16 * 16 -> 128
+        Linear: 64 * 1 * 1 -> 1024
         """
         self.fc1 = nn.Sequential(
-            nn.Linear(16 * 16 * 16, 128),
+            nn.Linear(64 * 1 * 1, 1024),
             nn.ReLU(),
-            nn.Dropout(0.5),
         )
 
         """
-        Linear: 128 -> output_size
+        Linear: 1024 -> output_size
         """
         self.fc2 = nn.Sequential(
-            nn.Linear(128, self.captcha_length * self.class_num),
+            nn.Linear(1024, self.captcha_length * self.class_num),
         )
 
     def forward(self, x):
@@ -77,13 +74,12 @@ class CNNModel(nn.Module):
         x = self.conv2(x)
         x = self.conv3(x)
 
-        x = x.view(-1, 16 * 16 * 16)
+        x = x.view(-1, 64 * 1 * 1)
         x = self.fc1(x)
         logits = self.fc2(x)
         return logits.view(-1, self.captcha_length, self.class_num)
 
     def predict(self, x):
-        self.eval()
         logits = self.forward(x)
         _, pred = logits.max(dim=2)
         return pred, torch.softmax(logits, dim=2)
@@ -113,7 +109,7 @@ if __name__ == '__main__':
         x = torch.randn(1, 1, 128, 128)
         for name, module in model.named_children():
             if name == 'fc1':
-                x = x.view(-1, 16 * 16 * 16)
+                x = x.view(-1, 64 * 16 * 16)
             print(f'name: {name}, input: {x.size()}')
             x = module(x)
             print(f'name: {name}, output: {x.size()}')
