@@ -114,4 +114,4 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
 
 if __name__ == '__main__':
     train(data_dir='./data/train', test_dir='./data/test', batch_size=64, pretrained=False,
-          epochs=2, captcha_length=4, class_num=10, model_path='./model/model.pth', learning_rate=0.001)
+          epochs=1, captcha_length=1, class_num=10, model_path='./model/model-test.pth', learning_rate=0.001)
