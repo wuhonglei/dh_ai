@@ -35,6 +35,7 @@ class CNNModel(nn.Module):
             ),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
+
         )
 
         """
@@ -50,6 +51,7 @@ class CNNModel(nn.Module):
             ),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
+            nn.Dropout(0.25),
         )
 
         """
@@ -58,6 +60,7 @@ class CNNModel(nn.Module):
         self.fc1 = nn.Sequential(
             nn.Linear(16 * 16 * 16, 128),
             nn.ReLU(),
+            nn.Dropout(0.5),
         )
 
         """
@@ -80,6 +83,7 @@ class CNNModel(nn.Module):
         return logits.view(-1, self.captcha_length, self.class_num)
 
     def predict(self, x):
+        self.eval()
         logits = self.forward(x)
         _, pred = logits.max(dim=2)
         return pred, torch.softmax(logits, dim=2)

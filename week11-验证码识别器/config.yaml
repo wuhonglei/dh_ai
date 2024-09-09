@@ -21,7 +21,7 @@ training:
   batch_size: 1024
   learning_rate: 0.001
   epochs: 50
-  pretrained: True # 是否加载预训练模型
+  pretrained: False # 是否加载预训练模型
   model_path: "./models/model.pth"
 
 testing:

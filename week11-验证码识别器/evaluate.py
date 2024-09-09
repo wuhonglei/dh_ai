@@ -36,6 +36,7 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
     total = 0
     criterion = nn.CrossEntropyLoss()
 
+    model.eval()
     for imgs, labels in eval_loader:
         imgs, labels = imgs.to(device), labels.to(device)
         with torch.no_grad():
