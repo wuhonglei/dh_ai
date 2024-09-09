@@ -1,7 +1,7 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: True
+  generate: False
   train_total: 10000
   test_total: 1000
   captcha_length: 1
@@ -18,7 +18,7 @@ model:
 
 training:
   train_dir: "data/train"
-  batch_size: 256
+  batch_size: 1024
   learning_rate: 0.001
   epochs: 50
   pretrained: True # 是否加载预训练模型
