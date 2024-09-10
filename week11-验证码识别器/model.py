@@ -1,3 +1,4 @@
+import time
 import torch.nn as nn
 
 import torch
@@ -125,7 +126,7 @@ class CNNModel(nn.Module):
 
     def forward(self, x):
         x = x.view(-1, 1, 128, 128)
-        x = self.stn(x)
+        # x = self.stn(x)
 
         x = self.conv1(x)
         x = self.conv2(x)

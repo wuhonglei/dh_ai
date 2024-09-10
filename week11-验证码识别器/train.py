@@ -1,10 +1,11 @@
+import os
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import wandb
-import os
 
 from model import CNNModel
 from dataset import CaptchaDataset
@@ -68,6 +69,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
     for epoch in range(epochs):
         loss_sum = 0.0
         acc_sum = 0.0
+        start_time = time.time()
         model.train()
         for batch_ids, (imgs, labels) in enumerate(train_loader):
             imgs, labels = imgs.to(device), labels.to(device)
@@ -100,7 +102,8 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
             'train_loss': train_loss,
             'train_accuracy': train_accuracy,
             'test_loss': test_loss,
-            'test_accuracy': test_accuracy
+            'test_accuracy': test_accuracy,
+            'epoch_time': int(time.time() - start_time)
         })
 
         early_stopping(test_loss)
