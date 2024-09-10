@@ -44,6 +44,7 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
 
         predict = output.argmax(dim=2, keepdim=True)
         correct += (predict == labels.view_as(predict)).all(dim=1).sum().item()
+        total += labels.size(0)
 
         # output: (batch_size, captcha_length, class_num)
         output = output.view(-1, class_num)
@@ -52,7 +53,6 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
 
         loss = criterion(output, labels)
         loss_sum += loss.item() * imgs.size(0)
-        total += labels.size(0)
 
     test_loss = loss_sum / total
     test_accuracy = 1.0 * correct / (total)
@@ -64,5 +64,5 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
 
 
 if __name__ == '__main__':
-    evaluate(data_dir='./data/test', model_path='./models/2-model.pth',
+    evaluate(data_dir='./data/test_acc', model_path='./models/2-model.pth',
              captcha_length=2, class_num=2 )
