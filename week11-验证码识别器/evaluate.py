@@ -1,9 +1,11 @@
-from model import CNNModel
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
+
+from model import CNNModel
 from dataset import CaptchaDataset
 
 
@@ -13,8 +15,6 @@ def evaluate(data_dir, model_path, captcha_length: int, class_num):
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     model.to(device)
-    model.eval()
-
     return evaluate_model(data_dir, model, captcha_length, class_num)
 
 
@@ -64,5 +64,5 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
 
 
 if __name__ == '__main__':
-    evaluate(data_dir='./data/test', model_path='./model/model.pth',
-             captcha_length=4, class_num=10, )
+    evaluate(data_dir='./data/test', model_path='./models/2-model.pth',
+             captcha_length=2, class_num=2 )

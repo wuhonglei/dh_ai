@@ -4,7 +4,7 @@ dataset:
   generate: False
   train_total: 10000
   test_total: 1000
-  captcha_length: 1
+  captcha_length: 2
   width: 200
   height: 100
   characters: "01"
@@ -20,7 +20,7 @@ training:
   train_dir: "data/train"
   batch_size: 1024
   learning_rate: 0.001
-  epochs: 50
+  epochs: 2
   pretrained: False # 是否加载预训练模型
   model_path: "./models/model.pth"
 

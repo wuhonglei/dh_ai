@@ -107,11 +107,12 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
         })
 
         early_stopping(test_loss)
-        torch.save(model.state_dict(), model_path)
+        torch.save(model.state_dict(), model_path.replace('model.pth', f'model_{epoch}.pth'))
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
             break
-
+    
+    torch.save(model.state_dict(), model_path)
     wandb.finish()
 
 
