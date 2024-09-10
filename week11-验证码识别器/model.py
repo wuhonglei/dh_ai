@@ -56,12 +56,12 @@ class CNNModel(nn.Module):
         self.localization_network = LocalizationNetwork()
 
         """
-        Conv2d: 1 * 128 * 128 -> 8 * 128 * 128 -> 8 * 64 * 64
+        Conv2d: 1 * 128 * 128 -> 32 * 128 * 128 -> 32 * 64 * 64
         """
         self.conv1 = nn.Sequential(
             nn.Conv2d(
                 in_channels=1,
-                out_channels=8,
+                out_channels=32,
                 kernel_size=3,
                 padding='same',
                 stride=1,
@@ -71,12 +71,12 @@ class CNNModel(nn.Module):
         )
 
         """
-        Conv2d: 8 * 64 * 64 -> 16 * 64 * 64 -> 16 * 32 * 32
+        Conv2d: 32 * 64 * 64 -> 64 * 64 * 64 -> 64 * 32 * 32
         """
         self.conv2 = nn.Sequential(
             nn.Conv2d(
-                in_channels=8,
-                out_channels=16,
+                in_channels=32,
+                out_channels=64,
                 kernel_size=3,
                 padding='same',
                 stride=1,
@@ -86,12 +86,12 @@ class CNNModel(nn.Module):
         )
 
         """
-        Conv2d: 16 * 32 * 32 -> 16 * 32 * 32 -> 16 * 16 * 16
+        Conv2d: 64 * 32 * 32 -> 64 * 32 * 32 -> 64 * 16 * 16
         """
         self.conv3 = nn.Sequential(
             nn.Conv2d(
-                in_channels=16,
-                out_channels=16,
+                in_channels=64,
+                out_channels=64,
                 kernel_size=3,
                 padding='same',
                 stride=1,
@@ -102,26 +102,26 @@ class CNNModel(nn.Module):
         )
 
         """
-        Linear: 16 * 16 * 16 -> 128
+        Linear: 64 * 16 * 16 -> 128
         """
         self.fc1 = nn.Sequential(
-            nn.Linear(16 * 16 * 16, 128),
+            nn.Linear(64 * 16 * 16, 1024),
             nn.ReLU(),
             nn.Dropout(0.5),
         )
 
         """
-        Linear: 128 -> output_size
+        Linear: 1024 -> output_size
         """
         self.fc2 = nn.Sequential(
-            nn.Linear(128, self.captcha_length * self.class_num),
+            nn.Linear(1024, self.captcha_length * self.class_num),
         )
 
     def stn(self, x):
         # STN 前向传播
         theta = self.localization_network(x)
-        grid = torch.nn.functional.affine_grid(theta, x.size())
-        x = torch.nn.functional.grid_sample(x, grid)
+        grid = F.affine_grid(theta, x.size())
+        x = F.grid_sample(x, grid)
         return x
 
     def forward(self, x):
