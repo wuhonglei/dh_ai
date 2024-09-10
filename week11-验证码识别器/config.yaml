@@ -22,8 +22,8 @@ training:
   train_dir: "data/train"
   batch_size: 1024
   learning_rate: 0.001
-  epochs: 1
-  pretrained: False # 是否加载预训练模型
+  epochs: 10
+  pretrained: True # 是否加载预训练模型
   model_path: "./models/model.pth"
 
 testing:

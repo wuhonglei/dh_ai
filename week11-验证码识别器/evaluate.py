@@ -65,5 +65,5 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index):
 
 
 if __name__ == '__main__':
-    evaluate(data_dir='./data/test_acc', model_path='./models/2-model.pth',
-             captcha_length=2, class_num=2, padding_index='10')
+    evaluate(data_dir='./data/多位验证码/一位', model_path='./models/2-model-dynamic.pth',
+             captcha_length=2, class_num=11, padding_index='10')
