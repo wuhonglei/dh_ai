@@ -2,6 +2,9 @@ import os
 import shutil
 import yaml
 
+import torch
+from model import CNNModel
+
 
 def init_dir(dir_path, remove=False):
     """
@@ -39,3 +42,18 @@ def get_wandb_config(captcha_length: int):
         'reinit': True
     }
     return wandb_init_args
+
+
+def load_model(captcha_length: int, class_num: int, model_path: str):
+    """
+    加载模型
+    :param captcha_length: 验证码长度
+    :param class_num: 类别数
+    :param model_path: 模型路径
+    :return: 模型
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = CNNModel(captcha_length=captcha_length, class_num=class_num)
+    model.load_state_dict(torch.load(
+        model_path, map_location=device, weights_only=True))
+    return model

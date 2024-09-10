@@ -1,4 +1,5 @@
 data/test
 data/train
+data/多位验证码
 mnist/
 models/

@@ -7,7 +7,7 @@ dataset:
   captcha_length: 2
   width: 200
   height: 100
-  characters: "01"
+  characters: "0123456789"
   train_dir: "data/train"
   test_dir: "data/test"
 

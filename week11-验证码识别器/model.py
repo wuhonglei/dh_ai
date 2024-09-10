@@ -88,7 +88,8 @@ class CNNModel(nn.Module):
 
     def predict(self, x):
         self.eval()
-        logits = self.forward(x)
+        with torch.no_grad():
+            logits = self.forward(x)
         _, pred = logits.max(dim=2)
         return pred, torch.softmax(logits, dim=2)
 
