@@ -9,6 +9,7 @@ dataset:
   width: 200
   height: 100
   characters: "0123456789"
+  padding_index: "10" # 验证码长度不足时填充的数字索引, 需使用 characters 后一位
   train_dir: "data/train"
   test_dir: "data/test"
 

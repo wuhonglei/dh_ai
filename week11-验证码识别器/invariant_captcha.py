@@ -86,7 +86,7 @@ def best_predict(model1, model2, imgs):
 
 
 test_dataset = CaptchaDataset(
-    data_dir='./data/多位验证码/两位', captcha_length=2, padding_str='10', transform=transform)
+    data_dir='./data/多位验证码/两位', captcha_length=2, padding_index='10', transform=transform)
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True)
 correct = 0
 total = 0

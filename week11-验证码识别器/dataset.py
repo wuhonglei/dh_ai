@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 
 
 class CaptchaDataset(Dataset):
-    def __init__(self, data_dir: str, padding_str, captcha_length: int = -1,  transform=None):
+    def __init__(self, data_dir: str, padding_index, captcha_length: int = -1,  transform=None):
         self.data_dir = data_dir
         self.transform = transform
         self.imgs = os.listdir(data_dir)
         self.captcha_length = captcha_length
-        self.padding_str = padding_str  # 标签长度不足时的填充字符
+        self.padding_index = padding_index  # 标签长度不足时的填充字符
 
     def __len__(self):
         return len(self.imgs)
@@ -34,7 +34,7 @@ class CaptchaDataset(Dataset):
 
         label_list = list(map(int, str_label))
         if len(label_list) < self.captcha_length:
-            label_list += [int(self.padding_str)] * \
+            label_list += [int(self.padding_index)] * \
                 (self.captcha_length - len(label_list))
 
         label = torch.tensor(label_list, dtype=torch.long)
@@ -49,8 +49,8 @@ if __name__ == '__main__':
     ])
 
     dataset = CaptchaDataset(
-        data_dir='./data/demo', padding_str='10', captcha_length=2, transform=transform)
-    train_loader = DataLoader(dataset, batch_size=8, shuffle=True)
+        data_dir='./data/demo', padding_index='10', captcha_length=2, transform=transform)
+    train_loader = DataLoader(dataset, batch_size=100, shuffle=True)
 
     def show_img(imgs: list[torch.Tensor], labels):
         import matplotlib.pyplot as plt
@@ -71,6 +71,7 @@ if __name__ == '__main__':
     for epoch in range(1):
         print(f'epoch = {epoch}')
         for batch_idx, (imgs, labels) in enumerate(train_loader):
-            show_img(imgs, labels)
+            print('labels', labels)
+            # show_img(imgs, labels)
             break
         print('---')

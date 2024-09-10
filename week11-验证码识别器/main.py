@@ -11,6 +11,7 @@ def main():
     training_config = config['training']
     testing_config = config['testing']
 
+    padding_index = dataset_config['padding_index']
     captcha_length = dataset_config['captcha_length']
     model_name = os.path.basename(training_config["model_path"])
     model_path = training_config["model_path"].replace(
@@ -29,6 +30,7 @@ def main():
           epochs=training_config['epochs'],
           captcha_length=captcha_length,
           class_num=class_num,
+          padding_index=padding_index,
           pretrained=training_config['pretrained'],
           learning_rate=training_config['learning_rate'],
           model_path=model_path,
@@ -39,6 +41,7 @@ def main():
              model_path=model_path,
              captcha_length=captcha_length,
              class_num=class_num,
+             padding_index=padding_index
              )
 
 

@@ -42,7 +42,7 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, model_path: str, early_stopping={}):
+def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, padding_index, model_path: str, early_stopping={}):
     wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
@@ -55,7 +55,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
     is_cuda = device.type == 'cuda'
     loader_config = {'num_workers': 4, 'pin_memory': True} if is_cuda else {}
     train_dataset = CaptchaDataset(
-        data_dir, captcha_length=captcha_length, padding_str=class_num-1, transform=transform)
+        data_dir, captcha_length=captcha_length, padding_index=padding_index, transform=transform)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
@@ -94,7 +94,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
                     f'Epoch: {epoch+1}/{epochs} | Batch: {batch_ids}/{len(train_loader)} | Loss: {loss.item()}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length, class_num)
+            test_dir, model, captcha_length, class_num, padding_index)
         train_loss, train_accuracy = loss_sum / \
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))
@@ -120,4 +120,4 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
 
 if __name__ == '__main__':
     train(data_dir='./data/train', test_dir='./data/test', batch_size=64, pretrained=False,
-          epochs=1, captcha_length=1, class_num=10, model_path='./model/model-test.pth', learning_rate=0.001)
+          epochs=1, captcha_length=1, class_num=11, padding_index="10",  model_path='./model/model-test.pth', learning_rate=0.001, early_stopping={})
