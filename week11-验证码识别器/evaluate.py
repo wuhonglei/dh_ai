@@ -58,8 +58,8 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index):
     test_loss = loss_sum / total
     test_accuracy = 1.0 * correct / (total)
 
-    print(f'Test Loss: {test_loss}')
-    print(f'Test Accuracy: {100 * test_accuracy}%')
+    print(f'Test Loss: {test_loss:.4f}')
+    print(f'Test Accuracy: {100 * test_accuracy:.4f}%')
 
     return test_loss, test_accuracy
 
