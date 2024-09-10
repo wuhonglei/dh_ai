@@ -6,54 +6,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class LocalizationNetwork(nn.Module):
-    def __init__(self):
-        super(LocalizationNetwork, self).__init__()
-
-        # 定义卷积层
-        # 1 个输入通道, 16 个输出通道, 7x7 卷积核
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=7)
-        # 16 个输入通道, 32 个输出通道, 5x5 卷积核
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=5)
-        # 32 个输入通道, 64 个输出通道, 5x5 卷积核
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=5)
-
-        # 全连接层，用于输出仿射变换的参数 (2x3)
-        self.fc1 = nn.Linear(64 * 12 * 12, 128)  # 计算卷积层输出的特征图大小后设置全连接层的输入大小
-        self.fc2 = nn.Linear(128, 6)  # 输出 6 个仿射变换参数 (2x3 矩阵)
-
-        # 初始化仿射变换为单位矩阵
-        self.fc2.weight.data.zero_()
-        self.fc2.bias.data.copy_(torch.tensor(
-            [1, 0, 0, 0, 1, 0], dtype=torch.float))
-
-    def forward(self, x):
-        # 卷积层 + 池化
-        # 输入: (128x128), 输出: (61x61)
-        x = torch.relu(torch.max_pool2d(self.conv1(x), 2))
-        # 输入: (61x61), 输出: (29x29)
-        x = torch.relu(torch.max_pool2d(self.conv2(x), 2))
-        # 输入: (29x29), 输出: (12x12)
-        x = torch.relu(torch.max_pool2d(self.conv3(x), 2))
-
-        # 展平为全连接层输入
-        x = x.view(-1, 64 * 12 * 12)
-
-        # 全连接层
-        x = torch.relu(self.fc1(x))
-
-        # 输出仿射变换参数
-        theta = self.fc2(x)
-        theta = theta.view(-1, 2, 3)  # 输出 2x3 仿射矩阵
-        return theta
-
-
 class CNNModel(nn.Module):
     def __init__(self, captcha_length, class_num):
         super(CNNModel, self).__init__()
         self.captcha_length = captcha_length
         self.class_num = class_num
-        self.localization_network = LocalizationNetwork()
 
         """
         Conv2d: 1 * 128 * 128 -> 32 * 128 * 128 -> 32 * 64 * 64
@@ -117,16 +74,8 @@ class CNNModel(nn.Module):
             nn.Linear(1024, self.captcha_length * self.class_num),
         )
 
-    def stn(self, x):
-        # STN 前向传播
-        theta = self.localization_network(x)
-        grid = F.affine_grid(theta, x.size())
-        x = F.grid_sample(x, grid)
-        return x
-
     def forward(self, x):
         x = x.view(-1, 1, 128, 128)
-        # x = self.stn(x)
 
         x = self.conv1(x)
         x = self.conv2(x)
