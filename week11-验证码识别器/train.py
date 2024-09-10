@@ -75,7 +75,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad()
             output = model(imgs)
-            predict = output.argmax(dim=2, keepdim=True)
+            predict = output.detach().argmax(dim=2, keepdim=True)
             acc_sum += (predict == labels.view_as(predict)
                         ).all(dim=1).sum().item()
 
