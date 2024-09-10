@@ -54,7 +54,8 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'
     loader_config = {'num_workers': 4, 'pin_memory': True} if is_cuda else {}
-    train_dataset = CaptchaDataset(data_dir, transform=transform)
+    train_dataset = CaptchaDataset(
+        data_dir, captcha_length=captcha_length, padding_str=class_num-1, transform=transform)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
@@ -107,11 +108,12 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
         })
 
         early_stopping(test_loss)
-        torch.save(model.state_dict(), model_path.replace('model.pth', f'model_{epoch}.pth'))
+        torch.save(model.state_dict(), model_path.replace(
+            'model.pth', f'model_{epoch}.pth'))
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
             break
-    
+
     torch.save(model.state_dict(), model_path)
     wandb.finish()
 

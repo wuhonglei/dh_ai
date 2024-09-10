@@ -2,8 +2,9 @@ name: "验证码识别"
 dataset:
   name: "captcha"
   generate: False
-  train_total: 10000
-  test_total: 1000
+  remove: True # 是否删除原有数据
+  train_total: 5000
+  test_total: 500
   captcha_length: 2
   width: 200
   height: 100
@@ -20,7 +21,7 @@ training:
   train_dir: "data/train"
   batch_size: 1024
   learning_rate: 0.001
-  epochs: 2
+  epochs: 1
   pretrained: False # 是否加载预训练模型
   model_path: "./models/model.pth"
 

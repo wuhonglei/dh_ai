@@ -12,10 +12,12 @@ import matplotlib.pyplot as plt
 
 
 class CaptchaDataset(Dataset):
-    def __init__(self, data_dir, transform=None):
+    def __init__(self, data_dir: str, padding_str, captcha_length: int = -1,  transform=None):
         self.data_dir = data_dir
         self.transform = transform
         self.imgs = os.listdir(data_dir)
+        self.captcha_length = captcha_length
+        self.padding_str = padding_str  # 标签长度不足时的填充字符
 
     def __len__(self):
         return len(self.imgs)
@@ -30,7 +32,12 @@ class CaptchaDataset(Dataset):
             # 将 img 转为 tensor
             img = transforms.ToTensor()(img)
 
-        label = torch.tensor(list(map(int, str_label)), dtype=torch.long)
+        label_list = list(map(int, str_label))
+        if len(label_list) < self.captcha_length:
+            label_list += [int(self.padding_str)] * \
+                (self.captcha_length - len(label_list))
+
+        label = torch.tensor(label_list, dtype=torch.long)
         return (img, label)
 
 
@@ -41,7 +48,8 @@ if __name__ == '__main__':
         transforms.ToTensor()
     ])
 
-    dataset = CaptchaDataset("./data/train", transform=None)
+    dataset = CaptchaDataset(
+        data_dir='./data/demo', padding_str='10', captcha_length=2, transform=transform)
     train_loader = DataLoader(dataset, batch_size=8, shuffle=True)
 
     def show_img(imgs: list[torch.Tensor], labels):

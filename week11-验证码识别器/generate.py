@@ -10,7 +10,7 @@ import os
 from utils import init_dir
 
 
-def generate_captcha(total, captcha_length, width, height, characters, dist_dir):
+def generate_captcha(total, captcha_length, width, height, characters, dist_dir, remove: bool):
     """
     生成验证码图片
     :param total: 生成验证码图片的数量
@@ -19,7 +19,7 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir)
     :param height: 图片高度
     :param characters: 验证码字符集
     """
-    init_dir(dist_dir, remove=True)
+    init_dir(dist_dir, remove=remove)
 
     for i in range(total):
         # 生成验证码
@@ -33,6 +33,6 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir)
 
 if __name__ == '__main__':
     generate_captcha(total=500, captcha_length=1, width=200,
-                     height=100, characters=string.digits, dist_dir='./data/多位验证码/一位')
+                     height=100, characters=string.digits, dist_dir='./data/多位验证码/一位', remove=True)
     generate_captcha(total=500, captcha_length=2, width=200,
-                     height=100, characters=string.digits, dist_dir='./data/多位验证码/两位')
+                     height=100, characters=string.digits, dist_dir='./data/多位验证码/两位', remove=True)

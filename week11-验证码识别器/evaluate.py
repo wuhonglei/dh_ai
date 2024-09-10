@@ -28,7 +28,8 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'
     loader_config = {'num_workers': 4, 'pin_memory': True} if is_cuda else {}
-    eval_dataset = CaptchaDataset(data_dir, transform=transform)
+    eval_dataset = CaptchaDataset(
+        data_dir, captcha_length=captcha_length, padding_str=class_num-1, transform=transform)
     eval_loader = DataLoader(eval_dataset, batch_size=1, **loader_config)
 
     loss_sum = 0.0
@@ -65,4 +66,4 @@ def evaluate_model(data_dir, model, captcha_length, class_num):
 
 if __name__ == '__main__':
     evaluate(data_dir='./data/test_acc', model_path='./models/2-model.pth',
-             captcha_length=2, class_num=2 )
+             captcha_length=2, class_num=2)
