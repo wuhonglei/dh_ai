@@ -8,6 +8,8 @@ dataset:
   captcha_length: 6
   width: 200
   height: 100
+  train_dir: "data/train"
+  test_dir: "data/test"
   characters: "0123456789abcdefghijklmnopqrstuvwxyz"
   padding_index: "36" # 验证码长度不足时填充的数字索引, 需使用 characters 后一位
 
