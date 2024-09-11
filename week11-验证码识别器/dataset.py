@@ -9,12 +9,14 @@ from PIL import Image
 import torch
 from typing import Any, Tuple
 import matplotlib.pyplot as plt
+from utils import char_to_index
 
 
 class CaptchaDataset(Dataset):
-    def __init__(self, data_dir: str, padding_index, captcha_length: int = -1,  transform=None):
+    def __init__(self, data_dir: str, padding_index, characters, captcha_length: int = -1,  transform=None):
         self.data_dir = data_dir
         self.transform = transform
+        self.characters = characters
         self.imgs = os.listdir(data_dir)
         self.captcha_length = captcha_length
         self.padding_index = padding_index  # 标签长度不足时的填充字符
@@ -32,7 +34,8 @@ class CaptchaDataset(Dataset):
             # 将 img 转为 tensor
             img = transforms.ToTensor()(img)
 
-        label_list = list(map(int, str_label))
+        label_list = list(map(lambda char: char_to_index(
+            char, self.characters), str_label.lower()))
         if len(label_list) < self.captcha_length:
             label_list += [int(self.padding_index)] * \
                 (self.captcha_length - len(label_list))
@@ -43,14 +46,14 @@ class CaptchaDataset(Dataset):
 
 if __name__ == '__main__':
     transform = transforms.Compose([
-        transforms.Resize((128, 128)),
         transforms.Grayscale(num_output_channels=1),
+        transforms.Resize((96, 96)),
         transforms.ToTensor()
     ])
 
     dataset = CaptchaDataset(
-        data_dir='./data/demo', padding_index='10', captcha_length=2, transform=transform)
-    train_loader = DataLoader(dataset, batch_size=100, shuffle=True)
+        data_dir='./data/train-3363-stable-new/test', characters='0123456789abcdefghijklmnopqrstuvwxyz', padding_index='36', captcha_length=4, transform=transform)
+    train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     def show_img(imgs: list[torch.Tensor], labels):
         import matplotlib.pyplot as plt

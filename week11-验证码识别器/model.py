@@ -7,13 +7,14 @@ import torch.nn.functional as F
 
 
 class CNNModel(nn.Module):
-    def __init__(self, captcha_length, class_num):
+    def __init__(self, input_size, captcha_length, class_num):
         super(CNNModel, self).__init__()
+        self.input_size = input_size
         self.captcha_length = captcha_length
         self.class_num = class_num
 
         """
-        Conv2d: 1 * 128 * 128 -> 32 * 128 * 128 -> 32 * 64 * 64
+        Conv2d: 1 * 96 * 96 -> 32 * 96 * 96 -> 32 * 48 * 48
         """
         self.conv1 = nn.Sequential(
             nn.Conv2d(
@@ -28,7 +29,7 @@ class CNNModel(nn.Module):
         )
 
         """
-        Conv2d: 32 * 64 * 64 -> 64 * 64 * 64 -> 64 * 32 * 32
+        Conv2d: 32 * 48 * 48 -> 64 * 48 * 48 -> 64 * 24 * 24
         """
         self.conv2 = nn.Sequential(
             nn.Conv2d(
@@ -43,7 +44,7 @@ class CNNModel(nn.Module):
         )
 
         """
-        Conv2d: 64 * 32 * 32 -> 64 * 32 * 32 -> 64 * 16 * 16
+        Conv2d: 64 * 24 * 24 -> 64 * 24 * 24 -> 64 * 12 * 12
         """
         self.conv3 = nn.Sequential(
             nn.Conv2d(
@@ -59,10 +60,12 @@ class CNNModel(nn.Module):
         )
 
         """
-        Linear: 64 * 16 * 16 -> 128
+        Linear: 64 * 12 * 12 -> 1024
         """
+        width = input_size // 8
+        height = input_size // 8
         self.fc1 = nn.Sequential(
-            nn.Linear(64 * 16 * 16, 1024),
+            nn.Linear(64 * width * height, 1024),
             nn.ReLU(),
             nn.Dropout(0.5),
         )
@@ -75,7 +78,7 @@ class CNNModel(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(-1, 1, 128, 128)
+        x = x.view(-1, 1, self.input_size, self.input_size)
 
         x = self.conv1(x)
         x = self.conv2(x)
@@ -102,9 +105,9 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import torchvision.transforms.functional as F
 
-    model = CNNModel(captcha_length=1, class_num=10)
-    model.load_state_dict(torch.load(
-        './models/1-model-stn.pth', weights_only=True, map_location='cpu'))
+    model = CNNModel(input_size=96, captcha_length=4, class_num=36)
+    # model.load_state_dict(torch.load(
+    #     './models/1-model-stn.pth', weights_only=True, map_location='cpu'))
 
     def print_parameters(model):
         param_count = 0
@@ -115,10 +118,10 @@ if __name__ == '__main__':
 
     def print_forward(model):
         import torch
-        x = torch.randn(1, 1, 128, 128)
+        x = torch.randn(1, 1, 96, 96)
         for name, module in model.named_children():
             if name == 'fc1':
-                x = x.view(-1, 16 * 16 * 16)
+                x = nn.Flatten()(x)
             print(f'name: {name}, input: {x.size()}')
             x = module(x)
             print(f'name: {name}, output: {x.size()}')
@@ -204,7 +207,7 @@ if __name__ == '__main__':
             # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
             break
 
-    # print(model)
-    # print_parameters(model)
-    # print_forward(model)
-    display_feature_maps(model)
+    print(model)
+    print_parameters(model)
+    print_forward(model)
+    # display_feature_maps(model)

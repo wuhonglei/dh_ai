@@ -44,7 +44,7 @@ def get_wandb_config(captcha_length: int):
     return wandb_init_args
 
 
-def load_model(captcha_length: int, class_num: int, model_path: str):
+def load_model(captcha_length: int, class_num: int, model_path: str, input_size: int):
     """
     加载模型
     :param captcha_length: 验证码长度
@@ -53,7 +53,18 @@ def load_model(captcha_length: int, class_num: int, model_path: str):
     :return: 模型
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = CNNModel(captcha_length=captcha_length, class_num=class_num)
+    model = CNNModel(input_size=input_size, captcha_length=captcha_length,
+                     class_num=class_num)
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     return model
+
+
+def char_to_index(char: str, characters: str):
+    """
+    字符转索引
+    :param char: 字符
+    :param characters: 字符集
+    :return: 索引
+    """
+    return characters.index(char)

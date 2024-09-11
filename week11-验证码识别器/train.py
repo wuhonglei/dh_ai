@@ -9,7 +9,7 @@ import wandb
 
 from model import CNNModel
 from dataset import CaptchaDataset
-from utils import get_wandb_config, load_config
+from utils import get_wandb_config
 from evaluate import evaluate_model
 
 wandb.require("core")
@@ -42,24 +42,24 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, padding_index, model_path: str, early_stopping={}):
+def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, input_size: int, early_stopping={}):
     wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
-        transforms.Resize((128, 128)),
+        transforms.Resize((input_size, input_size)),
         transforms.Grayscale(num_output_channels=1),
         transforms.ToTensor()
     ])
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'
-    loader_config = {'num_workers': 4, 'pin_memory': True} if is_cuda else {}
+    loader_config = {'num_workers': 3, 'pin_memory': True} if is_cuda else {}
     train_dataset = CaptchaDataset(
-        data_dir, captcha_length=captcha_length, padding_index=padding_index, transform=transform)
+        data_dir, captcha_length=captcha_length, characters=characters, padding_index=padding_index, transform=transform)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
-    model = CNNModel(captcha_length, class_num)
+    model = CNNModel(input_size, captcha_length, class_num)
     if pretrained and os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
@@ -94,7 +94,7 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
                     f'Epoch: {epoch+1}/{epochs} | Batch: {batch_ids}/{len(train_loader)} | Loss: {loss.item()}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length, class_num, padding_index)
+            test_dir, model, captcha_length, class_num, padding_index, input_size, characters)
         train_loss, train_accuracy = loss_sum / \
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))
@@ -107,9 +107,16 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
             'epoch_time': int(time.time() - start_time)
         })
 
+        print(f'Test Loss: {test_loss:.4f}')
+        print(f'Test Accuracy: {100 * test_accuracy:.4f}%')
+        print(f'Train Loss: {train_loss:.4f}')
+        print(f'Train Accuracy: {100 * train_accuracy:.4f}%')
+
         early_stopping(test_loss)
-        torch.save(model.state_dict(), model_path.replace(
-            'model.pth', f'model_{epoch}.pth'))
+
+        if epoch % 100 == 0:
+            torch.save(model.state_dict(), model_path.replace(
+                'model.pth', f'model_{epoch}.pth'))
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
             break
@@ -119,5 +126,5 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
 
 
 if __name__ == '__main__':
-    train(data_dir='./data/train', test_dir='./data/test', batch_size=64, pretrained=False,
-          epochs=1, captcha_length=1, class_num=11, padding_index="10",  model_path='./model/model-test.pth', learning_rate=0.001, early_stopping={})
+    train(data_dir='./data/train-3363-stable-new/train', test_dir='./data/train-3363-stable-new/train', characters='0123456789abcdefghijklmnopqrstuvwxyz', batch_size=64, pretrained=False,
+          epochs=1, captcha_length=4, class_num=37, padding_index="36",  model_path='./model/model-test.pth', learning_rate=0.001, input_size=96, early_stopping={})
