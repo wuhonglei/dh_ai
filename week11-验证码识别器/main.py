@@ -37,7 +37,8 @@ def main():
           learning_rate=training_config['learning_rate'],
           input_size=model_config['input_size'],
           model_path=model_path,
-          early_stopping=config['early_stopping']
+          log=training_config['log'],
+          early_stopping=config['early_stopping'],
           )
 
     evaluate(data_dir=testing_config['test_dir'],

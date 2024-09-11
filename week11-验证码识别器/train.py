@@ -42,8 +42,9 @@ class EarlyStopping:
         return self.early_stop
 
 
-def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, input_size: int, early_stopping={}):
-    wandb.init(**get_wandb_config(captcha_length), job_type='train')
+def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, input_size: int, log: bool, early_stopping={}):
+    if log:
+        wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
         transforms.Resize((input_size, input_size)),
@@ -99,13 +100,14 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))
 
-        wandb.log({
-            'train_loss': train_loss,
-            'train_accuracy': train_accuracy,
-            'test_loss': test_loss,
-            'test_accuracy': test_accuracy,
-            'epoch_time': int(time.time() - start_time)
-        })
+        if log:
+            wandb.log({
+                'train_loss': train_loss,
+                'train_accuracy': train_accuracy,
+                'test_loss': test_loss,
+                'test_accuracy': test_accuracy,
+                'epoch_time': int(time.time() - start_time)
+            })
 
         print(f'Test Loss: {test_loss:.4f}')
         print(f'Test Accuracy: {100 * test_accuracy:.4f}%')
@@ -122,9 +124,10 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
             break
 
     torch.save(model.state_dict(), model_path)
-    wandb.finish()
+    if log:
+        wandb.finish()
 
 
 if __name__ == '__main__':
     train(data_dir='./data/train-3363-stable-new/train', test_dir='./data/train-3363-stable-new/train', characters='0123456789abcdefghijklmnopqrstuvwxyz', batch_size=64, pretrained=False,
-          epochs=1, captcha_length=4, class_num=37, padding_index="36",  model_path='./model/model-test.pth', learning_rate=0.001, input_size=96, early_stopping={})
+          epochs=1, captcha_length=4, class_num=37, padding_index="36",  model_path='./model/model-test.pth', learning_rate=0.001, input_size=96, log=False, early_stopping={})
