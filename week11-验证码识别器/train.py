@@ -47,8 +47,9 @@ def train(data_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoch
         wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
-        transforms.Resize((input_size, input_size)),
         transforms.Grayscale(num_output_channels=1),
+        transforms.Resize((input_size, input_size)),
+        transforms.RandomRotation(10),
         transforms.ToTensor()
     ])
 

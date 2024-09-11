@@ -61,6 +61,8 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, in
 
 
 if __name__ == '__main__':
-    evaluate(data_dir='./data/多位验证码/一位', model_path='./models/2-model-dynamic.pth',
-             characters='0123456789abcdefghijklmnopqrstuvwxyz',
-             captcha_length=2, class_num=11, padding_index='10', input_size=96)
+    test_loss, test_accuracy = evaluate(data_dir='./data/train-3363-stable-new/test', model_path='./models/model.pth',
+                                        characters='0123456789abcdefghijklmnopqrstuvwxyz',
+                                        captcha_length=6, class_num=37, padding_index='36', input_size=96)
+
+    print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}')
