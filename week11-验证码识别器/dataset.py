@@ -52,8 +52,8 @@ if __name__ == '__main__':
     ])
 
     dataset = CaptchaDataset(
-        data_dir='./data/train-3363-stable-new/test', characters='0123456789abcdefghijklmnopqrstuvwxyz', padding_index='36', captcha_length=4, transform=transform)
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+        data_dir='./data/train-3363-stable-new/test', characters='0123456789abcdefghijklmnopqrstuvwxyz', padding_index='36', captcha_length=6, transform=transform)
+    train_loader = DataLoader(dataset, batch_size=2, shuffle=False)
 
     def show_img(imgs: list[torch.Tensor], labels):
         import matplotlib.pyplot as plt
@@ -63,11 +63,12 @@ if __name__ == '__main__':
             plt.subplot(2, total // 2, i + 1)
             img = imgs[i]
             label = labels[i]
-            label = ''.join(map(str, label.tolist()))
+            # label = ''.join(
+            #     map(lambda x: x == int(padding_index), label.tolist()))
             img = img.numpy().transpose((1, 2, 0))
             plt.imshow(img)
             plt.axis('off')
-            plt.title(label)
+            plt.title('label')
 
         plt.show()
 

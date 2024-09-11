@@ -7,7 +7,7 @@ import string
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from captcha.image import ImageCaptcha
 import os
-from utils import init_dir
+from utils import init_dir, get_len_range
 
 
 def generate_captcha(total, captcha_length, width, height, characters, dist_dir, remove: bool):
@@ -23,7 +23,9 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
 
     for i in range(total):
         # 生成验证码
-        chars = ''.join(map(str, random.choices(characters, k=captcha_length)))
+        start, end = get_len_range(captcha_length)
+        chars = ''.join(map(str, random.choices(
+            characters, k=random.choice(range(start, end)))))
         # 生成验证码图片
         captcha = ImageCaptcha(width=width, height=height)
         img = captcha.generate_image(chars)
@@ -32,7 +34,5 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
 
 
 if __name__ == '__main__':
-    generate_captcha(total=500, captcha_length=1, width=200,
-                     height=100, characters=string.digits, dist_dir='./data/多位验证码/一位', remove=True)
-    generate_captcha(total=500, captcha_length=2, width=200,
-                     height=100, characters=string.digits, dist_dir='./data/多位验证码/两位', remove=True)
+    generate_captcha(total=10, captcha_length='2-4', width=200,
+                     height=100, characters=string.digits, dist_dir='./data/多位/', remove=True)

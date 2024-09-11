@@ -68,3 +68,33 @@ def char_to_index(char: str, characters: str):
     :return: 索引
     """
     return characters.index(char)
+
+
+def get_max_length(captcha_length: str) -> int:
+    """
+    获取最大长度
+    :param captcha_length: 验证码长度
+    :return: 最大长度
+
+    >>> get_max_length('1-5') == 5
+    >>> get_max_length(4) == 4
+    """
+    return max(map(int, str(captcha_length).split('-')))
+
+
+def get_len_range(captcha_length) -> tuple[int, int]:
+    """
+    获取长度范围
+    :param captcha_length: 验证码长度
+    :return: 长度范围
+
+    >>> get_len_range('1-5') == [1, 5]
+    >>> get_len_range(4) == [4, 4]
+    """
+
+    captcha_length = str(captcha_length)
+    if '-' not in captcha_length:
+        return (int(captcha_length), 1 + int(captcha_length))
+    else:
+        start, end = captcha_length.split('-')
+        return (int(start), 1 + int(end))
