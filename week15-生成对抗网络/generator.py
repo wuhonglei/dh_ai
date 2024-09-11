@@ -1,12 +1,13 @@
-import torch  
+import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+
 
 class Generator(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(Generator, self).__init__()
         self.input_size = input_size
-        self.hidden_size = hidden_size  
+        self.hidden_size = hidden_size
         self.output_size = output_size
 
         self.fc = nn.Sequential(
@@ -16,7 +17,7 @@ class Generator(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_size, output_size),
         )
-        
+
     def forward(self, x):
         x = x.view(-1, self.input_size)
         x = self.fc(x)
@@ -41,4 +42,3 @@ if __name__ == '__main__':
         ax.imshow(image[i], cmap='gray')
         ax.axis('off')
     plt.show()
-    
