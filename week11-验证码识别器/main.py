@@ -17,7 +17,8 @@ def main():
     model_name = os.path.basename(training_config["model_path"])
     model_path = training_config["model_path"].replace(
         model_name, f'{captcha_length}-{model_name}')
-    class_num = len(dataset_config['characters']) + 1  # 1 表示空白字符
+    padding_len = 1 if len(str(padding_index)) else 0
+    class_num = len(dataset_config['characters']) + padding_len  # 1 表示空白字符
 
     if dataset_config['generate']:
         origin_captcha_length = dataset_config['captcha_length']
