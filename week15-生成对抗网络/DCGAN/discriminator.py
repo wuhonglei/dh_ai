@@ -12,13 +12,13 @@ class Discriminator(nn.Module):
     判别器的输入是一个图像数据, 输出是一个概率值
     """
 
-    def __init__(self, input_size):
+    def __init__(self, input_channels):
         super(Discriminator, self).__init__()
 
         # 3 * 64 * 64 -> 64 * 32 * 32
         self.cv1 = nn.Sequential(
             nn.Conv2d(
-                in_channels=input_size,
+                in_channels=input_channels,
                 out_channels=64,
                 kernel_size=4,
                 stride=2,

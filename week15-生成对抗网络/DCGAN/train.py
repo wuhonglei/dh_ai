@@ -3,44 +3,41 @@ GAN 生成对抗网络训练代码
 """
 
 import os
-import numpy as np
 import torch
 import torch.nn as nn
-import torchvision
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from torch.utils.data import DataLoader
-from PIL import Image
 
 
 from generator import Generator
 from discriminator import Discriminator
+from dataset import AnimateDataset
 from utils import make_dirs
 
 
 def main():
-
+    epochs = 1
     batch_size = 64
+    img_size = 64
+    n_channels = 3  # 图像通道数, RGB
     input_size = 100  # 噪声维度
-    hidden_size = 256  # 隐藏层维度
-    img_size = 28 * 28  # 输出图像维度
-    output_dir = './data/output'
+    output_dir = './output'
 
     fixed_noise = torch.randn(batch_size, input_size)
 
     transform = transforms.Compose([
-        transforms.Resize(28),
+        transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
-        transforms.Normalize([0.5], [0.5])  # 归一化
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
-    dataset = datasets.MNIST(root='data', train=True,
-                             transform=transform, download=True)
+    dataset = AnimateDataset(root='./images', transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     # 创建生成器和判别器
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    generator = Generator(input_size, hidden_size, img_size).to(device)
-    discriminator = Discriminator(img_size, hidden_size, 1).to(device)
+    generator = Generator(input_size, n_channels).to(device)
+    discriminator = Discriminator(n_channels).to(device)
 
     # 定义损失函数和优化器
     g_optimizer = torch.optim.Adam(
@@ -50,11 +47,10 @@ def main():
     criterion = nn.BCELoss()  # 二分类交叉熵损失函数
 
     make_dirs(output_dir, remove=True)
-    epochs = 100
     for epoch in range(epochs):
         generator.train()
         discriminator.train()
-        for i, (real_imgs, _) in enumerate(dataloader):
+        for i, real_imgs in enumerate(dataloader):
             real_imgs = real_imgs.to(device)
             """ 训练判别器 """
             d_optimizer.zero_grad()
@@ -101,15 +97,15 @@ def main():
 
 def random_generate():
     fixed_noise = torch.randn(64, 100)
-    generator = Generator(100, 256, 784)
-    generator.load_state_dict(torch.load(
-        './models/100/generator.pth', map_location='cpu', weights_only=True))
+    generator = Generator(100, 3)
+    # generator.load_state_dict(torch.load(
+    #     './models/100/generator.pth', map_location='cpu', weights_only=True))
 
     fake = generator(fixed_noise)
-    image = fake.detach().view(-1, 1, 28, 28)
+    image = fake.detach().view(-1, 3, 64, 64)
     save_image(image, 'fake_images.png', nrow=8, normalize=True)
 
 
 if __name__ == '__main__':
-    # main()
-    random_generate()
+    main()
+    # random_generate()

@@ -6,12 +6,12 @@ from PIL import Image
 
 
 class AnimateDataset(Dataset):
-    def __init__(self, data_path, transform=None):
+    def __init__(self, root, transform=None):
         self.transform = transform
         self.data = []
-        for image in os.listdir(data_path):
+        for image in os.listdir(root):
             if image.endswith('.jpg') or image.endswith('.png'):
-                self.data.append(os.path.join(data_path, image))
+                self.data.append(os.path.join(root, image))
 
     def __len__(self):
         return len(self.data)

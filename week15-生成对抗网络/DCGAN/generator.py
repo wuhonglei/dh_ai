@@ -6,7 +6,7 @@ from utils import print_parameters, print_forward
 
 
 class Generator(nn.Module):
-    def __init__(self, noise_size, output_channels, ):
+    def __init__(self, noise_size, output_channels):
         super(Generator, self).__init__()
 
         """
