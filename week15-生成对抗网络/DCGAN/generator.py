@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+from torchvision.utils import make_grid, save_image
+from utils import print_parameters, print_forward
 
 
 class Generator(nn.Module):
@@ -64,7 +66,8 @@ class Generator(nn.Module):
                 stride=2,
                 padding=1
             ),
-            nn.Tanh()
+            nn.BatchNorm2d(128),
+            nn.ReLU()
         )
 
         """
@@ -99,6 +102,7 @@ if __name__ == '__main__':
     noise_size = 100
 
     netG = Generator(noise_size, 3)
-    noise = torch.randn(10, noise_size)
-    out = netG(noise)
-    print(out.shape)
+    noise = torch.randn(20, noise_size)
+    output = netG(noise)  # 20 * 3 * 64 * 64
+    # print_parameters(netG)
+    print_forward(noise, netG)
