@@ -19,7 +19,8 @@ class Generator(nn.Module):
                 out_channels=1024,
                 kernel_size=4,
                 stride=1,
-                padding=0
+                padding=0,
+                bias=False
             ),
             nn.BatchNorm2d(1024),
             nn.ReLU()
@@ -34,7 +35,8 @@ class Generator(nn.Module):
                 out_channels=512,
                 kernel_size=4,
                 stride=2,
-                padding=1
+                padding=1,
+                bias=False
             ),
             nn.BatchNorm2d(512),
             nn.ReLU()
@@ -49,7 +51,8 @@ class Generator(nn.Module):
                 out_channels=256,
                 kernel_size=4,
                 stride=2,
-                padding=1
+                padding=1,
+                bias=False
             ),
             nn.BatchNorm2d(256),
             nn.ReLU()
@@ -64,7 +67,8 @@ class Generator(nn.Module):
                 out_channels=128,
                 kernel_size=4,
                 stride=2,
-                padding=1
+                padding=1,
+                bias=False
             ),
             nn.BatchNorm2d(128),
             nn.ReLU()
@@ -79,7 +83,8 @@ class Generator(nn.Module):
                 out_channels=output_channels,
                 kernel_size=4,
                 stride=2,
-                padding=1
+                padding=1,
+                bias=False
             ),
             nn.Tanh()
         )
