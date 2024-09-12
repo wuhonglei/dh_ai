@@ -17,14 +17,15 @@ from utils import make_dirs
 
 
 def main():
-    epochs = 1
-    batch_size = 64
+    epochs = 300
+    batch_size = 1024
     img_size = 64
     n_channels = 3  # 图像通道数, RGB
     input_size = 100  # 噪声维度
     output_dir = './output'
 
-    fixed_noise = torch.randn(batch_size, input_size)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    fixed_noise = torch.randn(64, input_size).to(device)
 
     transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
@@ -32,10 +33,11 @@ def main():
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     dataset = AnimateDataset(root='./images', transform=transform)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size,
+                            shuffle=True, num_workers=3, pin_memory=True)
 
     # 创建生成器和判别器
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     generator = Generator(input_size, n_channels).to(device)
     discriminator = Discriminator(n_channels).to(device)
 
@@ -79,7 +81,7 @@ def main():
                   f'Loss D: {loss_d.item():.4f}, Loss G: {loss_g.item():.4f}')
 
         fake_imgs = generator(fixed_noise)
-        fake_imgs = fake_imgs.view(fake_imgs.size(0), 1, 28, 28)
+        fake_imgs = fake_imgs.view(fake_imgs.size(0), 3, 64, 64)
         # 保存生成的图像
         img_path = os.path.join(
             output_dir, f'fake_images-{epoch+1:03d}.png')
