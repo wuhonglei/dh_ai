@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+import torch.nn.functional as F
 
 
 class VGGFeatures(nn.Module):
@@ -18,14 +19,12 @@ class VGGFeatures(nn.Module):
         self.model = nn.Sequential()
         self.layers = self.content_layers + self.style_layers
         self.layer_names = []  # 保存需要的层的名字(升序)
-        idx = 0
 
         # 组合需要的层
         for name, layer in vgg_pretrained._modules.items():
             self.model.add_module(name, layer)
             if name in self.layers:
                 self.layer_names.append(name)
-            idx += 1
 
     def forward(self, x):
         features = {}
@@ -36,5 +35,15 @@ class VGGFeatures(nn.Module):
         return features
 
 
-vgg = VGGFeatures()
-print(vgg.idx)
+def calc_content_loss(generated_features, content_features, weight):
+    content_loss = F.mse_loss(
+        generated_features['21'], content_features['21']
+    )
+    return content_loss * weight
+
+
+def gram_matrix(tensor):
+    b, c, h, w = tensor.size()
+    tensor = tensor.view(b * c, h * w)
+    gram = torch.mm(tensor, tensor.t())
+    return gram
