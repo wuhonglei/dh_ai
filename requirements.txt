@@ -11,3 +11,4 @@ opencv-python
 wandb
 Flask
 captcha
+torchinfo
