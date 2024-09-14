@@ -1,3 +1,5 @@
+from utils import make_dirs
+import os
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -6,7 +8,9 @@ from PIL import Image
 from torchvision import transforms
 from torchvision.utils import save_image
 
-from utils import make_dirs
+# 设置 TORCH_HOME 环境变量
+if os.path.exists('/mnt/model/nlp/'):
+    os.environ['TORCH_HOME'] = '/mnt/model/nlp/pytorch'
 
 
 class VGGFeatures(nn.Module):
@@ -88,8 +92,10 @@ def load_image(image_path, max_size=512, shape=None) -> torch.Tensor:
 
 
 def denormalize(tensor):
-    mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
-    std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
+    mean = torch.tensor([0.485, 0.456, 0.406]).view(
+        1, 3, 1, 1).to(tensor.device)
+    std = torch.tensor([0.229, 0.224, 0.225]).view(
+        1, 3, 1, 1).to(tensor.device)
     return tensor * std + mean
 
 
@@ -108,8 +114,9 @@ style_image = load_image('./data/style.png',
 
 # 提取特征
 vgg = VGGFeatures().to(device).eval()
-content_features = vgg(content_image)
-style_features = vgg(style_image)
+with torch.no_grad():
+    content_features = vgg(content_image)
+    style_features = vgg(style_image)
 
 # 初始化生成图像（可以使用内容图像的副本）
 generated_image = content_image.clone().requires_grad_(True)
@@ -129,9 +136,9 @@ style_layers_weights = {
 }
 
 # 开始优化
-epochs = 10
-style_weight = 1e6
+epochs = 100
 content_weight = 1
+style_weight = 1
 
 make_dirs('./output', remove=True)
 epoch = [0]
@@ -147,11 +154,10 @@ while epoch[0] < epochs:
 
         loss = content_loss + style_loss
         epoch[0] += 1
-
         loss.backward()
-        save_img(generated_image, f'./output/{epoch[0]}.jpg')
-        if epoch[0] % 50 == 0:
-            print(f'Epoch [{epoch}/{epochs}], Loss: {closure().item()}')
+        if epoch[0] % 10 == 0:
+            save_img(generated_image, f'./output/{epoch[0]}.jpg')
+            print(f'Epoch [{epoch[0]}/{epochs}], Loss: {loss.item()}')
 
         return loss
 
