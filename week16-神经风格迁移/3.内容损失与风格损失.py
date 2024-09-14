@@ -146,13 +146,13 @@ while epoch[0] < epochs:
             generated_features, style_features, style_weight, style_layers_weights)
 
         loss = content_loss + style_loss
-        loss.backward()
+        epoch[0] += 1
 
+        loss.backward()
         save_img(generated_image, f'./output/{epoch[0]}.jpg')
         if epoch[0] % 50 == 0:
             print(f'Epoch [{epoch}/{epochs}], Loss: {closure().item()}')
 
-        epoch[0] += 1
         return loss
 
     optimizer.step(closure)
