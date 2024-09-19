@@ -7,7 +7,8 @@ def train(model, train_loader, test_loader, epochs, device):
     # 定义损失函数
     criterion = nn.CrossEntropyLoss()
     # 定义优化器
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(
+        filter(lambda p: p.requires_grad,  model.parameters()), lr=0.001)
     # 训练模型
     for epoch in range(epochs):
         model.train()
@@ -36,8 +37,8 @@ if __name__ == '__main__':
     # 加载数据
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
+        transforms.Grayscale(num_output_channels=3),
         transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 将灰度图像转换为 3 通道
     ])
     train_dataset = datasets.MNIST(
         root='data', train=True, transform=transform, download=True)
