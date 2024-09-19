@@ -1,9 +1,14 @@
+import os
 import torch
 import torch.nn as nn
 from torchvision import models
 from torchinfo import summary
 from collections import namedtuple
 from torch.nn.functional import mse_loss
+
+# 设置 TORCH_HOME 环境变量
+if os.path.exists('/mnt/model/nlp/'):
+    os.environ['TORCH_HOME'] = '/mnt/model/nlp/pytorch'
 
 
 class VGG16(nn.Module):
