@@ -133,8 +133,8 @@ saveSVGButton?.addEventListener("click", function (event) {
   }
 });
 
-async function predictFetchList(dataURL, label) {
-  const promise = ["cnn_model.pth", "ann_model.pth"].map((modelName) =>
+async function predictFetchList(dataURL, label, models) {
+  const promise = models.map((modelName) =>
     fetch("/predict", {
       method: "POST", // 使用 POST 方法
       headers: {
@@ -157,6 +157,8 @@ identityButton?.addEventListener("click", async function (event) {
     alert("Please provide a signature first.");
   } else {
     const input = document.querySelector(".name");
+    const model1 = document.querySelector("#model1");
+    const model2 = document.querySelector("#model2");
 
     const name = input.value || "signature.jpg";
     const pattern = /(\d)(_\d+)?/;
@@ -164,7 +166,10 @@ identityButton?.addEventListener("click", async function (event) {
     const label = match ? Number(match?.[1]) : undefined;
 
     var dataURL = signaturePad.toDataURL("image/jpeg");
-    const resList = await predictFetchList(dataURL, label);
+    const resList = await predictFetchList(dataURL, label, [
+      model1.value,
+      model2.value,
+    ]);
     [".predict-container-left", ".predict-container-right"].forEach(
       (selector, index) => {
         const container = document.querySelector(selector);

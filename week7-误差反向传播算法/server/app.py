@@ -7,41 +7,62 @@ import io
 import base64
 import numpy as np
 
-from ann_model import AnnModel
-from cnn_model import LeNet
+from nn_models.ann_model import AnnModel
+from nn_models.cnn_model import LeNet
+from nn_models.vgg_model import VGG16
 from train import train
-from utils import center_img, parse_request, img_transform
+from utils import center_img, parse_request, img_transform, vgg_transform
 
 # 加载模型
 ann_model = AnnModel()
 ann_model.load_state_dict(torch.load(
-    'ann_model.pth', map_location=torch.device('cpu')))
+    './models/ann_model.pth', map_location=torch.device('cpu'), weights_only=True))
 ann_model.eval()
 
 cnn_model = LeNet()
 cnn_model.load_state_dict(torch.load(
-    'cnn_model.pth', map_location=torch.device('cpu')))
+    './models/cnn_model.pth', map_location=torch.device('cpu'), weights_only=True))
 cnn_model.eval()
+
+vgg_model = VGG16()
+vgg_model.load_state_dict(torch.load(
+    './models/vgg16_model.pth', map_location=torch.device('cpu'), weights_only=True))
+vgg_model.eval()
+
+model_map = {
+    'ann': {
+        'model': ann_model,
+        'transform': img_transform
+    },
+    'cnn': {
+        'model': cnn_model,
+        'transform': img_transform
+    },
+    'vgg16': {
+        'model': vgg_model,
+        'transform': vgg_transform
+    }
+}
 
 app = Flask(__name__)
 
 # 定义推理 API
 
 
-@app.route('/predict', methods=['POST'])
+@ app.route('/predict', methods=['POST'])
 def predict():
     # 获取 JSON 数据
     data = request.get_json()
     # 使用 PIL.Image 读取图像
     model_name, label, img = parse_request(data)
-    model = ann_model if model_name == 'ann_model.pth' else cnn_model
+    model = model_map[model_name]['model']
     # 将数字居中
     img = center_img(img)
 
     # 显示图片
     # img.show()
 
-    img = img_transform(img)
+    img = model_map[model_name]['transform'](img)
 
     # 模型推理
     output = model.predict(img)

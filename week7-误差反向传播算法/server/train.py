@@ -15,5 +15,5 @@ def train(model, img, label, model_name):
         loss.backward()
         optimizer.step()
         print(f'Epoch {epoch}, Loss: {loss.item()}')
-    torch.save(model.state_dict(), f'./{model_name}')
+    torch.save(model.state_dict(), f'./models/{model_name}')
     model.eval()

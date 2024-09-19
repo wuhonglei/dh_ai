@@ -42,7 +42,11 @@
         <canvas></canvas>
       </div>
       <section class="predict-container-left">
-        <h3>CNN</h3>
+        <select name="model1" id="model1" style="margin-bottom: 8px">
+          <option value="ann">ann</option>
+          <option value="cnn">cnn</option>
+          <option value="vgg16" selected>vgg16</option>
+        </select>
         <div>
           <span>predict-digit: </span>
           <span class="predict-digit">-</span>
@@ -91,7 +95,11 @@
         </div>
       </div>
       <section class="predict-container-right">
-        <h3>ANN</h3>
+        <select name="model2" id="model2" style="margin-bottom: 8px">
+          <option value="ann">ann</option>
+          <option value="cnn" selected>cnn</option>
+          <option value="vgg16">vgg16</option>
+        </select>
         <div>
           <span>predict-digit: </span>
           <span class="predict-digit">-</span>
