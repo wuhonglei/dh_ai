@@ -34,21 +34,15 @@ if __name__ == '__main__':
     from torchvision import datasets, transforms
     from torch.utils.data import DataLoader
 
-    # 加载数据
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.Grayscale(num_output_channels=3),
-        transforms.ToTensor(),
-    ])
+    # 加载模型
+    from model import VGG16, transform
+
     train_dataset = datasets.MNIST(
         root='data', train=True, transform=transform, download=True)
     test_dataset = datasets.MNIST(
         root='data', train=False, transform=transform, download=True)
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-
-    # 加载模型
-    from model import VGG16
 
     model = VGG16()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -2,7 +2,7 @@
 
 import os
 import torch.nn as nn
-from torchvision import models
+from torchvision import models, transforms
 
 from torchinfo import summary
 
@@ -27,6 +27,14 @@ class VGG16(nn.Module):
         x = self.classifier(x)
         return x
 
+
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.Grayscale(num_output_channels=3),  # 将单通道转换为三通道
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],   # 使用 ImageNet 的均值和标准差
+                         [0.229, 0.224, 0.225])
+])
 
 if __name__ == '__main__':
     model = VGG16()
