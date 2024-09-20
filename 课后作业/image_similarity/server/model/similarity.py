@@ -3,11 +3,14 @@ import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
 
-from vgg16_feature import VGG16FeatureExtractor
-from vgg19_feature import VGG19FeatureExtractor
+from typing import Union, IO
+
+# from vgg16_feature import VGG16FeatureExtractor
+# from vgg19_feature import VGG19FeatureExtractor
 
 
 def compare_similarity(model, img1, img2):
+    model.eval()
     with torch.no_grad():
         feature1 = model(img1)
         feature2 = model(img2)
@@ -26,19 +29,20 @@ transform = transforms.Compose([
 ])
 
 
-def process_img(img_path: str) -> torch.Tensor:
+def process_img(img_path: Union[str, IO[bytes]]) -> torch.Tensor:
     img = Image.open(img_path).convert('RGB')
     img = transform(img).unsqueeze(0)  # type: ignore
     return img
 
 
 if __name__ == '__main__':
+    pass
     # model = VGG16FeatureExtractor()
-    model = VGG19FeatureExtractor()
-    model.eval()
+    # model = VGG19FeatureExtractor()
+    # model.eval()
 
-    img1 = process_img('data/dog/3.png')
-    img2 = process_img('data/dog/4.png')
+    # img1 = process_img('data/dog/3.png')
+    # img2 = process_img('data/dog/4.png')
 
-    similarity = compare_similarity(model, img1, img2)
-    print(f'Similarity: {similarity}')
+    # similarity = compare_similarity(model, img1, img2)
+    # print(f'Similarity: {similarity}')

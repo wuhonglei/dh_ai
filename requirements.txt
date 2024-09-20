@@ -12,3 +12,4 @@ wandb
 Flask
 captcha
 torchinfo
+python-dotenv
