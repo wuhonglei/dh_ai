@@ -1,5 +1,5 @@
 import { Layout, Menu, MenuProps } from "antd";
-import { Outlet, Routes, Route, NavLink } from "react-router-dom";
+import { Outlet, Routes, Route, Link } from "react-router-dom";
 
 import ImageCompare from "./pages/ImageCompare";
 import ImageSearch from "./pages/ImageSearch";
@@ -12,11 +12,11 @@ import { useSelectedKeys } from "./hooks";
 const items1: MenuProps["items"] = [
   {
     key: RouterKey.ImageCompare,
-    label: <NavLink to="/image-compare">图片比较</NavLink>,
+    label: <Link to="/image-compare">图片比较</Link>,
   },
   {
     key: RouterKey.ImageSearch,
-    label: <NavLink to="/image-search">图片检索</NavLink>,
+    label: <Link to="/image-search">图片检索</Link>,
   },
 ];
 
