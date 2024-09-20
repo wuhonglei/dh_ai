@@ -7,8 +7,6 @@ from client import client
 
 extractor = ResNet34FeatureExtractor()
 
-root = "./data"
-
 
 def insert_vector(root: str):
     for dirpath, foldername, filenames in os.walk(root):
@@ -21,3 +19,8 @@ def insert_vector(root: str):
                 "image_embeddings",
                 {"vector": image_embedding, "filename": filepath},
             )
+
+
+if __name__ == "__main__":
+    root = "./data"
+    insert_vector(root)
