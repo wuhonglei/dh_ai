@@ -44,10 +44,11 @@ export default function ImageCompare() {
       <div>
         <Select
           value={modelName}
+          className="w-32"
           onChange={(value: string) => setModelName(value)}
         >
-          <Select.Option value="vgg16">Vgg16</Select.Option>
           <Select.Option value="vgg19">Vgg19</Select.Option>
+          <Select.Option value="resnet34">ResNet-34</Select.Option>
         </Select>
       </div>
       <div className="flex gap-4">

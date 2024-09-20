@@ -2,12 +2,14 @@ from flask import Flask, jsonify, request
 from model.similarity import compare_similarity, process_img
 from model.vgg19_feature import VGG19FeatureExtractor
 from model.vgg16_feature import VGG16FeatureExtractor
+from model.resnet_34 import ResNet34FeatureExtractor
 
 app = Flask(__name__)
 
 model_dict = {
-    'vgg16': VGG16FeatureExtractor(),
-    'vgg19': VGG19FeatureExtractor()
+    # 'vgg16': VGG16FeatureExtractor(),
+    'vgg19': VGG19FeatureExtractor(),
+    'resnet34': ResNet34FeatureExtractor()
 }
 
 
@@ -21,7 +23,7 @@ def compare_images():
     # 获取 post 请求中 form-data 的参数
     image1 = request.files.get('image1')
     image2 = request.files.get('image2')
-    modelName = request.form.get('model', 'vgg16')
+    modelName = request.form.get('model', 'vgg19')
     if image1 is None or image2 is None:
         return jsonify({'error': 'Both image1 and image2 are required'}), 400
 
