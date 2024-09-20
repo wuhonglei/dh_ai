@@ -2,7 +2,7 @@
 
 import os
 
-from model.resnet_34 import ResNet34FeatureExtractor
+from models.resnet_34 import ResNet34FeatureExtractor
 from client import client
 
 extractor = ResNet34FeatureExtractor()
