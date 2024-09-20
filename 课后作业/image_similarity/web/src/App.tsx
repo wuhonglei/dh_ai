@@ -1,67 +1,51 @@
-import { Card, Image, Button, Typography } from "antd";
+import { Layout, Menu, MenuProps } from "antd";
+import { Outlet, Routes, Route, NavLink } from "react-router-dom";
 
-import FileDropZone from "./components/FileDropZone";
-
-import { useState } from "react";
-import { useImageSrc } from "./hooks";
-import { compareTwoImage } from "./service";
+import ImageCompare from "./pages/ImageCompare";
+import ImageSearch from "./pages/ImageSearch";
+import NotFound from "./pages/NotFound";
 
 import "./App.css";
+import { RouterKey } from "./constant";
+import { useSelectedKeys } from "./hooks";
 
-const { Title } = Typography;
+const items1: MenuProps["items"] = [
+  {
+    key: RouterKey.ImageCompare,
+    label: <NavLink to="/image-compare">图片比较</NavLink>,
+  },
+  {
+    key: RouterKey.ImageSearch,
+    label: <NavLink to="/image-search">图片检索</NavLink>,
+  },
+];
+
+const { Header, Content } = Layout;
 
 function App() {
-  const [file1, setFile1] = useState<File | null>(null);
-  const [file2, setFile2] = useState<File | null>(null);
-  const [similarity, setSimilarity] = useState<number>();
-
-  const src1 = useImageSrc(file1);
-  const src2 = useImageSrc(file2);
-  const allowCompare = src1 && src2;
-
-  // 处理文件的逻辑
-  function handleDrop(file: File, position: "one" | "two"): void {
-    if (position === "one") {
-      setFile1(file);
-    } else {
-      setFile2(file);
-    }
-    setSimilarity(undefined);
-  }
-
-  async function handleCompare(): Promise<void> {
-    const similarity = await compareTwoImage(file1!, file2!);
-    setSimilarity(similarity);
-  }
+  const selectedKeys = useSelectedKeys();
 
   return (
-    <main className="container mx-auto flex gap-4 p-4">
-      <Card title="Image 1" className="flex-1">
-        <FileDropZone onBeforeUpload={(file) => handleDrop(file, "one")} />
-        <Image src={src1} preview={false} />
-      </Card>
-      <div>
-        <Button
-          type="primary"
-          className="mt-4"
-          onClick={handleCompare}
-          disabled={!allowCompare}
-        >
-          比较
-        </Button>
-        {allowCompare && similarity && (
-          <Title level={5} className="mt-2">
-            相似度:
-            <br />
-            {similarity.toFixed(4)}
-          </Title>
-        )}
-      </div>
-      <Card title="Image 2" className="flex-1">
-        <FileDropZone onBeforeUpload={(file) => handleDrop(file, "two")} />
-        <Image src={src2} preview={false} />
-      </Card>
-    </main>
+    <Layout className="w-screen h-screen">
+      <Header>
+        <Menu
+          theme="dark"
+          items={items1}
+          mode="horizontal"
+          selectedKeys={selectedKeys}
+        />
+      </Header>
+      <Content className="container mx-auto">
+        <Routes>
+          <Route path="/" element={<Outlet />}>
+            <Route index element={<ImageCompare />} />
+            <Route path="image-compare" element={<ImageCompare />} />
+            <Route path="image-search" element={<ImageSearch />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </Content>
+    </Layout>
   );
 }
 
