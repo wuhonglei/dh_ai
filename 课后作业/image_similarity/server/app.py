@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
-from model.similarity import compare_similarity, process_img
-from model.vgg19_feature import VGG19FeatureExtractor
-from model.vgg16_feature import VGG16FeatureExtractor
-from model.resnet_34 import ResNet34FeatureExtractor
+from models.similarity import compare_similarity, process_img
+from models.vgg19_feature import VGG19FeatureExtractor
+from models.vgg16_feature import VGG16FeatureExtractor
+from models.resnet_34 import ResNet34FeatureExtractor
 
 app = Flask(__name__)
 
