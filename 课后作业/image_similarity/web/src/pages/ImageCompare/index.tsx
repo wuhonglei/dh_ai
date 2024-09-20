@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Image, Button, Typography } from "antd";
+import { Card, Image, Button, Typography, Select } from "antd";
 
 import FileDropZone from "./components/FileDropZone";
 
@@ -9,6 +9,8 @@ import { compareTwoImage } from "../../service";
 const { Title } = Typography;
 
 export default function ImageCompare() {
+  const [modelName, setModelName] = useState("vgg16");
+  const [loading, setLoading] = useState(false);
   const [file1, setFile1] = useState<File | null>(null);
   const [file2, setFile2] = useState<File | null>(null);
   const [similarity, setSimilarity] = useState<number>();
@@ -28,37 +30,54 @@ export default function ImageCompare() {
   }
 
   async function handleCompare(): Promise<void> {
-    const similarity = await compareTwoImage(file1!, file2!);
-    setSimilarity(similarity);
+    try {
+      setLoading(true);
+      const similarity = await compareTwoImage(file1!, file2!, modelName);
+      setSimilarity(similarity);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="flex gap-4 p-4">
-      <Card title="Image 1" className="flex-1">
-        <FileDropZone onBeforeUpload={(file) => handleDrop(file, "one")} />
-        <Image src={src1} preview={false} />
-      </Card>
+    <section className="p-4 flex flex-col gap-2">
       <div>
-        <Button
-          type="primary"
-          className="mt-4"
-          onClick={handleCompare}
-          disabled={!allowCompare}
+        <Select
+          value={modelName}
+          onChange={(value: string) => setModelName(value)}
         >
-          比较
-        </Button>
-        {allowCompare && similarity && (
-          <Title level={5} className="mt-2">
-            相似度:
-            <br />
-            {similarity.toFixed(4)}
-          </Title>
-        )}
+          <Select.Option value="vgg16">Vgg16</Select.Option>
+          <Select.Option value="vgg19">Vgg19</Select.Option>
+        </Select>
       </div>
-      <Card title="Image 2" className="flex-1">
-        <FileDropZone onBeforeUpload={(file) => handleDrop(file, "two")} />
-        <Image src={src2} preview={false} />
-      </Card>
-    </div>
+      <div className="flex gap-4">
+        <Card title="Image 1" className="flex-1">
+          <FileDropZone onBeforeUpload={(file) => handleDrop(file, "one")} />
+          <Image src={src1} preview={false} />
+        </Card>
+        <div className="w-24 text-center">
+          <Button
+            type="primary"
+            className="mt-4"
+            loading={loading}
+            onClick={handleCompare}
+            disabled={!allowCompare}
+          >
+            比较
+          </Button>
+          {allowCompare && similarity && (
+            <Title level={5} className="mt-2">
+              相似度:
+              <br />
+              {similarity.toFixed(4)}
+            </Title>
+          )}
+        </div>
+        <Card title="Image 2" className="flex-1">
+          <FileDropZone onBeforeUpload={(file) => handleDrop(file, "two")} />
+          <Image src={src2} preview={false} />
+        </Card>
+      </div>
+    </section>
   );
 }

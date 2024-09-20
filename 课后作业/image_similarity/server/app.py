@@ -21,6 +21,7 @@ def compare_images():
     # 获取 post 请求中 form-data 的参数
     image1 = request.files.get('image1')
     image2 = request.files.get('image2')
+    modelName = request.form.get('model', 'vgg16')
     if image1 is None or image2 is None:
         return jsonify({'error': 'Both image1 and image2 are required'}), 400
 
@@ -28,7 +29,7 @@ def compare_images():
     img1_tensor = process_img(image1.stream)
     img2_tensor = process_img(image2.stream)
     similarity = compare_similarity(
-        model_dict['vgg19'], img1_tensor, img2_tensor)
+        model_dict[modelName], img1_tensor, img2_tensor)
     return jsonify({'similarity': similarity})
 
 
