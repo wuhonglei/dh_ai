@@ -5,9 +5,6 @@ from torchvision import transforms
 
 from typing import Union, IO
 
-# from vgg16_feature import VGG16FeatureExtractor
-# from vgg19_feature import VGG19FeatureExtractor
-
 
 def compare_similarity(model, img1, img2):
     model.eval()
@@ -29,20 +26,15 @@ transform = transforms.Compose([
 ])
 
 
-def process_img(img_path: Union[str, IO[bytes]]) -> torch.Tensor:
-    img = Image.open(img_path).convert('RGB')
-    img = transform(img).unsqueeze(0)  # type: ignore
-    return img
+def process_img(img_path: Union[str, IO[bytes]]) -> Union[torch.Tensor, None]:
+    try:
+        img = Image.open(img_path).convert('RGB')
+        img = transform(img).unsqueeze(0)  # type: ignore
+        return img
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        return None
 
 
 if __name__ == '__main__':
     pass
-    # model = VGG16FeatureExtractor()
-    # model = VGG19FeatureExtractor()
-    # model.eval()
-
-    # img1 = process_img('data/dog/3.png')
-    # img2 = process_img('data/dog/4.png')
-
-    # similarity = compare_similarity(model, img1, img2)
-    # print(f'Similarity: {similarity}')

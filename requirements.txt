@@ -13,3 +13,4 @@ Flask
 captcha
 torchinfo
 python-dotenv
+pymilvus
