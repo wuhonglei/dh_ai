@@ -50,8 +50,11 @@ export default function ImageCompare() {
       </div>
       <div className="flex gap-4">
         <Card title="Image 1" className="flex-1">
-          <FileDropZone onBeforeUpload={(file) => handleDrop(file, "one")} />
-          <Image src={src1} preview={false} />
+          <FileDropZone
+            useTarget
+            onBeforeUpload={(file) => handleDrop(file, "one")}
+          />
+          <Image src={src1} preview={false} width={"100%"} />
         </Card>
         <div className="w-24 text-center">
           <Button
@@ -72,8 +75,11 @@ export default function ImageCompare() {
           )}
         </div>
         <Card title="Image 2" className="flex-1">
-          <FileDropZone onBeforeUpload={(file) => handleDrop(file, "two")} />
-          <Image src={src2} preview={false} />
+          <FileDropZone
+            useTarget
+            onBeforeUpload={(file) => handleDrop(file, "two")}
+          />
+          <Image src={src2} preview={false} width={"100%"} />
         </Card>
       </div>
     </section>

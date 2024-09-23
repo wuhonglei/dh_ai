@@ -47,15 +47,16 @@ export default function ImageSearch() {
       </div>
       <div className="flex h-40 gap-1">
         <FileDropZone
+          useTarget={false}
           className=" flex-3"
           onBeforeUpload={(file) => setFile(file)}
         />
         <Image
           src={imageSrc}
-          preview={false}
           className="flex-1"
           fallback={fallbackUrl}
           style={{ height: "100%" }}
+          preview={Boolean(imageSrc)}
         />
       </div>
       {!isEmpty(photos) && (
