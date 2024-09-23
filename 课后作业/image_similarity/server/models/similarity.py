@@ -29,10 +29,13 @@ transform = transforms.Compose([
 ])
 
 
-def process_img(img_path: Union[str, IO[bytes]]) -> torch.Tensor:
-    img = Image.open(img_path).convert('RGB')
-    img = transform(img).unsqueeze(0)  # type: ignore
-    return img
+def process_img(img_path: Union[str, IO[bytes]]) -> Union[torch.Tensor, None]:
+    try:
+        img = Image.open(img_path).convert('RGB')
+        img = transform(img).unsqueeze(0)  # type: ignore
+        return img
+    except Exception as e:
+        return None
 
 
 if __name__ == '__main__':
