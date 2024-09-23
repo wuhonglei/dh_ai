@@ -61,7 +61,7 @@ export default function ImageSearch() {
       </div>
       {!isEmpty(photos) && (
         <div className="mt-4">
-          <Gallery photos={photos} direction="column" />
+          <Gallery photos={photos} direction="row" />
         </div>
       )}
     </section>
