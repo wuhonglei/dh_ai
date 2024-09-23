@@ -6,7 +6,7 @@ from models.vgg19_feature import VGG19FeatureExtractor
 from models.vgg16_feature import VGG16FeatureExtractor
 from models.resnet_34 import ResNet34FeatureExtractor
 
-from database.image_search import search_similar_images
+from dataset.image_search import search_similar_images
 
 
 app = Flask(__name__)
@@ -48,11 +48,12 @@ def search_images():
     if image is None:
         return jsonify({'error': 'Both image1 and image2 are required'}), 400
 
-    # model_name = request.form.get('model')
     img_tensor = process_img(image.stream)
-    print(img_tensor.shape, img_tensor.min(), img_tensor.max())
+    if img_tensor is None:
+        return jsonify({'error': 'Invalid image'}), 400
+
     similar_images = search_similar_images(
-        img_tensor, model_dict['resnet34'])
+        img_tensor=img_tensor, model=model_dict[modelName], collection_name=modelName)
 
     return jsonify({'similar_images': similar_images})
 

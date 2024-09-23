@@ -6,10 +6,11 @@ const { Dragger } = Upload;
 
 interface FileDropZoneProps {
   onBeforeUpload: (file: File) => void;
+  className?: string;
 }
 
 const FileDropZone = (props: FileDropZoneProps) => {
-  const { onBeforeUpload } = props;
+  const { onBeforeUpload, className } = props;
   const uploadProps: UploadProps = {
     name: "file",
     accept: "image/*",
@@ -23,7 +24,7 @@ const FileDropZone = (props: FileDropZoneProps) => {
   };
 
   return (
-    <Dragger {...uploadProps}>
+    <Dragger {...uploadProps} className={className}>
       <p className="ant-upload-drag-icon">
         <InboxOutlined />
       </p>

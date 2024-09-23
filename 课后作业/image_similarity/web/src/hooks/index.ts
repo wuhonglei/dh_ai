@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
-export function useImageSrc(file: File | null): string {
+export function useImageSrc(file: File | null | undefined): string {
   return useMemo(() => {
     if (!file) {
       return "";
