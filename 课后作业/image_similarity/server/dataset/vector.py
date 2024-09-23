@@ -3,6 +3,7 @@
 import os
 import time
 import sys
+import numpy as np
 
 sys.path.append(os.getcwd())  # 将根目录导入模块搜索路径
 
@@ -53,70 +54,60 @@ def init_client(client: MilvusClient) -> None:
     )
 
 
-def to_numpy(tensor):
-    return tensor.detach().flatten(start_dim=1).cpu().numpy()
+def to_norm_numpy(input_tensor) -> np.ndarray[np.float32, np.dtype[np.float32]]:
+    new_tensor = input_tensor.detach().flatten(start_dim=1)
+    new_tensor = new_tensor / torch.norm(new_tensor, dim=1, keepdim=True)
+    return new_tensor.cpu().numpy()
 
 
 def insert_vector(root: str):
     total = 0
     client = MilvusClient(uri=os.path.join(current_dir,  "example.db"))
     init_client(client)
-
     start_time = time.time()
-    time_dict = {
-        'resnet34': 0.0,
-        'vgg19': 0.0,
-        'resnet34_insert': 0.0,
-        'vgg19_insert': 0.0,
-    }
-
     dataset = ImageReader(root, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=128, shuffle=False)
-    for imgs, img_paths in dataloader:
-        total += len(imgs)
+    dataloader = DataLoader(dataset, batch_size=256, shuffle=False)
+    for (imgs, img_paths, img_sizes) in dataloader:
         imgs = imgs.to(device)
-        time1 = time.time()
-        resnet34_image_embedding = resnet34_extractor(imgs)
-        time2 = time.time()
-        vgg19_image_embedding = vgg19_extractor(imgs)
-        time3 = time.time()
-        resnet34_image_embedding = to_numpy(resnet34_image_embedding)
-        vgg19_image_embedding = to_numpy(vgg19_image_embedding)
 
-        time4 = time.time()
+        resnet34_image_embedding = resnet34_extractor(imgs)
+        vgg19_image_embedding = vgg19_extractor(imgs)
+
+        resnet34_image_embedding = to_norm_numpy(resnet34_image_embedding)
+        vgg19_image_embedding = to_norm_numpy(vgg19_image_embedding)
 
         resnet34_datalist = []
         vgg19_datalist = []
         for i in range(len(img_paths)):
+            total += 1
+            common = {
+                "width": int(img_sizes[0][i].item()),
+                "height": int(img_sizes[1][i].item()),
+                "filename": img_paths[i],
+            }
             resnet34_datalist.append({
+                **common,
                 "vector": resnet34_image_embedding[i],
-                "filename": img_paths[i]
             })
             vgg19_datalist.append({
+                **common,
                 "vector": vgg19_image_embedding[i],
-                "filename": img_paths[i]
             })
+            print(f"Insert {total}/{len(dataset)}")
 
         client.insert(
             "resnet34",
             resnet34_datalist,
         )
-        time5 = time.time()
         client.insert(
             "vgg19",
             vgg19_datalist,
         )
-        time6 = time.time()
 
-        time_dict['resnet34'] += time2 - time1
-        time_dict['vgg19'] += time3 - time2
-        time_dict['resnet34_insert'] += time5 - time4
-        time_dict['vgg19_insert'] += time6 - time5
         print(f"Insert {total}/{len(dataset)} successfully")
 
     print(f"Total time: {time.time() - start_time}")
     print(f"Total {total} images processed")
-    print(f"time_dict: {time_dict}")
 
 
 if __name__ == "__main__":

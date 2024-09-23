@@ -25,4 +25,4 @@ class ImageReader(Dataset):
             img_tensor = self.transform(img)
         else:
             img_tensor = img
-        return img_tensor, img_path.replace(self.root, ""), img.size
+        return img_tensor, img_path.replace(self.root, ""), tuple((img.width, img.height))
