@@ -1,4 +1,4 @@
-import { Layout, Menu, MenuProps } from "antd";
+import { Image, Layout, Menu, MenuProps } from "antd";
 import { Outlet, Routes, Route, Link } from "react-router-dom";
 
 import ImageCompare from "./pages/ImageCompare";
@@ -27,7 +27,22 @@ function App() {
 
   return (
     <Layout className="w-screen h-screen">
-      <Header>
+      <Header className="flex items-center gap-4">
+        <div
+          style={{ width: 36, height: 36 }}
+          className="relative flex items-start justify-center"
+        >
+          <Image
+            src="/bar.webp"
+            preview={false}
+            wrapperClassName="h-full w-full absolute top-0 left-0"
+          />
+          <Image
+            src="/ball.webp"
+            preview={false}
+            wrapperClassName="absolute top-0 ball"
+          />
+        </div>
         <Menu
           theme="dark"
           items={items1}

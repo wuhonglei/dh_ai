@@ -12,11 +12,11 @@ import fallbackUrl from "./fallback.webp";
 import { initialModel } from "../../components/ModelSelect/constant";
 import ModelSelect from "../../components/ModelSelect";
 
-import { limitOptions } from "./constant";
+import { initialLimit, limitOptions } from "./constant";
 
 export default function ImageSearch() {
   const [modelName, setModelName] = useState(initialModel);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(initialLimit);
   const [file, setFile] = useState<File>();
   const { run, data: result } = useRequest(searchImages, {
     manual: true,

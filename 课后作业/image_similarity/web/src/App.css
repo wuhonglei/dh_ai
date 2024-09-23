@@ -1,2 +1,18 @@
 #root {
 }
+
+.ball {
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.ball:hover {
+  transform: rotate(360deg);
+}
+
+.ball:active {
+  transform: scale(1.2);
+  transform: rotate(720deg);
+}
