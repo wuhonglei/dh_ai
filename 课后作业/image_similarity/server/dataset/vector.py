@@ -1,12 +1,10 @@
 """ 利用 model 提取图片特征向量, 并存储到 Milvus 中 """
-
+# fmt: off
 import os
 import time
 import sys
 
-# fmt: off
-print(sys.path)
-sys.path.append(os.path.join(os.getcwd()))  # 将根目录导入模块搜索路径
+sys.path.append(os.getcwd())  # 将根目录导入模块搜索路径
 
 import torch
 from pymilvus import MilvusClient
@@ -83,7 +81,7 @@ def insert_vector(root: str):
                 print(f"Skip {filename}")
                 continue
 
-            print('filepath:', filepath)
+            img = img.to(device)
             time1 = time.time()
             resnet34_image_embedding = resnet34_extractor(img)
             time2 = time.time()
