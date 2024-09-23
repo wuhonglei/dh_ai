@@ -1,5 +1,7 @@
 import { useRequest } from "ahooks";
-import { Image } from "antd";
+import { Image, Select } from "antd";
+import Gallery from "react-photo-gallery";
+import { isEmpty } from "lodash-es";
 
 import FileDropZone from "../../components/FileDropZone";
 import { searchImages } from "../../service";
@@ -9,28 +11,39 @@ import { useImageSrc } from "../../hooks";
 import fallbackUrl from "./fallback.webp";
 import { initialModel } from "../../components/ModelSelect/constant";
 import ModelSelect from "../../components/ModelSelect";
-import Gallery from "react-photo-gallery";
-import { isEmpty } from "lodash-es";
+
+import { limitOptions } from "./constant";
 
 export default function ImageSearch() {
   const [modelName, setModelName] = useState(initialModel);
+  const [limit, setLimit] = useState(10);
   const [file, setFile] = useState<File>();
   const { run, data: result } = useRequest(searchImages, {
     manual: true,
   });
-  useEffect(() => file && run(file, modelName), [file, run, modelName]);
+  useEffect(
+    () => file && run(file, modelName, limit),
+    [file, run, modelName, limit]
+  );
   const imageSrc = useImageSrc(file);
   const photos = useMemo(() => {
     if (isEmpty(result) || !result) return [];
     return result.map((item) => ({
       src: "/images" + item.entity.filename,
+      width: 1,
+      height: 1,
     }));
   }, [result]);
 
   return (
     <section className="py-4 flex flex-col gap-2">
-      <div>
+      <div className="flex gap-2">
         <ModelSelect value={modelName} onChange={setModelName} />
+        <Select
+          value={limit}
+          options={limitOptions}
+          onChange={(value) => setLimit(value)}
+        />
       </div>
       <div className="flex h-40 gap-1">
         <FileDropZone
@@ -45,7 +58,7 @@ export default function ImageSearch() {
           style={{ height: "100%" }}
         />
       </div>
-      <Gallery photos={photos} direction="row" />
+      <Gallery photos={photos} direction="column" />
     </section>
   );
 }

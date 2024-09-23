@@ -24,7 +24,7 @@ def to_numpy(tensor):
     return tensor.detach().flatten(start_dim=1).cpu().numpy()
 
 
-def search_similar_images(img_tensor: torch.Tensor, model: nn.Module, collection_name: str) -> List[str]:
+def search_similar_images(img_tensor: torch.Tensor, model: nn.Module, collection_name: str, limit: int = 3) -> List[str]:
     """
     Extract image features using ResNet34 model and store them in Milvus.
     """
@@ -33,5 +33,5 @@ def search_similar_images(img_tensor: torch.Tensor, model: nn.Module, collection
     output = to_numpy(output)
     results: Any = client.search(collection_name, data=output,
                                  output_fields=["filename",],
-                                 limit=3, search_params={"metric_type": "COSINE"},)
+                                 limit=limit, search_params={"metric_type": "COSINE"},)
     return results

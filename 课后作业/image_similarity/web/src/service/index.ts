@@ -19,11 +19,13 @@ export async function compareTwoImage(
 
 export async function searchImages(
   image: File,
-  modelName: string
+  modelName: string,
+  limit: number
 ): Promise<SimilarImageItem[]> {
   const formData = new FormData();
   formData.append("image", image);
   formData.append("model", modelName);
+  formData.append("limit", String(limit));
 
   const res = await fetch("/api/search/images", {
     method: "POST",

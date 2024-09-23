@@ -22,5 +22,7 @@ class ImageReader(Dataset):
         img_path = self.imgs[idx]
         img = Image.open(img_path).convert('RGB')
         if self.transform:
-            img = self.transform(img)
-        return img, img_path.replace(self.root, "")
+            img_tensor = self.transform(img)
+        else:
+            img_tensor = img
+        return img_tensor, img_path.replace(self.root, ""), img.size

@@ -45,6 +45,7 @@ def search_images():
     # 获取 post 请求中 form-data 的参数
     image = request.files.get('image')
     modelName = request.form.get('model', 'vgg19')
+    limit = request.form.get('limit', 3)
     if image is None:
         return jsonify({'error': 'Both image1 and image2 are required'}), 400
 
@@ -53,7 +54,7 @@ def search_images():
         return jsonify({'error': 'Invalid image'}), 400
 
     similar_images = search_similar_images(
-        img_tensor=img_tensor, model=model_dict[modelName], collection_name=modelName)
+        img_tensor=img_tensor, model=model_dict[modelName], collection_name=modelName, limit=int(limit))
 
     return jsonify({'images': similar_images[0] if similar_images else []})
 
