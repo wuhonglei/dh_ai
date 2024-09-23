@@ -2,6 +2,10 @@ import torch
 from torchvision import models
 from torchinfo import summary
 
+# 设置 TORCH_HOME 环境变量
+if os.path.exists('/mnt/model/nlp/'):
+    os.environ['TORCH_HOME'] = '/mnt/model/nlp/pytorch'
+
 
 class ResNet34FeatureExtractor(torch.nn.Module):
     def __init__(self):

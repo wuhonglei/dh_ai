@@ -11,11 +11,6 @@ import matplotlib.pyplot as plt
 from torchinfo import summary
 
 
-# 设置 TORCH_HOME 环境变量
-if os.path.exists('/mnt/model/nlp/'):
-    os.environ['TORCH_HOME'] = '/mnt/model/nlp/pytorch'
-
-
 class VGG16(nn.Module):
     def __init__(self):
         super(VGG16, self).__init__()

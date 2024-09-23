@@ -2,12 +2,19 @@
 
 import os
 import time
+import sys
+
+# fmt: off
+print(sys.path)
+sys.path.append(os.path.join(os.getcwd()))  # 将根目录导入模块搜索路径
 
 import torch
 from pymilvus import MilvusClient
 from models.resnet_34 import ResNet34FeatureExtractor
 from models.vgg19_feature import VGG19FeatureExtractor
 from models.similarity import process_img
+
+# fmt: on
 
 resnet34_extractor = ResNet34FeatureExtractor()
 vgg19_extractor = VGG19FeatureExtractor()
@@ -50,15 +57,16 @@ def to_numpy(tensor):
 
 def insert_vector(root: str):
     total = 0
-    start_time = time.time()
     client = MilvusClient(uri=os.path.join(current_dir,  "example.db"))
-    time1 = time.time()
-    print(f"Connect to Milvus in {time1 - start_time:.2f}s")
     init_client(client)
-    time2 = time.time()
-    print(f"Init Milvus in {time2 - time1:.2f}s")
 
-    return
+    start_time = time.time()
+    time_dict = {
+        'resnet34': 0.0,
+        'vgg19': 0.0,
+        'resnet34_insert': 0.0,
+        'vgg19_insert': 0.0,
+    }
     for dirpath, foldername, filenames in os.walk(root):
         print(f"Processing {dirpath}")
         for filename in filenames:
@@ -76,22 +84,34 @@ def insert_vector(root: str):
                 continue
 
             print('filepath:', filepath)
+            time1 = time.time()
             resnet34_image_embedding = resnet34_extractor(img)
+            time2 = time.time()
             vgg19_image_embedding = vgg19_extractor(img)
+            time3 = time.time()
             resnet34_image_embedding = to_numpy(resnet34_image_embedding)[0]
             vgg19_image_embedding = to_numpy(vgg19_image_embedding)[0]
 
+            time4 = time.time()
             client.insert(
                 "resnet34",
                 {"vector": resnet34_image_embedding, "filename": filepath},
             )
+            time5 = time.time()
             client.insert(
                 "vgg19",
                 {"vector": vgg19_image_embedding, "filename": filepath},
             )
+            time6 = time.time()
+            time_dict['resnet34'] += time2 - time1
+            time_dict['vgg19'] += time3 - time2
+            time_dict['resnet34_insert'] += time5 - time4
+            time_dict['vgg19_insert'] += time6 - time5
             print(f"Insert {total}/1017 successfully")
 
+    print(f"Total time: {time.time() - start_time}")
     print(f"Total {total} images processed")
+    print(f"time_dict: {time_dict}")
 
 
 if __name__ == "__main__":

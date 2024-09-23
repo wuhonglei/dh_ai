@@ -3,6 +3,10 @@ import torch.nn as nn
 import torchvision.models as models
 from torchinfo import summary
 
+# 设置 TORCH_HOME 环境变量
+if os.path.exists('/mnt/model/nlp/'):
+    os.environ['TORCH_HOME'] = '/mnt/model/nlp/pytorch'
+
 
 class VGG19FeatureExtractor(nn.Module):
     def __init__(self):
