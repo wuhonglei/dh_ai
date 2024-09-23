@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Card, Image, Button, Typography, Select } from "antd";
 
-import FileDropZone from "./components/FileDropZone";
+import { useRequest } from "ahooks";
+
+import FileDropZone from "../../components/FileDropZone";
 
 import { useImageSrc } from "../../hooks";
 import { compareTwoImage } from "../../service";
@@ -9,11 +11,17 @@ import { compareTwoImage } from "../../service";
 const { Title } = Typography;
 
 export default function ImageCompare() {
-  const [modelName, setModelName] = useState("vgg16");
-  const [loading, setLoading] = useState(false);
+  const [modelName, setModelName] = useState("vgg19");
   const [file1, setFile1] = useState<File | null>(null);
   const [file2, setFile2] = useState<File | null>(null);
-  const [similarity, setSimilarity] = useState<number>();
+  const {
+    run,
+    loading,
+    data: similarity,
+    mutate: setSimilarity,
+  } = useRequest(compareTwoImage, {
+    manual: true,
+  });
 
   const src1 = useImageSrc(file1);
   const src2 = useImageSrc(file2);
@@ -30,17 +38,11 @@ export default function ImageCompare() {
   }
 
   async function handleCompare(): Promise<void> {
-    try {
-      setLoading(true);
-      const similarity = await compareTwoImage(file1!, file2!, modelName);
-      setSimilarity(similarity);
-    } finally {
-      setLoading(false);
-    }
+    run(file1!, file2!, modelName);
   }
 
   return (
-    <section className="p-4 flex flex-col gap-2">
+    <section className="py-4 flex flex-col gap-2">
       <div>
         <Select
           value={modelName}

@@ -1,7 +1,18 @@
-import React from "react";
+import { useRequest } from "ahooks";
 
-type Props = {};
+import FileDropZone from "../../components/FileDropZone";
+import { searchImages } from "../../service";
 
-export default function ImageSearch({}: Props) {
-  return <div>ImageSearch</div>;
+export default function ImageSearch() {
+  const { run, data: result } = useRequest(searchImages, {
+    manual: true,
+  });
+
+  console.log(result);
+
+  return (
+    <section className="py-4 flex flex-col gap-2">
+      <FileDropZone onBeforeUpload={(file) => run(file)} />
+    </section>
+  );
 }

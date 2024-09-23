@@ -11,7 +11,9 @@ class ResNet34FeatureExtractor(torch.nn.Module):
             *list(resnet.children())[:-1])
 
     def forward(self, x):
-        return self.feature_extractor(x)
+        self.eval()
+        with torch.no_grad():
+            return self.feature_extractor(x)
 
 
 if __name__ == '__main__':

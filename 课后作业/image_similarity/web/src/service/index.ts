@@ -14,3 +14,14 @@ export async function compareTwoImage(
   const data = await res.json();
   return data.similarity;
 }
+
+export async function searchImages(image: File): Promise<string[]> {
+  const formData = new FormData();
+  formData.append("image", image);
+  const res = await fetch("/api/search/images", {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  return data;
+}

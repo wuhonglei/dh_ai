@@ -13,11 +13,13 @@ class VGG19FeatureExtractor(nn.Module):
         self.classifier = nn.Sequential(*list(vgg19.classifier)[:-1])
 
     def forward(self, x):
-        x = self.features(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        return x
+        self.eval()
+        with torch.no_grad():
+            x = self.features(x)
+            x = self.avgpool(x)
+            x = torch.flatten(x, 1)
+            x = self.classifier(x)
+            return x
 
 
 if __name__ == '__main__':
