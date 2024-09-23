@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Image, Button, Typography, Select } from "antd";
+import { Card, Image, Button, Typography } from "antd";
 
 import { useRequest } from "ahooks";
 
@@ -7,11 +7,13 @@ import FileDropZone from "../../components/FileDropZone";
 
 import { useImageSrc } from "../../hooks";
 import { compareTwoImage } from "../../service";
+import ModelSelect from "../../components/ModelSelect";
+import { initialModel } from "../../components/ModelSelect/constant";
 
 const { Title } = Typography;
 
 export default function ImageCompare() {
-  const [modelName, setModelName] = useState("vgg19");
+  const [modelName, setModelName] = useState(initialModel);
   const [file1, setFile1] = useState<File | null>(null);
   const [file2, setFile2] = useState<File | null>(null);
   const {
@@ -44,14 +46,7 @@ export default function ImageCompare() {
   return (
     <section className="py-4 flex flex-col gap-2">
       <div>
-        <Select
-          value={modelName}
-          className="w-32"
-          onChange={(value: string) => setModelName(value)}
-        >
-          <Select.Option value="vgg19">Vgg19</Select.Option>
-          <Select.Option value="resnet34">ResNet-34</Select.Option>
-        </Select>
+        <ModelSelect value={modelName} onChange={setModelName} />
       </div>
       <div className="flex gap-4">
         <Card title="Image 1" className="flex-1">

@@ -6,9 +6,18 @@ from pymilvus import MilvusClient
 from typing import List, Any
 
 # Set up a Milvus client
-current_dir = os.path.dirname(os.path.abspath(__file__))
-uri = os.path.join(current_dir, "example.db")
-client = MilvusClient(uri=uri)
+client_instance = [None]
+
+
+def create_client() -> MilvusClient:
+    if client_instance[0] is not None:
+        return client_instance[0]
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    uri = os.path.join(current_dir, "example.db")
+    client = MilvusClient(uri=uri)
+    client_instance[0] = client  # type: ignore
+    return client
 
 
 def to_numpy(tensor):
@@ -19,6 +28,7 @@ def search_similar_images(img_tensor: torch.Tensor, model: nn.Module, collection
     """
     Extract image features using ResNet34 model and store them in Milvus.
     """
+    client = create_client()
     output = model(img_tensor)
     output = to_numpy(output)
     results: Any = client.search(collection_name, data=output,

@@ -9,7 +9,7 @@ from models.resnet_34 import ResNet34FeatureExtractor
 from dataset.image_search import search_similar_images
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="dataset/data", static_url_path='/images')
 
 model_dict = {
     # 'vgg16': VGG16FeatureExtractor(),
@@ -55,7 +55,7 @@ def search_images():
     similar_images = search_similar_images(
         img_tensor=img_tensor, model=model_dict[modelName], collection_name=modelName)
 
-    return jsonify({'similar_images': similar_images})
+    return jsonify({'images': similar_images[0] if similar_images else []})
 
 
 if __name__ == '__main__':

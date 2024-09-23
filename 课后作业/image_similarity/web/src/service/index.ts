@@ -1,3 +1,5 @@
+import { SimilarImageItem } from "../interface";
+
 export async function compareTwoImage(
   image1: File,
   image2: File,
@@ -15,13 +17,18 @@ export async function compareTwoImage(
   return data.similarity;
 }
 
-export async function searchImages(image: File): Promise<string[]> {
+export async function searchImages(
+  image: File,
+  modelName: string
+): Promise<SimilarImageItem[]> {
   const formData = new FormData();
   formData.append("image", image);
+  formData.append("model", modelName);
+
   const res = await fetch("/api/search/images", {
     method: "POST",
     body: formData,
   });
   const data = await res.json();
-  return data;
+  return data?.images || [];
 }
