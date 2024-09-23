@@ -50,10 +50,15 @@ def to_numpy(tensor):
 
 def insert_vector(root: str):
     total = 0
-    client = MilvusClient(uri=os.path.join(current_dir,  "example.db"))
-    init_client(client)
-
     start_time = time.time()
+    client = MilvusClient(uri=os.path.join(current_dir,  "example.db"))
+    time1 = time.time()
+    print(f"Connect to Milvus in {time1 - start_time:.2f}s")
+    init_client(client)
+    time2 = time.time()
+    print(f"Init Milvus in {time2 - time1:.2f}s")
+
+    return
     for dirpath, foldername, filenames in os.walk(root):
         print(f"Processing {dirpath}")
         for filename in filenames:
@@ -86,7 +91,6 @@ def insert_vector(root: str):
             )
             print(f"Insert {total}/1017 successfully")
 
-    print(f"Total time: {time.time() - start_time}")
     print(f"Total {total} images processed")
 
 
