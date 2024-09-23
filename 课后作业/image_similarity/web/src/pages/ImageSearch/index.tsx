@@ -30,8 +30,8 @@ export default function ImageSearch() {
     if (isEmpty(result) || !result) return [];
     return result.map((item) => ({
       src: "/images" + item.entity.filename,
-      width: 1,
-      height: 1,
+      width: item.entity.width,
+      height: item.entity.height,
     }));
   }, [result]);
 
@@ -58,7 +58,11 @@ export default function ImageSearch() {
           style={{ height: "100%" }}
         />
       </div>
-      {!isEmpty(photos) && <Gallery photos={photos} direction="column" />}
+      {!isEmpty(photos) && (
+        <div className="mt-4">
+          <Gallery photos={photos} direction="column" />
+        </div>
+      )}
     </section>
   );
 }

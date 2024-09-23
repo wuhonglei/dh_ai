@@ -31,7 +31,10 @@ def search_similar_images(img_tensor: torch.Tensor, model: nn.Module, collection
     client = create_client()
     output = model(img_tensor)
     output = to_numpy(output)
-    results: Any = client.search(collection_name, data=output,
-                                 output_fields=["filename",],
-                                 limit=limit, search_params={"metric_type": "COSINE"},)
+    results: Any = client.search(collection_name=collection_name,
+                                 data=output,
+                                 limit=limit,
+                                 output_fields=["filename", "width", "height"],
+                                 search_params={"metric_type": "COSINE"},
+                                 )
     return results
