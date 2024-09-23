@@ -45,7 +45,7 @@ export default function ImageSearch() {
           style={{ height: "100%" }}
         />
       </div>
-      <Gallery photos={photos} />
+      <Gallery photos={photos} direction="row" />
     </section>
   );
 }
