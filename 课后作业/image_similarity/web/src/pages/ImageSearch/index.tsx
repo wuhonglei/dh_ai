@@ -58,7 +58,7 @@ export default function ImageSearch() {
           style={{ height: "100%" }}
         />
       </div>
-      <Gallery photos={photos} direction="column" />
+      {!isEmpty(photos) && <Gallery photos={photos} direction="column" />}
     </section>
   );
 }
