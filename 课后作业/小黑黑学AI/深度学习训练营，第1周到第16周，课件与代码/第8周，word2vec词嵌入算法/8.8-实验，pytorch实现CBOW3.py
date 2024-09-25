@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 
 # 定义CBOW模型类，它继承nn.Module类
+
+
 class CBOW(nn.Module):
     # 类的初始化函数init
     # 函数传入参数vocab_size和embedding_dim
@@ -87,16 +89,15 @@ if __name__ == '__main__':
     data = make_train_data(raw_text)
 
     # 在训练中，使用构造好的数据data，其中保存了上下文数据与目标词
-    embedding_dim = 100 # 保存词向量的维度
+    embedding_dim = 100  # 保存词向量的维度
     # 定义CBOW模型，传入词语数量vocab_size和词向量维度embedding_dim
     model = CBOW(vocab_size, embedding_dim)
-    loss = nn.CrossEntropyLoss() #定义交叉熵误差
+    loss = nn.CrossEntropyLoss()  # 定义交叉熵误差
     # 优化器optimizer
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
 
-
-    for epoch in range(50): #进入模型的循环迭代
-        total_loss = 0 #保存一轮训练的总损失值
+    for epoch in range(50):  # 进入模型的循环迭代
+        total_loss = 0  # 保存一轮训练的总损失值
         # 遍历data中保存的上下文context和目标词target
         for context, target in data:
             # 使用函数context_to_vector，将上下文转为索引形式
@@ -109,10 +110,9 @@ if __name__ == '__main__':
             # 将损失值累加到total_loss中
             total_loss += loss(out, label)
 
-        total_loss.backward() #计算损失函数关于模型参数的梯度
-        optimizer.step() #更新模型参数
-        optimizer.zero_grad() #将梯度清零
-
+        total_loss.backward()  # 计算损失函数关于模型参数的梯度
+        optimizer.step()  # 更新模型参数
+        optimizer.zero_grad()  # 将梯度清零
 
     # 遍历data中保存的上下文context和目标词target
     for context, target in data:
@@ -126,5 +126,3 @@ if __name__ == '__main__':
         print(f'Context: {context}')
         print(f'Target: {target}')
         print(f'Prediction: {predict}\n')
-
-
