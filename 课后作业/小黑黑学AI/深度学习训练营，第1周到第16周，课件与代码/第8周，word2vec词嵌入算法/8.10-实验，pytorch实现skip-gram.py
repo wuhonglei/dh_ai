@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 
 # 定义SkipGram模型类，它继承nn.Module类
+
+
 class SkipGram(nn.Module):
     # 函数传入参数vocab_size和embedding_dim
     # 分别代表词表中词语的数量和词向量的维度
@@ -21,13 +23,15 @@ class SkipGram(nn.Module):
         scores = torch.matmul(in_vec, out_vecs.t())
         # softmax层可以直接放在损失函数CrossEntropyLoss中实现
         # 因此就不在前向传播forward中显示的实现了。
-        return scores #返回score
+        return scores  # 返回score
 
 # 函数make_train_data传入raw_text
 # 函数计算raw_text中包含的词语集合vocab
 # 词语数量vocab_size
 # 词语到索引的字典word2ix
 # 索引到词语的字典ix2word
+
+
 def stat_raw_text(raw_text):
     # 将raw_text中保存的词语，放到集合set中去重
     vocab = set(raw_text)  # 得到了词语的集合vocab
@@ -63,7 +67,6 @@ def word_to_idx_tensor(word):
     return torch.tensor([word2ix[word]], dtype=torch.long)
 
 
-
 if __name__ == '__main__':
     # 为了验证算法的正确性，准备一小段文本就可以了
     # 将文本通过split进行切词，切词结果保存在raw_text中
@@ -79,7 +82,7 @@ if __name__ == '__main__':
     data = make_train_data(raw_text)
 
     # 在训练中，使用构造好的数据data，其中保存了上下文数据与目标词
-    embedding_dim = 100 # 保存词向量的维度
+    embedding_dim = 100  # 保存词向量的维度
 
     # 定义skip-gram模型，传入词语数量vocab_size和词向量维度embedding_dim
     model = SkipGram(vocab_size, embedding_dim)
@@ -87,8 +90,7 @@ if __name__ == '__main__':
     # 优化器optimizer
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
 
-
-    for epoch in range(200):  # 进入模型的循环迭代
+    for epoch in range(100):  # 进入模型的循环迭代
         total_loss = 0  # 保存一轮训练的总损失值
         # 遍历data中保存的上下文context和目标词target
         for context, target in data:
@@ -96,7 +98,7 @@ if __name__ == '__main__':
             target_idx = word_to_idx_tensor(target)
             # 使用模型model，预测目标词，得到结果out
             out = model(target_idx)
-            for label in context: # 遍历全部的上下文词
+            for label in context:  # 遍历全部的上下文词
                 # 将每个上下文词都转为索引，保存在label_idx中
                 label_idx = word_to_idx_tensor(label)
                 # 将预测结果out和标签label_idx传入损失函数loss
@@ -106,7 +108,7 @@ if __name__ == '__main__':
         total_loss.backward()  # 计算损失函数关于模型参数的梯度
         optimizer.step()  # 更新模型参数
         optimizer.zero_grad()  # 将梯度清零
-
+        print(f'Epoch: {epoch}, Loss: {total_loss.item()}')
 
     # 遍历data中保存的上下文context和目标词target
     for context, target in data:
@@ -114,12 +116,13 @@ if __name__ == '__main__':
         target_idx = word_to_idx_tensor(target)
         # 将target_idxs传入model，计算输出out
         out = model(target_idx)
+        # 获取 output 中前 4 个最大值的索引
+        indices = torch.topk(out[0], 4).indices.tolist()
+        predict_words = [ix2word[ix] for ix in indices]
+
         # 将输出，通过ix2word，转为预测词predict
-        predict = ix2word[torch.argmax(out[0]).item()]
+        # predict = ix2word[torch.argmax(out[0]).item()]
         # 将上下文词context、目标词target和预测词predict打印出来
         print(f'Context: {context}')
         print(f'Target: {target}')
-        print(f'Prediction: {predict}\n')
-
-
-
+        print(f'Prediction: {predict_words}\n')
