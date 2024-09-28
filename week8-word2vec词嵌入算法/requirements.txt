@@ -1,4 +1,3 @@
 jieba
 gensim
-codecs
 nltk

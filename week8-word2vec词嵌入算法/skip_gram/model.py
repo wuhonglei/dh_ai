@@ -20,8 +20,20 @@ class SkipGramModel(nn.Module):
         if negative.size(0) != 0:
             neg_score = torch.bmm(
                 negative_embeds, center_embeds.unsqueeze(2)).squeeze()
-            neg_score = torch.sum(torch.sigmoid(-neg_score), dim=1)
+            neg_score = torch.sigmoid(-neg_score)
         else:
             neg_score = torch.FloatTensor([1] * center.size(0))
 
-        return -1 * (torch.log(pos_score) + torch.log(neg_score)).mean()
+        return -1 * (torch.log(pos_score) + torch.sum(torch.log(neg_score), dim=1)).mean()
+
+    def similar_word(self, word, word2idx, idx2word, top_n=10):
+        word_idx = word2idx[word]
+        word_embed = self.in_embed(torch.LongTensor([word_idx]))
+        word_embed = word_embed.repeat(len(word2idx), 1)
+        embeddings = self.in_embed(
+            torch.LongTensor(list(range(len(word2idx)))))
+        cosine_sim = nn.CosineSimilarity(dim=1)(word_embed, embeddings)
+        sim, indices = torch.topk(cosine_sim, top_n + 1)
+        result = [(idx2word[idx.item()], sim[i].item())
+                  for i, idx in enumerate(indices)][1:]
+        return result

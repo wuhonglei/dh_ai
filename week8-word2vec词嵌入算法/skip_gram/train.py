@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 import jieba
 import nltk
 from nltk.corpus import stopwords
+import pickle
+import json
 
 
 from vocabulary import Vocabulary
@@ -15,9 +17,9 @@ from model import SkipGramModel
 
 
 # 参数设置
-embedding_dim = 300
+embedding_dim = 200
 batch_size = 512
-epochs = 30
+epochs = 200
 learning_rate = 0.01
 
 # 下载停用词列表（只需运行一次）
@@ -29,7 +31,7 @@ stopwords_list = stopwords.words('chinese')
 
 def read_dir(directory: str):
     stop_words = set(['、', '：', '。', '，', '的', '等', '一', '二',
-                     '三', '（', '）', '《', '》', '“', '”', ' ', '\n']+stopwords_list)
+                     '三', '（', '）', '《', '》', '“', '”', ' ', '\n', '；']+stopwords_list)
 
     corpus = []
     for filename in os.listdir(directory):
@@ -77,9 +79,25 @@ for epoch in range(1, epochs + 1):
             print(f"Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}")
 
 # 保存模型
-torch.save(model.state_dict(), "./models/skip_gram.pth")
+torch.save({
+    'model_state_dict': model.state_dict(),
+    'vocab_size': vocab.vocab_size,
+    'embedding_dim': embedding_dim,
+    'word2idx': vocab.word2idx,
+    'idx2word': vocab.idx2word
+}, "./models/skip_gram.pth")
 
-# 保存词汇表 word2idx
-with open("./models/word2idx.txt", "w") as f:
-    for word, idx in vocab.word2idx.items():
-        f.write(f"{word} {idx}\n")
+# 保存词汇表 pickle
+with open('./models/vocab.pkl', 'wb') as f:
+    data = {
+        'word2idx': vocab.word2idx,
+        'idx2word': vocab.idx2word
+    }
+    pickle.dump(data, f)
+
+with open('./models/vocab.json', 'w') as f:
+    data = {
+        'word2idx': vocab.word2idx,
+        'idx2word': vocab.idx2word
+    }
+    json.dump(data, f)
