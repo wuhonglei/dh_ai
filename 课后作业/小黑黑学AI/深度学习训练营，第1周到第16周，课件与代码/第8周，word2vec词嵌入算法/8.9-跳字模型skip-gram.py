@@ -3,6 +3,8 @@ import torch.nn as nn
 from torch.nn import functional
 
 # skip-gram模型
+
+
 class SkipGram(nn.Module):
     # 传入词表的大小vocab_size和词向量的大小embed_size
     def __init__(self, vocab_size, embed_size):
@@ -14,36 +16,14 @@ class SkipGram(nn.Module):
         self.out_embeddings = nn.Embedding(vocab_size, embed_size)
 
     # skip-gram模型的前向传播
-    def forward(self, target): # 输入目标词target
-        in_vec = self.in_embeddings(target) #将target转为词向量
-        out_vecs = self.out_embeddings.weight #获取词表中全部词语的词向量
+    def forward(self, target):  # 输入目标词target
+        in_vec = self.in_embeddings(target)  # 将target转为词向量
+        out_vecs = self.out_embeddings.weight  # 获取词表中全部词语的词向量
         # 将向量in_vec乘以矩阵out_vecs的转置，会得到目标词和全部词语的点积
         scores = torch.matmul(in_vec, out_vecs.t())
         # 将这组点积，输入至softmax函数，可以计算出概率分布
         # 这个概率表示了每个词是输入词上下文词的概率
         return functional.log_softmax(scores, dim=1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # 函数make_train_data传入raw_text
@@ -79,8 +59,10 @@ def make_train_data(raw_text):
         data.append((context, target))
     return data  # 返回data
 
+
 def word_to_idx_tensor(word):
     return torch.tensor([word2ix[word]], dtype=torch.long)
+
 
 if __name__ == '__main__':
     # 为了验证算法的正确性，准备一小段文本就可以了
@@ -97,7 +79,7 @@ if __name__ == '__main__':
     data = make_train_data(raw_text)
 
     # 在训练中，使用构造好的数据data，其中保存了上下文数据与目标词
-    embedding_dim = 100 # 保存词向量的维度
+    embedding_dim = 100  # 保存词向量的维度
 
     # 定义CBOW模型，传入词语数量vocab_size和词向量维度embedding_dim
     model = SkipGram(vocab_size, embedding_dim)
@@ -132,4 +114,3 @@ if __name__ == '__main__':
         print(f'Context: {context}')
         print(f'Target: {target}')
         print(f'Prediction: {predict}\n')
-
