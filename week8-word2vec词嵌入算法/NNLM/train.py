@@ -61,7 +61,7 @@ def make_train_data(raw_text: list[str], context_size: int):
 corpus, flatten_corpus = read_dir('data')
 vacab, vocab_size, word2idx, idx2word = stat_raw_text(flatten_corpus)
 
-context_size = 2
+context_size = 1
 embedding_dim = 100     # 词嵌入维度
 hidden_dim = 128        # 隐藏层维度
 epochs = 100

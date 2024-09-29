@@ -27,7 +27,7 @@ for line in test_words:
     if len(context) < context_size:
         print(f"Context {line} is too short")
         continue
-    context = torch.LongTensor(context).unsqueeze(0)
+    context = torch.LongTensor(context[-context_size:]).unsqueeze(0)
     output = model.predict(context)
     prob, pred = torch.max(output, 1)
     print(f'{"".join(line)} -> {idx2word[pred.item()]}')
