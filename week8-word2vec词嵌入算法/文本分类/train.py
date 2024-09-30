@@ -62,7 +62,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()  # 定义交叉熵误差
 
     print("begin train:")
-    n_epoch = 10  # 训练轮数设置为30
+    n_epoch = 1  # 训练轮数设置为30
     for epoch in range(n_epoch):  # 进行30轮的迭代
         loss_sum = 0  # 用于打印调试信息
 
