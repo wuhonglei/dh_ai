@@ -13,10 +13,11 @@ from torch.nn.utils.rnn import pad_sequence
 class NewsDataset(Dataset):
     def __init__(self, text_list: list[str], labels: list[int]):
         self.text_token_list: list[list[str]] = []
-        tokenizer = get_tokenizer("basic_english")
+        # 获取spacy的英语分词器
+        tokenizer = get_tokenizer('spacy', language='en_core_web_sm')
         for text in text_list:
             tokenized_text: list[str] = [token.lower()
-                                         for token in tokenizer(text)]
+                                         for token in tokenizer(text) if len(token) > 1]
             self.text_token_list.append(tokenized_text)
         self.labels = labels
 
