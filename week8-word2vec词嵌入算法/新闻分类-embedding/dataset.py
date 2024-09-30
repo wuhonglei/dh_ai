@@ -1,6 +1,8 @@
 # fmt: off
 import torch
 from torch.utils.data import Dataset
+import spacy
+
 import torchtext
 torchtext.disable_torchtext_deprecation_warning()
 from torchtext.data.utils import get_tokenizer
@@ -12,20 +14,33 @@ from torch.nn.utils.rnn import pad_sequence
 
 class NewsDataset(Dataset):
     def __init__(self, text_list: list[str], labels: list[int]):
-        self.text_token_list: list[list[str]] = []
+        self.sentences_list: list[list[str]] = []
         # 获取spacy的英语分词器
-        tokenizer = get_tokenizer('spacy', language='en_core_web_sm')
+        nlp = spacy.load('en_core_web_sm')
         for text in text_list:
-            tokenized_text: list[str] = [token.lower()
-                                         for token in tokenizer(text) if len(token) > 1]
-            self.text_token_list.append(tokenized_text)
+            word_list: list[str] = [token.text
+                                    for token in nlp(text.lower()) if not token.is_stop]
+            self.sentences_list.append(word_list)
         self.labels = labels
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, index) -> tuple[list[str], int]:
-        return self.text_token_list[index], self.labels[index]
+        return self.sentences_list[index], self.labels[index]
+
+
+class ReIterableSentences:
+    def __init__(self, dataset: NewsDataset):
+        self.dataset = dataset
+        self.index = 0
+
+    def __getitem__(self, index: int):
+        sentence, _ = self.dataset[index]
+        return sentence
+
+    def __len__(self):
+        return len(self.dataset)
 
 
 def build_vocab(dataset: NewsDataset):
