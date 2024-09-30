@@ -11,11 +11,11 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from dataset import NewsDataset
-from model import LinearClassifier
+from model import LinearClassifier, SimpleNN
 
 # 1. 加载数据集
 newsgroups = fetch_20newsgroups(
-    subset='all', remove=('headers', 'footers', 'quotes'))
+    subset='all', remove=('headers', 'footers', 'quotes'), data_home='/mnt/model/nlp/scikit_learn_data/')
 
 texts = newsgroups.data
 labels = newsgroups.target
@@ -110,7 +110,7 @@ def get_predictions(model, loader, device):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 hidden_size = 128
 num_classes = num_classes
-num_epochs = 1
+num_epochs = 300
 learning_rate = 0.001
 
 # 选择特征类型：'bow' 或 'tfidf'
@@ -125,11 +125,16 @@ else:
     test_loader = test_loader_tfidf
     input_size = X_train_tfidf.shape[1]
 
-model = LinearClassifier(input_size, num_classes).to(device)
+print('input_size', input_size)
+# model = LinearClassifier(input_size, num_classes).to(device)
+model = SimpleNN(input_size, hidden_size, num_classes).to(device)
+# model.load_state_dict(torch.load('./models/tfidf_50_model.pth',
+#                       map_location=device, weights_only=True))
 criteria = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # 训练和评估
+print('starting training...')
 for epcoh in range(num_epochs):
     train_loss = train(model, train_loader, criteria, optimizer, device)
     test_loss, test_acc = evaluate(model, test_loader, criteria, device)
@@ -141,13 +146,14 @@ true_labels, preds = get_predictions(model, test_loader, device)
 accuracy = accuracy_score(true_labels, preds)
 print(f'Accuracy: {accuracy*100:.2f}%')
 
-# 计算精确率、召回率和F1分数
-precision, recall, f1, _ = precision_recall_fscore_support(
-    true_labels, preds, average='weighted')
-print(f'Precision: {precision*100:.2f}%')
-print(f'Recall: {recall*100:.2f}%')
-print(f'F1 Score: {f1*100:.2f}%')
+# # 计算精确率、召回率和F1分数
+# precision, recall, f1, _ = precision_recall_fscore_support(
+#     true_labels, preds, average='weighted')
+# print(f'Precision: {precision*100:.2f}%')
+# print(f'Recall: {recall*100:.2f}%')
+# print(f'F1 Score: {f1*100:.2f}%')
 
 
 # 保存模型
-torch.save(model.state_dict(), f'{feature_type}_model.pth')
+torch.save(model.state_dict(),
+           f'./models/{feature_type}_{num_epochs}_model.pth')
