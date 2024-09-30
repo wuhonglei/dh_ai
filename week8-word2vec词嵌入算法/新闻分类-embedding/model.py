@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torchinfo import summary
 
 
 class TextClassifier(nn.Module):
@@ -19,3 +20,9 @@ class TextClassifier(nn.Module):
         x = torch.sum(x, dim=1)  # x: [batch_size, embedding_dim]
         x = self.classifier(x)
         return x
+
+
+if __name__ == '__main__':
+    model = TextClassifier(55592, 128, 20, 0)
+    summary(model, input_data=torch.randint(0, 55592, (4, 85)),
+            device='cpu', col_names=("input_size", "output_size", "num_params"))
