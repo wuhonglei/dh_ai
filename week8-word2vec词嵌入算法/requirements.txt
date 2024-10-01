@@ -2,5 +2,4 @@ jieba
 gensim
 nltk
 spacy
-torchtext
 torchdata
