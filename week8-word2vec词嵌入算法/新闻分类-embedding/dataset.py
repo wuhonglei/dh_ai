@@ -13,13 +13,16 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 class NewsDataset(Dataset):
-    def __init__(self, text_list: list[str], labels: list[int]):
+    def __init__(self, sentences_list: list[str], labels: list[int]):
         self.sentences_list: list[list[str]] = []
         # 获取spacy的英语分词器
         nlp = spacy.load('en_core_web_sm')
-        for text in text_list:
-            word_list: list[str] = [token.text
-                                    for token in nlp(text.lower()) if not token.is_stop]
+        total = len(sentences_list)
+        for i, sentence in enumerate(sentences_list):
+            print(f"Processing {i + 1}/{total}")
+            word_list: list[str] = []
+            for token in nlp(sentence.lower()):
+                word_list.append(token.text)
             self.sentences_list.append(word_list)
         self.labels = labels
 
