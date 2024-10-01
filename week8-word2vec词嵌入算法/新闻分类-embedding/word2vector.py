@@ -1,11 +1,11 @@
 import os
+import time
 from gensim.models import Word2Vec
-from collections import defaultdict
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.model_selection import train_test_split
 
-from dataset import NewsDataset, ReIterableSentences, build_vocab, collate_batch
+from dataset import NewsDataset, build_vocab
 
 # 1. 加载数据集
 newsgroups = fetch_20newsgroups(
@@ -20,25 +20,23 @@ train_texts, test_texts, train_labels, test_labels = train_test_split(
 )
 
 # 创建数据集
-train_dataset = NewsDataset(train_texts, train_labels)
-test_dataset = NewsDataset(test_texts, test_labels)
-vocab = build_vocab(train_dataset)
+train_dataset = NewsDataset(train_texts, train_labels, use_cache=True)
+test_dataset = NewsDataset(test_texts, test_labels, use_cache=True)
+special_tokens = ['<pad>', '<unk>']
+vocab = build_vocab(train_dataset, special_tokens)
+print('vocab size:', len(vocab))
+
 # 遍历 vocab 中的词
-sentences: list[list[str]] = []
-for sentence, _ in train_dataset:
-    new_sentence = []
-    for word in sentence:
-        if word in vocab:
-            new_sentence.append(word)
-    if new_sentence:
-        sentences.append(new_sentence)
+sentences: list[list[str]] = train_dataset.get_sentence_in_vocab(vocab)
 
-pass
-# model = Word2Vec(sentences, sg=1,
-#                  vector_size=100, window=5, min_count=1, workers=4)
+# 训练 Word2Vec 模型
+start_time = time.time()
+model = Word2Vec(sentences, sg=1,
+                 vector_size=100, window=5, min_count=1, workers=4)
+print(f"Training time: {time.time() - start_time}")
 
-# # 保存模型
-# model.save('./models/word2vec.model')
+# 保存模型
+model.save('./models/word2vec.model')
 
 # # 加载模型
 # # model = Word2Vec.load('./models/word2vec.model')

@@ -3,16 +3,14 @@ import torch
 import torch.nn as nn
 import numpy as np
 from torch.utils.data import DataLoader
-import pickle
+from gensim.models import Word2Vec
 
 
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from dataset import NewsDataset, build_vocab, collate_batch
-from model import TextClassifier
+from model import TextClassifier, build_word2vec_embeddings
 
 # 1. 加载数据集
 newsgroups = fetch_20newsgroups(
@@ -27,13 +25,13 @@ train_texts, test_texts, train_labels, test_labels = train_test_split(
 )
 
 # 创建数据集
-train_dataset = NewsDataset(train_texts, train_labels)
-test_dataset = NewsDataset(test_texts, test_labels)
+train_dataset = NewsDataset(train_texts, train_labels, use_cache=True)
+test_dataset = NewsDataset(test_texts, test_labels, use_cache=True)
 
 
 # 创建数据加载器
-
-vocab = build_vocab(train_dataset)
+special_tokens = ['<pad>', '<unk>']
+vocab = build_vocab(train_dataset, special_tokens)
 
 # 打印两个词表长度
 print("vocab:", len(vocab))
@@ -104,13 +102,14 @@ def get_predictions(model, loader, device):
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 hidden_size = 128
-embed_dim = 128
+embed_dim = 100
 num_classes = np.max(labels) + 1  # 类别数, labels 从 0 开始
 num_epochs = 300
-learning_rate = 0.001
+learning_rate = 0.01
 vocab_size = len(vocab)
-padding_idx = vocab["<pad>"]
-
+padding_idx = vocab.token2id["<pad>"]
+w2v_model = Word2Vec.load('./models/word2vec.model')
+word2vec_embeddings = build_word2vec_embeddings(vocab.token2id, w2v_model.wv)
 # model = LinearClassifier(input_size, num_classes).to(device)
 model = TextClassifier(vocab_size, embed_dim,
                        num_classes, padding_idx).to(device)
