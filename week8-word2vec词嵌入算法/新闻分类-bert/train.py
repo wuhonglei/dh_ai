@@ -43,18 +43,13 @@ model = BertForSequenceClassification.from_pretrained(
 train_dataset = NewsDataset(train_texts, train_labels, tokenizer)
 val_dataset = NewsDataset(val_texts, val_labels, tokenizer)
 
-
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
-
-optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
 # 学习率调度器
 training_args = TrainingArguments(
     output_dir='./results',          # 模型输出目录
     num_train_epochs=3,              # 训练轮数
-    per_device_train_batch_size=16,  # 训练时每个设备的批次大小
-    per_device_eval_batch_size=16,   # 验证时每个设备的批次大小
-    warmup_steps=500,                # 预热步数
+    per_device_train_batch_size=128,  # 训练时每个设备的批次大小
+    per_device_eval_batch_size=128,   # 验证时每个设备的批次大小
     weight_decay=0.01,               # 权重衰减
     logging_dir='./logs',            # 日志目录
     logging_steps=10,                # 日志记录步数
@@ -63,6 +58,11 @@ training_args = TrainingArguments(
     save_steps=1000,                 # 模型保存步数
     load_best_model_at_end=True      # 在训练结束时加载最佳模型
 )
+train_loader = DataLoader(
+    train_dataset, batch_size=training_args.batch_size, shuffle=True)
+val_loader = DataLoader(
+    val_dataset, batch_size=training_args.batch_size, shuffle=False)
+
 total_steps = len(train_loader) * training_args.num_train_epochs
 scheduler = get_linear_schedule_with_warmup(
     optimizer,
