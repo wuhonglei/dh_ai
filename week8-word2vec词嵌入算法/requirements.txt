@@ -3,3 +3,5 @@ gensim
 nltk
 spacy
 torchdata
+transformers
+pandas
