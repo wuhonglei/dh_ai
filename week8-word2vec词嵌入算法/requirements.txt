@@ -5,3 +5,4 @@ spacy
 torchdata
 transformers
 pandas
+transformers
