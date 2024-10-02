@@ -19,7 +19,7 @@ from dataset import NewsDataset
 
 # 1. 加载数据集
 newsgroups = fetch_20newsgroups(
-    subset='all', remove=('headers', 'footers', 'quotes'))
+    subset='all', remove=('headers', 'footers', 'quotes'), data_home='/mnt/model/nlp/scikit_learn_data/')
 
 texts = newsgroups.data   # type: ignore
 labels = newsgroups.target  # type: ignore
@@ -31,7 +31,7 @@ train_texts, val_texts, train_labels, val_labels = train_test_split(
 )
 
 num_labels = np.max(labels) + 1
-model_name = 'bert-base-uncased'
+model_name = '/mnt/model/nlp/bert-base-uncased'
 id2label = {i: name for i, name in enumerate(target_names)}
 label2id = {name: i for i, name in enumerate(target_names)}
 tokenizer: BertTokenizer = BertTokenizer.from_pretrained(model_name)
