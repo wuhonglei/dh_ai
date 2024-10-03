@@ -43,13 +43,14 @@ model = BertForSequenceClassification.from_pretrained(
 train_dataset = NewsDataset(train_texts, train_labels, tokenizer)
 val_dataset = NewsDataset(val_texts, val_labels, tokenizer)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=5e-3)
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 # 学习率调度器
 training_args = TrainingArguments(
     output_dir='./results',          # 模型输出目录
     num_train_epochs=3,              # 训练轮数
     per_device_train_batch_size=128,  # 训练时每个设备的批次大小
     per_device_eval_batch_size=128,   # 验证时每个设备的批次大小
+    warmup_steps=500,
     weight_decay=0.01,               # 权重衰减
     logging_dir='./logs',            # 日志目录
     logging_steps=10,                # 日志记录步数
