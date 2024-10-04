@@ -69,7 +69,6 @@ for epoch in epoch_progress:
             _, predicted = torch.max(output, 1)
             total += label.size(0)
             correct += (predicted == label).sum().item()
-    epoch_progress.set_postfix(
-        val_acc=correct/total, loss=total_loss.item()/len(train_dataloader))
+    epoch_progress.set_postfix(val_acc=correct/total)
 
 torch.save(model.state_dict(), model_name)
