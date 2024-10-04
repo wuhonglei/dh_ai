@@ -11,8 +11,8 @@ dataset = NamesDataset('data/names')
 train_size = int(0.9 * len(dataset))  # 80% 作为训练集
 val_size = len(dataset) - train_size  # 20% 作为验证集
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-train_dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
-val_dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
 model_name = 'name_classify.pth'
 input_size = len(dataset.all_letters)
@@ -21,7 +21,7 @@ output_size = dataset.get_labels_num()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = RNNModel(input_size, hidden_size, output_size)
 model.to(device)
-model.load_state_dict(torch.load(model_name))
+# model.load_state_dict(torch.load(model_name))
 criteria = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 epochs = 10

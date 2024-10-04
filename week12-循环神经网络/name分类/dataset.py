@@ -58,6 +58,9 @@ class NamesDataset(Dataset):
     def get_label_name(self, idx: int):
         return self.idx2name.get(idx, None)
 
+    def get_label_names(self):
+        return list(self.name2idx.keys())
+
     def __getitem__(self, idx):
         return self.names[idx], self.labels[idx]
 
