@@ -14,6 +14,7 @@ class RNNModel(nn.Module):
         """
         self.i2h = nn.Linear(input_size + hidden_size,
                              hidden_size)
+        self.activation = nn.ReLU()
         self.h2o = nn.Linear(hidden_size, output_size)
 
     def forward(self, input: torch.Tensor, hidden: torch.Tensor):
@@ -24,7 +25,7 @@ class RNNModel(nn.Module):
         """
         combined = torch.concat((input, hidden), 1)
         hidden = self.i2h(combined)
-        # output: torch.Tensor = self.h2o(hidden)
+        hidden = self.activation(hidden)
         return hidden
 
     def compute_output(self, hidden: torch.Tensor):

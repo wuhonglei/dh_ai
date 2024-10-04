@@ -1,6 +1,5 @@
 import torch
-from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Subset, random_split
+from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
 from dataset import NamesDataset
@@ -20,17 +19,17 @@ hidden_size = 128
 output_size = dataset.get_labels_num()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = RNNModel(input_size, hidden_size, output_size)
-model.to(device)
 # model.load_state_dict(torch.load(model_name))
+model.to(device)
 criteria = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-epochs = 10
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+epochs = 30
 
 epoch_progress = tqdm(range(epochs), leave=True)
 for epoch in epoch_progress:
     epoch_progress.set_description(f'epoch: {epoch + 1}')
 
-    total_loss = 0.0
+    total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
     batch_progress = tqdm(enumerate(train_dataloader), leave=False)
     model.train()
     for i, (name, label) in batch_progress:
@@ -47,9 +46,12 @@ for epoch in epoch_progress:
 
         output = model.compute_output(hidden)
         loss = criteria(output, label)
-        loss.backward()
-        optimizer.step()
-        total_loss += loss.item()
+        total_loss += loss
+
+        if i % 1000 == 0:
+            total_loss.backward()
+            optimizer.step()
+            total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
 
     model.eval()
     total = 0
@@ -68,6 +70,6 @@ for epoch in epoch_progress:
             total += label.size(0)
             correct += (predicted == label).sum().item()
     epoch_progress.set_postfix(
-        val_acc=correct/total, loss=total_loss/len(train_dataloader))
+        val_acc=correct/total, loss=total_loss.item()/len(train_dataloader))
 
 torch.save(model.state_dict(), model_name)
