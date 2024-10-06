@@ -12,7 +12,7 @@ class NamesDataset(Dataset):
         self.labels = []
         self.name2idx: dict[str, int] = {}
         self.idx2name: dict[int, str] = {}
-        self.all_letters = string.ascii_lowercase + " .,;'"
+        self.all_letters = string.ascii_letters + " .,;'"
         self.char2index = self.get_char_to_index(self.all_letters)
         self.pattern = re.compile(f'[^{self.all_letters}]')
 
@@ -28,7 +28,7 @@ class NamesDataset(Dataset):
             with open(os.path.join(data_dir, filename), 'r') as f:
                 for line in f:
                     self.names.append(
-                        self.normalize_name(line.strip().lower()))
+                        self.normalize_name(line.strip()))
                     self.labels.append(label)
 
     def normalize_name(self, name: str):
