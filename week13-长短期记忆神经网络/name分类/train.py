@@ -36,8 +36,7 @@ for epoch in epoch_progress:
         batch_progress.set_description(
             f'batch: {i + 1}/{len(train_dataloader)}')
 
-        cell = model.init_hidden()  # 初始化细胞状态
-        hidden = model.init_hidden()  # 初始化隐藏状态
+        hidden, cell = model.init_hidden(device)  # 初始化细胞状态
         optimizer.zero_grad()
         name_tensor = dataset.name_to_tensor(name[0])
         name_tensor = name_tensor.to(device)
@@ -56,8 +55,7 @@ for epoch in epoch_progress:
     correct = 0
     with torch.no_grad():
         for name, label in val_dataloader:
-            cell = model.init_hidden()
-            hidden = model.init_hidden()
+            hidden, cell = model.init_hidden(device)
             name_tensor = dataset.name_to_tensor(name[0])
             name_tensor = name_tensor.to(device)
             label = label.to(device)

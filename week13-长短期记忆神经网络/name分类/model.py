@@ -25,8 +25,8 @@ class LSTMModel(nn.Module):
         hidden = output_gate * torch.tanh(new_cell)
         return hidden, new_cell
 
-    def init_hidden(self):
-        return torch.zeros(1, self.hidden_size)
+    def init_hidden(self, device):
+        return (torch.zeros(1, self.hidden_size, device=device), torch.zeros(1, self.hidden_size, device=device))
 
     def compute_output(self, hidden):
         return self.output(hidden)
