@@ -36,7 +36,7 @@ for epoch in epoch_progress:
         batch_progress.set_description(
             f'batch: {i + 1}/{len(train_dataloader)}')
 
-        hidden = model.init_hidden()  # 初始化隐藏状态
+        hidden = model.init_hidden(device)  # 初始化隐藏状态
         optimizer.zero_grad()
         name_tensor = dataset.name_to_tensor(name[0])
         name_tensor = name_tensor.to(device)
@@ -46,15 +46,18 @@ for epoch in epoch_progress:
 
         output = model.compute_output(hidden)
         loss = criteria(output, label)
-        loss.backward()
-        optimizer.step()
+        total_loss += loss
+        if (i + 1) % 1000 == 0:
+            total_loss.backward()
+            optimizer.step()
+            total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
 
     model.eval()
     total = 0
     correct = 0
     with torch.no_grad():
         for name, label in val_dataloader:
-            hidden = model.init_hidden()
+            hidden = model.init_hidden(device)
             name_tensor = dataset.name_to_tensor(name[0])
             name_tensor = name_tensor.to(device)
             label = label.to(device)

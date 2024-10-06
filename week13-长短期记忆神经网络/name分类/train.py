@@ -19,7 +19,7 @@ hidden_size = 128
 output_size = dataset.get_labels_num()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = LSTMModel(input_size, hidden_size, output_size)
-# model.load_state_dict(torch.load(model_name))
+model.load_state_dict(torch.load(model_name))
 model.to(device)
 criteria = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -47,8 +47,11 @@ for epoch in epoch_progress:
 
         output = model.compute_output(hidden)
         loss = criteria(output, label)
-        loss.backward()
-        optimizer.step()
+        total_loss += loss
+        if (i + 1) % 1000 == 0:
+            total_loss.backward()
+            optimizer.step()
+            total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
 
     model.eval()
     total = 0

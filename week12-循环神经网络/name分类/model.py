@@ -31,8 +31,8 @@ class RNNModel(nn.Module):
     def compute_output(self, hidden: torch.Tensor):
         return self.h2o(hidden)
 
-    def init_hidden(self):
-        return torch.zeros(1, self.hidden_size, dtype=torch.float32)
+    def init_hidden(self, device):
+        return torch.zeros(1, self.hidden_size, dtype=torch.float32, device=device)
 
 
 if __name__ == '__main__':
