@@ -46,12 +46,8 @@ for epoch in epoch_progress:
 
         output = model.compute_output(hidden)
         loss = criteria(output, label)
-        total_loss += loss
-
-        if i % 1000 == 0:
-            total_loss.backward()
-            optimizer.step()
-            total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
+        loss.backward()
+        optimizer.step()
 
     model.eval()
     total = 0
