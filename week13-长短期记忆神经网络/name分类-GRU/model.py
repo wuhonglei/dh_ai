@@ -15,12 +15,15 @@ class GRUModel(nn.Module):
 
     def forward(self, input: torch.Tensor, hidden: torch.Tensor):
         combined = torch.concat((input, hidden), 1)
-        reset_gate = torch.sigmoid(self.i2h_reset(combined))
-        update_gate = torch.sigmoid(self.i2h_update(combined))
 
-        combined = torch.concat((input, hidden * reset_gate), 1)
-        candidate = torch.tanh(self.i2h_candidate(combined))
-        hidden = update_gate * hidden + (1 - update_gate) * candidate
+        # 计算重置门和更新门
+        r_t = torch.sigmoid(self.i2h_reset(combined))
+        z_t = torch.sigmoid(self.i2h_update(combined))
+
+        # 计算候选隐藏状态
+        combined_reset = torch.concat((input, hidden * r_t), 1)
+        n_t = torch.tanh(self.i2h_candidate(combined_reset))
+        hidden = (1 - z_t) * hidden + z_t * n_t
         return hidden
 
     def init_hidden(self, device):

@@ -44,7 +44,8 @@ if __name__ == '__main__':
     output_size = dataset.get_labels_num()
     model = RNNModel(input_size, hidden_size, output_size)
 
-    last_hidden = model.init_hidden()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    last_hidden = model.init_hidden(device)
     sequence_len = word_tensor.size(0)
     print('sequence shape:', word_tensor.shape)
     for i in range(sequence_len):

@@ -10,10 +10,7 @@ dataset = NamesDataset('data/names')
 train_size = int(0.9 * len(dataset))  # 80% 作为训练集
 val_size = len(dataset) - train_size  # 20% 作为验证集
 # 设置随机种子，确保分割结果可重复
-torch.manual_seed(42)
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-# 恢复随机种子
-torch.seed()
 
 train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=False)
@@ -36,8 +33,8 @@ for epoch in epoch_progress:
 
     total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
     batch_progress = tqdm(enumerate(train_dataloader), leave=False)
+    model.train()
     for i, (name, label) in batch_progress:
-        model.train()
         batch_progress.set_description(
             f'batch: {i + 1}/{len(train_dataloader)}')
 
