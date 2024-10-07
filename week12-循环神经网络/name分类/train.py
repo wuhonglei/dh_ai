@@ -31,8 +31,8 @@ for epoch in epoch_progress:
 
     total_loss = torch.tensor(0.0, device=device, dtype=torch.float32)
     batch_progress = tqdm(enumerate(train_dataloader), leave=False)
-    model.train()
     for i, (name, label) in batch_progress:
+        model.train()
         batch_progress.set_description(
             f'batch: {i + 1}/{len(train_dataloader)}')
 
