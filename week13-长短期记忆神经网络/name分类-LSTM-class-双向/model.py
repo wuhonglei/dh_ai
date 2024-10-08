@@ -6,20 +6,16 @@ class LSTMModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(LSTMModel, self).__init__()
         self.hidden_size = hidden_size
-        self.lstm_forward = nn.LSTM(input_size, hidden_size, batch_first=False)
-        self.lstm_backward = nn.LSTM(
-            input_size, hidden_size, batch_first=False)
+        self.lstm = nn.LSTM(input_size, hidden_size,
+                            batch_first=False, bidirectional=True)
         self.fc = nn.Linear(hidden_size * 2, output_size)
 
     def forward(self, input: torch.Tensor):
         """
         input shape: (seq_len, 1, input_size)
         """
-        _, (hidden_forward, _) = self.lstm_forward(input)
-        reversed_input = torch.flip(input, [0])
-        _, (hidden_backward, _) = self.lstm_backward(reversed_input)
-
-        hidden = torch.cat(
-            (hidden_forward.squeeze(0), hidden_backward.squeeze(0)), dim=-1)
-        output = self.fc(hidden)
+        _, (hidden, _) = self.lstm(input)
+        # 合并前向和后向的 hidden state
+        hidden_cat = torch.cat((hidden[0], hidden[1]), dim=-1)
+        output = self.fc(hidden_cat)
         return output
