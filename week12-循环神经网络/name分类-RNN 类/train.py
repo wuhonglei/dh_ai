@@ -19,7 +19,7 @@ hidden_size = 128
 output_size = dataset.get_labels_num()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = RNNModel(input_size, hidden_size, output_size)
-# model.load_state_dict(torch.load(model_name))
+model.load_state_dict(torch.load(model_name))
 model.to(device)
 criteria = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
