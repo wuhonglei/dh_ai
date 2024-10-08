@@ -13,9 +13,13 @@ class LSTMModel(nn.Module):
     def forward(self, input: torch.Tensor):
         """
         input shape: (seq_len, 1, input_size)
+        lstm output shape: (seq_len, 1, hidden_size * 2)
         """
         _, (hidden, _) = self.lstm(input)
-        # 合并前向和后向的 hidden state
-        hidden_cat = torch.cat((hidden[0], hidden[1]), dim=-1)
-        output = self.fc(hidden_cat)
+        hidden_forward = hidden[0, :, :]
+        hidden_backward = hidden[1, :, :]
+        hidden = torch.cat((hidden_forward, hidden_backward), dim=-1)
+
+        # 取最后一个时间步的输出用于分类
+        output = self.fc(hidden)
         return output
