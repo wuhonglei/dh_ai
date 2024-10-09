@@ -58,9 +58,15 @@ def collate_fn(batch: list[tuple[list[str], list[str]]], text_vocab: Vocab, pos_
 
 
 if __name__ == '__main__':
-    train_data, valid_data, test_data = UDPOS()
+    train_data, valid_data, test_data = UDPOS(root='.data')
     dataset = POSTagDataset(test_data)
     text_vocab, pos_vocab = build_vocab(dataset)
+
+    with open('text_vocab.pkl', 'wb') as f:
+        pickle.dump(text_vocab, f)
+
+    with open('pos_vocab.pkl', 'wb') as f:
+        pickle.dump(pos_vocab, f)
 
     # def collate(batch): return collate_fn(batch, text_vocab, pos_vocab)
     # dataloader = DataLoader(test_data, batch_size=2,
