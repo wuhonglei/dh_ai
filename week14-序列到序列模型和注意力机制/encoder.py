@@ -1,26 +1,26 @@
 import torch
-import torch.nn
+import torch.nn as nn
 
 from torchinfo import summary
 
 
-class Encoder(torch.nn.Module):
+class Encoder(nn.Module):
     def __init__(self, input_size, embed_size, hidden_size, num_layers, p):
         super(Encoder, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
 
-        self.dropout = torch.nn.Dropout(p)
-        self.embedding = torch.nn.Embedding(input_size, embed_size)
-        self.rnn = torch.nn.LSTM(
+        self.dropout = nn.Dropout(p)
+        self.embedding = nn.Embedding(input_size, embed_size)
+        self.rnn = nn.LSTM(
             embed_size, hidden_size, num_layers, dropout=p)
 
-    def forward(self, x):
+    def forward(self, src):
         """
-        x: [seq_len, batch_size]
+        src: [seq_len, batch_size]
         embedding: [seq_len, batch_size, embed_size]
         """
-        embedding = self.dropout(self.embedding(x))
+        embedding = self.dropout(self.embedding(src))
 
         """
         hidden: [num_layers, batch_size, hidden_size]
