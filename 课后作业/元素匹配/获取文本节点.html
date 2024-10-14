@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <div>
+      This is some text.
+      <p>Another text.</p>
+      <span>More text.</span>
+      <div class="container"></div>
+      <div>
+        text node3
+        <span>haha</span>
+        text node4
+      </div>
+      <iframe src="" frameborder="0">空的</iframe>
+      <p>
+        <!-- 注释节点 -->
+      </p>
+      <!-- <p>
+        注释节点 123
+      </p> -->
+    </div>
+    <script>
+      const container = document.querySelector(".container");
+      const textNode1 = document.createTextNode("Text node 1");
+      const textNode2 = document.createTextNode("Text node 2");
+      container.appendChild(textNode1);
+      container.appendChild(textNode2);
+    </script>
+    <script>
+      /*
+       * 获取所有文本节点, 有效的文本节点需要同时满足以下条件:
+       * 1. 文本节点的父元素没有子元素(即没有 DOM 元素节点)
+       * 2. 文本节点的 nodeValue 去除首尾空白字符后不为空
+       * 3. 文本节点不在 script 和 iframe 标签内
+       */
+      function getTextNodes(node) {
+        let textNodes = [];
+        if (
+          node.nodeType === Node.TEXT_NODE &&
+          !node.parentElement.childElementCount &&
+          node.nodeValue.trim() !== ""
+        ) {
+          textNodes.push(node.parentElement);
+        } else if (!["SCRIPT", "IFRAME"].includes(node.tagName)) {
+          let children = node.childNodes;
+          for (let i = 0; i < children.length; i++) {
+            textNodes = textNodes.concat(getTextNodes(children[i]));
+          }
+        }
+        return textNodes;
+      }
+
+      let root = document.body;
+      let allTextNodes = getTextNodes(root);
+      allTextNodes.forEach((node) => console.log(node.textContent.trim()));
+    </script>
+  </body>
+</html>
