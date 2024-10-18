@@ -1,0 +1,3 @@
+pygsheets
+openpyxl
+nltk

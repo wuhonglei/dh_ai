@@ -46,6 +46,7 @@ def clean_text(df: pd.DataFrame, stopwords: str) -> pd.DataFrame:
     path = pathlib.Path("config") / "stopwords_custom.txt"
     with open(path, "r") as st:
         st_list = set(st.read().split())
+
     stop_words = nltk.corpus.stopwords.words(stopwords) + list(st_list)
     df["Keyword"] = df["Keyword"].apply(
         lambda x: [item for item in nltk.word_tokenize(

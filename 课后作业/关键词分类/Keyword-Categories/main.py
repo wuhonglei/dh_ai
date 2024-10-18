@@ -1,6 +1,7 @@
 from typing import List
 import logging
 import pathlib
+import pandas as pd
 
 import nltk
 
@@ -19,14 +20,14 @@ class KeywordCategories:
         self.stopwords = info["stopwords"]
 
     @timer
-    def main(self) -> None:
+    def main(self):
 
         print(f"{'-'*6}{self.country}{'-'*6}")
 
         # Step1 > Get gsheet raw data
         # raw_data = get_gsheet_df("Result-" + self.country)
         raw_data = get_df_from_xlsx(
-            './data/Keyword Categorization.xlsx', self.country)
+            './data/Keyword_Categorization.xlsx', self.country)
 
         # Step2 > Pre-process data
         process_data = pre_process(raw_data, self.stopwords)
@@ -36,7 +37,7 @@ class KeywordCategories:
 
         # Step3 > Train model & predict
         result = train_model(self.country, process_data, raw_data)
-        result.to_csv(f'./result/{self.country}.csv')
+        return result
 
         # Step4 > Save to Google Sheet
         # update_gsheet_df("Predict-Result-" + self.country, result)
@@ -62,6 +63,10 @@ if __name__ == "__main__":
     if path.exists():
         path.unlink()
 
+    data_list: list[dict] = []
     for info in countries_info:
         categories = KeywordCategories(info)
-        categories.main()
+        data_list.append(categories.main())
+
+    df = pd.DataFrame(data_list)
+    df.to_csv(path, index=False)

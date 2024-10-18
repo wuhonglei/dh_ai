@@ -112,17 +112,14 @@ def train_model(
     y_pred = main.predict(x_test)
     # result = pd.DataFrame({"Keyword": raw_data["Keyword"], "Category": y_pred})
     # 统计分类成功率
-    result = pd.DataFrame(
-        {
-            "Country": country,
-            "Accuracy": str(int(accuracy_score(y_test, y_pred) * 100)) + "%",
-            "Precision": str(int(precision_score(y_test, y_pred, average="weighted") * 100))
-            + "%",
-            "Recall": str(int(recall_score(y_test, y_pred, average="weighted") * 100))
-            + "%",
-            "F1": str(int(f1_score(y_test, y_pred, average="weighted") * 100)) + "%",
-        },
-        index=[0],
-    )
+    result = {
+        "Country": country,
+        "Accuracy": str(int(accuracy_score(y_test, y_pred) * 100)) + "%",
+        "Precision": str(int(precision_score(y_test, y_pred, average="weighted") * 100))
+        + "%",
+        "Recall": str(int(recall_score(y_test, y_pred, average="weighted") * 100))
+        + "%",
+        "F1": str(int(f1_score(y_test, y_pred, average="weighted") * 100)) + "%",
+    }
 
     return result
