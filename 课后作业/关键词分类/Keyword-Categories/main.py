@@ -36,6 +36,7 @@ class KeywordCategories:
 
         # Step3 > Train model & predict
         result = train_model(self.country, process_data, raw_data)
+        result.to_csv(f'./result/{self.country}.csv')
 
         # Step4 > Save to Google Sheet
         # update_gsheet_df("Predict-Result-" + self.country, result)
@@ -64,4 +65,3 @@ if __name__ == "__main__":
     for info in countries_info:
         categories = KeywordCategories(info)
         categories.main()
-        break

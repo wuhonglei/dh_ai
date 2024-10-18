@@ -71,19 +71,19 @@ def pre_process(data: pd.DataFrame, stopwords: str) -> pd.DataFrame:
     data_preprocess = clean_text(data, stopwords)
     data_vectorizer = vectorize(data_preprocess)
 
-    data_onehot = pd.get_dummies(
-        data[
-            [
-                "Category",
-            ]
-        ],
-        columns=[
-            "Category",
-        ],
-        dummy_na=True,
-    )
-    data_onehot.reset_index(inplace=True, drop=True)
+    # data_onehot = pd.get_dummies(
+    #     data[
+    #         [
+    #             "Category",
+    #         ]
+    #     ],
+    #     columns=[
+    #         "Category",
+    #     ],
+    #     dummy_na=True,
+    # )
+    # data_onehot.reset_index(inplace=True, drop=True)
 
-    df_end = pd.concat([data_onehot, data_vectorizer], axis=1)
+    df_end = pd.concat([data['Category'], data_vectorizer], axis=1)
 
     return df_end

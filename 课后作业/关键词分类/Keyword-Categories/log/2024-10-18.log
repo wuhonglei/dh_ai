@@ -1,0 +1,13 @@
+10/18/2024 06:09:31 PM INFO <function pre_process> - Time Coast: 223.42s
+10/18/2024 06:11:13 PM INFO <function pre_process> - Time Coast: 12.73s
+10/18/2024 06:12:08 PM INFO <function pre_process> - Time Coast: 8.20s
+10/18/2024 06:20:15 PM INFO <function pre_process> - Time Coast: 8.30s
+10/18/2024 06:50:53 PM INFO <function pre_process> - Time Coast: 8.77s
+10/18/2024 06:51:15 PM INFO <function train_model> - Time Coast: 21.81s
+10/18/2024 06:51:15 PM INFO <function KeywordCategories.main> - Time Coast: 38.59s
+10/18/2024 06:52:38 PM INFO <function pre_process> - Time Coast: 8.29s
+10/18/2024 06:52:55 PM INFO <function train_model> - Time Coast: 17.24s
+10/18/2024 06:52:55 PM INFO <function KeywordCategories.main> - Time Coast: 34.11s
+10/18/2024 06:53:23 PM INFO <function pre_process> - Time Coast: 19.57s
+10/18/2024 06:54:15 PM INFO <function train_model> - Time Coast: 51.27s
+10/18/2024 06:54:15 PM INFO <function KeywordCategories.main> - Time Coast: 79.64s

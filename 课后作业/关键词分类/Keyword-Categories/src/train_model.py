@@ -85,25 +85,44 @@ def train_model(
     country: str,
     process_data: pd.DataFrame,
     raw_data: pd.DataFrame,
-) -> None:
+):
 
     data = process_data[pd.notnull(process_data["Category"])]
 
-    train_data = data[data["Category"].str.len() >= 1]
-    test_data = data[data["Category"].str.len() == 0]
-    raw_data = raw_data[raw_data["Category"].str.len() == 0]
+    # train_data = data[data["Category"].str.len() >= 1]
+    # test_data = data[data["Category"].str.len() == 0]
+    # raw_data = raw_data[raw_data["Category"].str.len() == 0]
 
-    logger.debug("df.shape: " + str(raw_data.shape))
+    # logger.debug("df.shape: " + str(raw_data.shape))
 
-    x_train, x_test, y_train = (
-        train_data.drop(["Category"], axis=1),
-        test_data.drop(["Category"], axis=1),
-        train_data["Category"],
+    # x_train, x_test, y_train = (
+    #     train_data.drop(["Category"], axis=1),
+    #     test_data.drop(["Category"], axis=1),
+    #     train_data["Category"],
+    # )
+    x_train, x_test, y_train, y_test = train_test_split(
+        data.drop(["Category"], axis=1),
+        data["Category"],
+        random_state=0,
+        test_size=0.2,
     )
 
     main = LinearSVC()
     main.fit(x_train, y_train)
     y_pred = main.predict(x_test)
-    result = pd.DataFrame({"Keyword": raw_data["Keyword"], "Category": y_pred})
+    # result = pd.DataFrame({"Keyword": raw_data["Keyword"], "Category": y_pred})
+    # 统计分类成功率
+    result = pd.DataFrame(
+        {
+            "Country": country,
+            "Accuracy": str(int(accuracy_score(y_test, y_pred) * 100)) + "%",
+            "Precision": str(int(precision_score(y_test, y_pred, average="weighted") * 100))
+            + "%",
+            "Recall": str(int(recall_score(y_test, y_pred, average="weighted") * 100))
+            + "%",
+            "F1": str(int(f1_score(y_test, y_pred, average="weighted") * 100)) + "%",
+        },
+        index=[0],
+    )
 
     return result
