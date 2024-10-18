@@ -1,3 +1,4 @@
 pygsheets
 openpyxl
 nltk
+joblib

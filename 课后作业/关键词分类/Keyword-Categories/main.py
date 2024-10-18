@@ -60,9 +60,6 @@ if __name__ == "__main__":
     ]
 
     path = pathlib.Path().resolve() / "csv" / "predict_result.csv"
-    if path.exists():
-        path.unlink()
-
     data_list: list[dict] = []
     for info in countries_info:
         categories = KeywordCategories(info)

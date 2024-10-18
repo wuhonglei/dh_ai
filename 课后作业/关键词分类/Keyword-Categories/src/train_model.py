@@ -1,6 +1,7 @@
 import pathlib
 import logging
 import pandas as pd
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
@@ -107,9 +108,11 @@ def train_model(
         test_size=0.2,
     )
 
-    main = LinearSVC()
-    main.fit(x_train, y_train)
-    y_pred = main.predict(x_test)
+    model = LinearSVC()
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    # 保存模型
+    joblib.dump(model, f"./models/{country}.pkl")
     # result = pd.DataFrame({"Keyword": raw_data["Keyword"], "Category": y_pred})
     # 统计分类成功率
     result = {
