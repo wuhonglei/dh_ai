@@ -7,14 +7,14 @@ import nltk
 from config.config import settings
 from src.pre_process import pre_process
 from src.train_model import model_selection, train_model
-from src.utils import get_gsheet_df, update_gsheet_df, timer
+from src.utils import get_gsheet_df, update_gsheet_df, timer, get_df_from_xlsx
 
 logger = logging.getLogger(__name__)
 nltk.download("stopwords")
 
 
 class KeywordCategories:
-    def __init__(self, info: List) -> None:
+    def __init__(self, info: dict[str, str]) -> None:
         self.country = info["country"]
         self.stopwords = info["stopwords"]
 
@@ -24,7 +24,9 @@ class KeywordCategories:
         print(f"{'-'*6}{self.country}{'-'*6}")
 
         # Step1 > Get gsheet raw data
-        raw_data = get_gsheet_df("Result-" + self.country)
+        # raw_data = get_gsheet_df("Result-" + self.country)
+        raw_data = get_df_from_xlsx(
+            './data/Keyword Categorization.xlsx', self.country)
 
         # Step2 > Pre-process data
         process_data = pre_process(raw_data, self.stopwords)
@@ -62,3 +64,4 @@ if __name__ == "__main__":
     for info in countries_info:
         categories = KeywordCategories(info)
         categories.main()
+        break

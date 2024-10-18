@@ -6,8 +6,8 @@ import pygsheets
 
 logger = logging.getLogger(__name__)
 
-file_path = pathlib.Path().resolve() / "config" / "google_sheet_key.json"
-gc = pygsheets.authorize(service_file=file_path)
+# file_path = pathlib.Path().resolve() / "config" / "google_sheet_key.json"
+# gc = pygsheets.authorize(service_file=file_path)
 
 
 def timer(function):
@@ -16,7 +16,8 @@ def timer(function):
         result = function(*args, **kws)
         t_end = time.time()
         t_count = t_end - t_start
-        logger.info(f"<function {function.__qualname__}> - Time Coast: {t_count:.2f}s")
+        logger.info(
+            f"<function {function.__qualname__}> - Time Coast: {t_count:.2f}s")
         return result
 
     return wrapper

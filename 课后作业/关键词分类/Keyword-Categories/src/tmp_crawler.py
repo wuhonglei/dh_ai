@@ -35,9 +35,9 @@ class Crawler:
             return None
 
     def main(self, df: pd.DataFrame) -> pd.DataFrame:
-        for keyword in df["Keyword_Filter"][:]:
+        for keyword in df["Keyword"][:]:
             category = self.get_category(str(keyword))
-            df.loc[df["Keyword_Filter"] == keyword, "Category_Crawler"] = category
+            df.loc[df["Keyword"] == keyword, "Category_Crawler"] = category
         df.to_csv("crawler.csv", index=False)
         print(self.count)
         return df
