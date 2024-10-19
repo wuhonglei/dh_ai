@@ -37,6 +37,7 @@ class KeywordCategories:
 
         # Step3 > Train model & predict
         result = train_model(self.country, process_data, raw_data)
+        print(result)
         return result
 
         # Step4 > Save to Google Sheet
