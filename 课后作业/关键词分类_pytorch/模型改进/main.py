@@ -35,8 +35,7 @@ for info in countries_info:
     X_train, X_test, y_train, y_test = train_test_split(
         X.tolist(), y.tolist(), test_size=0.2, random_state=42)
 
-    train(X_train, y_train, country)
-    evaluate(X_test, y_test, country)
+    train(X_train, y_train, country, X_test, y_test)
 
 
 # df = pd.DataFrame(data_list)

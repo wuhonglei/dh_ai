@@ -69,7 +69,7 @@ def tokenize_my(text: str) -> list[str]:
     xxx's 符号在 keyword 中表示 "什么什么的"，需要替换为空格, 例如 swisse men's vitality -> swisse men vitality
     经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
     """
-    keyword = re.sub(r'(?<=\w)\'s(?=\s)', ' ', keyword)
+    keyword = re.sub(r'(?<=\w)\'s(?=\b)', ' ', keyword)
 
     """
     移除年份表示，例如 e-belia 2022 -> e-belia
@@ -151,24 +151,23 @@ def tokenize_tw(text: str) -> list[str]:
     xxx's 符号在 keyword 中表示 "什么什么的"，需要替换为空格, 例如 swisse men's vitality -> swisse men vitality
     经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
     """
-    keyword = re.sub(r'(?<=\w)\'s(?=\s)', ' ', keyword)
+    keyword = re.sub(r'(?<=\w)\'s(?=\b)', ' ', keyword)
 
-    """
-    移除结尾的标点符号, 例如 ;'"
-    """
-    keyword = re.sub(r'[;\'"]$', '', keyword)
+    keyword = re.sub(r'[;\'"?!]$', ' ', keyword)
 
     """
     英文单词和中文之间增加空格，例如 三星samsung -> 三星 samsung
+    jieba 分词支持拆分中英文，例如 三星samsung -> ['三星', 'samsung']
     """
-    keyword = re.sub(
-        r'([a-zA-Z\d]+)(?=[\u4e00-\u9fa5])|([\u4e00-\u9fa5]+)(?=[a-zA-Z\d])', r'\1\2 ', keyword)
+    # keyword = re.sub(
+    #     r'([a-zA-Z\d]+)(?=[\u4e00-\u9fa5])|([\u4e00-\u9fa5]+)(?=[a-zA-Z\d])', r'\1\2 ', keyword)
 
     """
     电压标识符号和中文之间增加空格，例如 220v冰箱 -> 220v 冰箱
+    jieba 分词支持拆分中英文，例如 220v冰箱 -> ['220v', '冰箱']
     """
-    keyword = re.sub(
-        r'(220v|110v)(?=[\u4e00-\u9fa5]+)|([\u4e00-\u9fa5]+)(?=220v|110v)', r'\1\2 ', keyword, flags=re.IGNORECASE)
+    # keyword = re.sub(
+    #     r'(220v|110v)(?=[\u4e00-\u9fa5]+)|([\u4e00-\u9fa5]+)(?=220v|110v)', r'\1\2 ', keyword, flags=re.IGNORECASE)
 
     def parse_num(match):
         num = re.sub(r'(g|G|T|t)', '', match.group(1))
@@ -178,16 +177,19 @@ def tokenize_tw(text: str) -> list[str]:
             return match.group()
     """
     数字和中文之间增加空格，例如 2g内存 -> 2g 内存
+    jieba 分词支持拆分中英文，例如 2g内存 -> ['2g', '内存']
     """
-    keyword = re.sub(
-        r'\b(\d+(?:g|G|T|t))(?=[\u4e00-\u9fa5]+)', parse_num, keyword)
+    # keyword = re.sub(
+    #     r'\b(\d+(?:g|G|T|t))(?=[\u4e00-\u9fa5]+)', parse_num, keyword)
 
+    jieba.load_userdict('./userdict/tw.txt')
     token_list = jieba.lcut(keyword)
     new_token_list = []
     for token in token_list:
-        strip_token = token.strip()
-        if token not in stop_word_list and len(strip_token) > 1:
-            new_token_list.append(strip_token)
+        strip_token: str = token.strip()
+        if strip_token and strip_token not in stop_word_list:
+            if not strip_token.isascii() or len(strip_token) > 1:
+                new_token_list.append(strip_token)
 
     return new_token_list
 
@@ -249,7 +251,8 @@ def build_vocab(dataset: KeywordCategoriesDataset):
         tokenizer=lambda x: x.split(), token_pattern=None)  # 默认按照空白字符进行分词
 
     # 生成词汇表
-    vectorizer.fit([' '.join(x[0]) for x in dataset])
+    documents = [' '.join(x[0]) for x in dataset]
+    vectorizer.fit(documents)
 
     # 获取现有的词汇表
     vocab = vectorizer.vocabulary_
