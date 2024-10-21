@@ -48,5 +48,5 @@ class KeywordCategoriesDataset(Dataset):
 
 if __name__ == '__main__':
     import pandas as pd
-    data = pd.read_excel('./data/Keyword_Categorization.xlsx', sheet_name=None)
+    data = pd.read_excel('./data/Keyword Categorization.xlsx', sheet_name=None)
     dataset = KeywordCategoriesDataset(data['SG'], 'english')

@@ -22,7 +22,7 @@ countries_info = [
 ]
 
 data_list: list[dict] = []
-excel = pd.read_excel("./data/Keyword_Categorization.xlsx",
+excel = pd.read_excel("./data/Keyword Categorization.xlsx",
                       sheet_name=None, dtype=str)
 for info in countries_info:
     country = info["country"]

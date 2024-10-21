@@ -9,7 +9,7 @@ import string
 import jieba  # 中文分词
 from pythainlp.tokenize import word_tokenize as th_word_tokenize  # 泰文分词
 from pythainlp.corpus.common import thai_stopwords
-from sklearn.feature_extraction.text import CountVectorizer
+from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
 
 
@@ -231,22 +231,19 @@ class KeywordCategoriesDataset(Dataset):
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):
-    # 使用自定义分词器
-    vectorizer = CountVectorizer(
-        tokenizer=lambda x: x.split(), token_pattern=None)  # 默认按照空白字符进行分词
+    """
+    [
+        ['sharp', 'microwave', 'oven'],
+        ['xiaomi', 'x10'],
+    ]
+    """
+    documents = [item[0] for item in dataset]
+    vocab = Counter(documents)
+    vocab = {token: index + 2 for index,
+             (token, _) in enumerate(vocab.items())}
+    vocab['<PAD>'] = 0  # type: ignore
+    vocab['<UNK>'] = 1  # type: ignore
 
-    # 生成词汇表
-    documents = [' '.join(x[0]) for x in dataset]
-    vectorizer.fit(documents)
-
-    # 获取现有的词汇表
-    vocab = vectorizer.vocabulary_
-
-    # 手动添加特殊标记
-    special_tokens = {"<unk>": len(vocab), "<pad>": len(vocab) + 1}
-
-    # 将特殊标记添加到词汇表中
-    vocab.update(special_tokens)
     return vocab
 
 
@@ -255,7 +252,7 @@ def collate_batch(batch, vocab: dict[str, int]):
     labels = list()
     # 每次读取一组数据
     for text, label in batch:
-        text_tokens = [vocab[token] if token in vocab else vocab['<unk>']
+        text_tokens = [vocab.get(token, vocab["<UNK>"])
                        for token in text]
         text_tensor = torch.tensor(text_tokens, dtype=torch.long)
         text_list.append(text_tensor)
@@ -274,7 +271,7 @@ def collate_batch(batch, vocab: dict[str, int]):
 
 if __name__ == '__main__':
     import pandas as pd
-    data = pd.read_excel('./data/Keyword_Categorization.xlsx', sheet_name='TW')
+    data = pd.read_excel('./data/Keyword Categorization.xlsx', sheet_name='TW')
     keywords = data['Keyword'].tolist()
     labels = data['Category'].tolist()
     dataset = KeywordCategoriesDataset(keywords, labels, 'TW')
