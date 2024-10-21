@@ -1,3 +1,4 @@
 pyvi
 pythainlp
 jieba
+openpyxl
