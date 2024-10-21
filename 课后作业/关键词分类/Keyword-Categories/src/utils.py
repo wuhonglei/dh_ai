@@ -34,6 +34,10 @@ def get_df_from_xlsx(file_path: str, sheet_name: str) -> pd.DataFrame:
     return pd.read_excel(file_path, sheet_name=sheet_name)
 
 
+def get_df_from_csv(file_path: str) -> pd.DataFrame:
+    return pd.read_csv(file_path)
+
+
 @timer
 def update_gsheet_df(sheet_name: str, df: pd.DataFrame) -> None:
     sht = gc.open_by_url(

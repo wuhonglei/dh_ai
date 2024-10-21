@@ -8,7 +8,7 @@ import nltk
 from config.config import settings
 from src.pre_process import pre_process
 from src.train_model import model_selection, train_model
-from src.utils import get_gsheet_df, update_gsheet_df, timer, get_df_from_xlsx
+from src.utils import get_gsheet_df, update_gsheet_df, timer, get_df_from_xlsx, get_df_from_csv
 
 logger = logging.getLogger(__name__)
 nltk.download("stopwords")
@@ -26,8 +26,8 @@ class KeywordCategories:
 
         # Step1 > Get gsheet raw data
         # raw_data = get_gsheet_df("Result-" + self.country)
-        raw_data = get_df_from_xlsx(
-            './data/Keyword Categorization.xlsx', self.country)
+        raw_data = get_df_from_csv(
+            f'./data/{self.country.lower()}.csv')
         # 去重
         raw_data = raw_data.drop_duplicates(
             subset=['Keyword'], keep='first').reset_index(drop=True)

@@ -1,7 +1,7 @@
 matplotlib>=3.7.5
 torch>=2
 scikit-learn>=1.5.1
-scipy>=1.6.0
+scipy>=1.14.1
 pandas>=2.2.2
 numpy<2.0.0
 import-ipynb
