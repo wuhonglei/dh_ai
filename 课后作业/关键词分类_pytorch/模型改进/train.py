@@ -1,6 +1,6 @@
 from typing import Union
 from pandas import DataFrame
-from model import KeywordCategoryModel
+from model import KeywordCategoryModel, get_class_weights
 from dataset import collate_batch
 from dataset import build_vocab
 from dataset import KeywordCategoriesDataset
@@ -24,31 +24,38 @@ def load_training_json(path: str) -> dict[str, int]:
 
 
 def train(train_keywords: list[str], train_labels: list[str], country: str, test_keywords: list[str], test_labels: list[str]):
-    dataset = KeywordCategoriesDataset(train_keywords, train_labels, country)
-    vocab = build_vocab(dataset)
+    train_dataset = KeywordCategoriesDataset(
+        train_keywords, train_labels, country)
+    test_dataset = KeywordCategoriesDataset(
+        test_keywords, test_labels, country)
+    vocab = build_vocab(train_dataset)
     # 词表的保存
-    with open("./vocab/tw_vocab.pkl", "wb") as f:
+    with open(f"./vocab/{country}_vocab.pkl", "wb") as f:
         pickle.dump(vocab, f)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
     # 小批量读取数据
-    dataloader = DataLoader(dataset,
-                            batch_size=1,
-                            shuffle=True,
-                            collate_fn=collate)
+    train_dataloader = DataLoader(train_dataset,
+                                  batch_size=1,
+                                  shuffle=True,
+                                  collate_fn=collate)
+    test_dataloader = DataLoader(test_dataset,
+                                 batch_size=1,
+                                 shuffle=False,
+                                 collate_fn=collate)
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     # 定义模型的必要参数
     vocab_size = len(vocab)
-    embed_dim = 128
-    hidden_size = 128
-    num_classes = len(dataset.label2index)
-    padding_idx = vocab["<pad>"]
-    num_epochs = 50
+    embed_dim = 60
+    hidden_size = 64
+    num_classes = len(train_dataset.label2index)
+    padding_idx = vocab['<PAD>']
+    num_epochs = 10
     learning_rate = 0.01
-    batch_size = 1024
+    batch_size = 2048
 
     save_training_json({
         "vocab_size": vocab_size,
@@ -69,7 +76,8 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(
+        weight=get_class_weights(train_labels).to(DEVICE))
 
     epoch_progress = tqdm(range(num_epochs), leave=True)
     for epoch in epoch_progress:
@@ -77,10 +85,10 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
 
         model.train()
         loss_sum = 0.0
-        batch_progress = tqdm(enumerate(dataloader), leave=False)
+        batch_progress = tqdm(enumerate(train_dataloader), leave=False)
         for batch_idx, (text, label) in batch_progress:
             batch_progress.set_description(
-                f'batch: {batch_idx + 1}/{len(dataloader)}')
+                f'batch: {batch_idx + 1}/{len(train_dataloader)}')
 
             text = text.to(DEVICE)
             label = label.to(DEVICE)
@@ -99,33 +107,17 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
             optimizer.step()
             loss_sum = 0.0
 
-        acc = evaluate(test_keywords, test_labels, country, model)
-        epoch_progress.set_postfix(acc=acc)
+        train_acc = evaluate(train_dataloader, model)
+        test_acc = evaluate(test_dataloader, model)
+        epoch_progress.set_postfix(train_acc=train_acc, test_acc=test_acc)
 
     # 保存模型
     torch.save(model.state_dict(), f"./models/{country}_model.pth")
 
 
-def evaluate(keywords: list[str], labels: list[str], country: str, model):
-    dataset = KeywordCategoriesDataset(keywords, labels, country)
-    with open("./vocab/tw_vocab.pkl", "rb") as f:
-        vocab = pickle.load(f)
-
-    def collate(batch): return collate_batch(batch, vocab)
-    dataloader = DataLoader(dataset,
-                            batch_size=1,
-                            shuffle=False,
-                            collate_fn=collate)
+def evaluate(dataloader: DataLoader, model):
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
-
-    # train_params = load_training_json(f"./config/{country}_params.json")
-
-    # model = KeywordCategoryModel(
-    #     train_params['vocab_size'], train_params['embed_dim'], train_params['num_classes'], train_params['padding_idx'])
-    # model.load_state_dict(torch.load(
-    #     f"./models/{country}_model.pth", map_location=DEVICE, weights_only=True))
-    # model.to(DEVICE)
     model.eval()
     correct = 0
     total = 0

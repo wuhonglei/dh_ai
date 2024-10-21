@@ -2,3 +2,4 @@ pyvi
 pythainlp
 jieba
 openpyxl
+spacy

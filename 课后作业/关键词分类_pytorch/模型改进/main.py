@@ -1,11 +1,7 @@
 import pandas as pd
-from dataset import KeywordCategoriesDataset
-from torch.utils.data import DataLoader
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.svm import LinearSVC
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from train import train, evaluate
+from dataset import get_data
+from train import train
 
 countries_info = [
     {"country": "SG", "stopwords": "english"},
@@ -22,15 +18,15 @@ countries_info = [
 ]
 
 data_list: list[dict] = []
-excel = pd.read_excel("./data/Keyword Categorization.xlsx",
-                      sheet_name=None, dtype=str)
+excel = get_data('./data/Keyword Categorization.xlsx')
 for info in countries_info:
     country = info["country"]
-    if country != "TW":
+    if country != "SG":
         continue
-
-    X = excel[country]["Keyword"]
-    y = excel[country]["Category"]
+    data = excel[country].drop_duplicates(
+        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+    X = data["Keyword"]
+    y = data["Category"]
     # 使用 train_test_split 将数据划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(
         X.tolist(), y.tolist(), test_size=0.2, random_state=42)

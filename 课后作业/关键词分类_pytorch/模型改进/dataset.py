@@ -70,7 +70,7 @@ def build_vocab(dataset: KeywordCategoriesDataset):
         ['xiaomi', 'x10'],
     ]
     """
-    documents = [text for row in dataset for text in row[0] ]
+    documents = [text for row in dataset for text in row[0]]
     vocab = Counter(documents)
     vocab = {token: index + 2 for index,
              (token, _) in enumerate(vocab.items())}
@@ -91,35 +91,35 @@ def collate_batch(batch, vocab: dict[str, int]):
         text_list.append(text_tensor)
         labels.append(torch.tensor(label, dtype=torch.long))
 
-    padding_idx = vocab["<pad>"]
+    padding_idx = vocab['<PAD>']
     # 将batch填充为相同长度文本
     text_padded = pad_sequence(
         text_list, batch_first=True, padding_value=padding_idx)
-    # print("text_padded:", text_padded.shape)
     labels_tensor = torch.stack(labels)
 
     # 返回文本和标签的张量形式，用于后续的模型训练
     return text_padded, labels_tensor
 
 
-def get_data(file_path: str, sheet_name: str) -> DataFrame:
-    pkl_path = f'./data/{sheet_name}.pkl'
+def get_data(file_path: str, sheet_name: str = ''):
+    pkl_path = f'./data/excel.pkl'
     if os.path.exists(pkl_path):
         with open(pkl_path, 'rb') as f:
             data = pickle.load(f)
-        return data
+        return data[sheet_name] if sheet_name else data
 
-    data = pd.read_excel(file_path, sheet_name=sheet_name)
+    data = pd.read_excel(file_path, sheet_name=None)
     with open(pkl_path, 'wb') as f:
         pickle.dump(data, f)
-    return data
+    return data[sheet_name] if sheet_name else data
 
 
 if __name__ == '__main__':
     import pandas as pd
-    data = get_data('./data/Keyword Categorization.xlsx', 'TW')
-    keywords = data['Keyword'].tolist()
-    labels = data['Category'].tolist()
-    dataset = KeywordCategoriesDataset(keywords, labels, 'TW')
+    country = 'SG'
+    data = get_data('./data/Keyword Categorization.xlsx', country)
+    keywords = data['Keyword'].tolist()  # type: ignore
+    labels = data['Category'].tolist()  # type: ignore
+    dataset = KeywordCategoriesDataset(keywords, labels, country)
     vocab = build_vocab(dataset)
     pass

@@ -26,12 +26,18 @@ def tokenize_sg(text: str) -> list[str]:
     keyword = re.sub(r'(?<=\w)\s*&\s*(?=\w)', '_', keyword)
 
     """
+    xxx's 符号在 keyword 中表示 "什么什么的"，需要替换为空格, 例如 swisse men's vitality -> swisse men vitality
+    经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
+    """
+    keyword = re.sub(r'(?<=\w)\'s(?=\b)', ' ', keyword)
+
+    """
     / 符号在数字中间，仅用于表示尺寸，因此需要移除左右两边的内容, 例如 3/4 pants mens -> pants mens
     经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
     """
     # keyword = re.sub(r'\d+/\d+', '', keyword)
 
-    token_list = nltk.word_tokenize(keyword)
+    token_list = nltk.word_tokenize(keyword, language='english')
     new_token_list = []
     for token in token_list:
         strip_token = token.strip()
