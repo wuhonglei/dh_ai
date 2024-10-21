@@ -1,183 +1,18 @@
-from typing import Sequence
+import os
+
 from pandas import DataFrame
 import torch
 from torch.utils.data import Dataset
-from nltk.corpus import stopwords
-import re
-import nltk
-import string
-import jieba  # 中文分词
-from pythainlp.tokenize import word_tokenize as th_word_tokenize  # 泰文分词
-from pythainlp.corpus.common import thai_stopwords
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
+import pickle
 
+from tokennizer.sg import tokenize_sg
+from tokennizer.my import tokenize_my
+from tokennizer.th import tokenize_th
+from tokennizer.tw import tokenize_tw
 
-def get_stop_words(file_path: str) -> list[str]:
-    with open(file_path, "r") as file:
-        return file.read().split()
-
-
-def tokenize_sg(text: str) -> list[str]:
-    stop_word_list = set(stopwords.words(
-        'english') + get_stop_words('./stopwords_custom.txt'))
-
-    """
-    + 符号在 keyword 中表示语义或者连接关系，需要替换为空格, 例如 sharp+microwave -> sharp microwave
-    + 符号在 keyword 表示品牌名称，移除后不影响语义，例如 xiaomi x10+ -> xiaomi x10
-    """
-    keyword = re.sub('[+]', ' ', text)
-
-    """
-    & 符号在 keyword 中表示品牌名称，需要替换为 _， 避免被粉刺, 例如 charles & keith singapore -> charles_keith singapore
-    """
-    keyword = re.sub(r'(?<=\w)\s*&\s*(?=\w)', '_', keyword)
-
-    """
-    / 符号在数字中间，仅用于表示尺寸，因此需要移除左右两边的内容, 例如 3/4 pants mens -> pants mens
-    经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
-    """
-    # keyword = re.sub(r'\d+/\d+', '', keyword)
-
-    token_list = nltk.word_tokenize(keyword)
-    new_token_list = []
-    for token in token_list:
-        strip_token = token.strip()
-        if token not in stop_word_list and len(strip_token) > 1:
-            new_token_list.append(strip_token)
-
-    return new_token_list
-
-
-def tokenize_my(text: str) -> list[str]:
-    stop_word_list = set(stopwords.words(
-        'english') + stopwords.words(
-        'chinese') + get_stop_words('./stopwords_custom.txt'))
-
-    """
-    + 符号在 keyword 中表示语义或者连接关系，需要替换为空格, 例如 sharp+microwave -> sharp microwave
-    + 符号在 keyword 表示品牌名称，移除后不影响语义，例如 xiaomi x10+ -> xiaomi x10
-    """
-    keyword = re.sub('[+]', ' ', text)
-
-    """
-    & 符号在 keyword 中表示品牌名称，需要替换为 _， 避免被粉刺, 例如 charles & keith singapore -> charles_keith singapore
-    """
-    keyword = re.sub(r'(?<=\w)\s*&\s*(?=\w)', '_', keyword)
-
-    """
-    xxx's 符号在 keyword 中表示 "什么什么的"，需要替换为空格, 例如 swisse men's vitality -> swisse men vitality
-    经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
-    """
-    keyword = re.sub(r'(?<=\w)\'s(?=\b)', ' ', keyword)
-
-    """
-    移除年份表示，例如 e-belia 2022 -> e-belia
-    """
-    keyword = re.sub(r'\b\d{4}\b', '', keyword)
-
-    """
-    移除结尾的标点符号, 例如 ;'"
-    """
-    keyword = re.sub(r'[;\'"]$', '', keyword)
-
-    token_list = jieba.cut(keyword)
-    new_token_list = []
-    for token in token_list:
-        strip_token = token.strip()
-        if token not in stop_word_list and len(strip_token) > 1:
-            new_token_list.append(strip_token)
-
-    return new_token_list
-
-
-def tokenize_th(text: str) -> list[str]:
-    stop_word_list = set(list(thai_stopwords()) +
-                         get_stop_words('./stopwords_custom.txt'))
-
-    """
-    + 符号在 keyword 中表示语义或者连接关系，需要替换为空格, 例如 sharp+microwave -> sharp microwave
-    + 符号在 keyword 表示品牌名称，移除后不影响语义，例如 xiaomi x10+ -> xiaomi x10
-    """
-    keyword = re.sub('[+]', ' ', text)
-
-    """
-    & 符号在 keyword 中表示品牌名称，需要替换为 _， 避免被粉刺, 例如 charles & keith singapore -> charles_keith singapore
-    """
-    keyword = re.sub(r'(?<=\w)\s*&\s*(?=\w)', '_', keyword)
-
-    """
-    移除年份表示，例如 e-belia 2022 -> e-belia
-    """
-    keyword = re.sub(r'\b\d{4}\b', '', keyword)
-
-    """
-    移除结尾的标点符号, 例如 ;'"
-    """
-    keyword = re.sub(r'[;\'"]$', '', keyword)
-
-    token_list = th_word_tokenize(keyword)
-    new_token_list = []
-    for token in token_list:
-        strip_token = token.strip()
-        if token not in stop_word_list and len(strip_token) > 1:
-            new_token_list.append(strip_token)
-
-    return new_token_list
-
-
-def tokenize_tw(text: str) -> list[str]:
-    stop_word_list = set(stopwords.words(
-        'english') + stopwords.words('chinese') +
-        get_stop_words('./stopwords_custom.txt') + ['220v', '110v'])
-
-    """
-    + 符号在 keyword 中表示语义或者连接关系，需要替换为空格, 例如 sharp+microwave -> sharp microwave
-    + 符号在 keyword 表示品牌名称，移除后不影响语义，例如 xiaomi x10+ -> xiaomi x10
-    """
-    keyword = re.sub('[+]', ' ', text)
-
-    """
-    & 符号在 keyword 中表示品牌名称，需要替换为 _， 避免被粉刺, 例如 charles & keith singapore -> charles_keith singapore
-    """
-    keyword = re.sub(r'(?<=\w)\s*&\s*(?=\w)', '_', keyword)
-
-    """
-    移除年份表示，例如 e-belia 2022 -> e-belia
-    """
-    keyword = re.sub(r'\b\d{4}\b', '', keyword)
-
-    """
-    xxx's 符号在 keyword 中表示 "什么什么的"，需要替换为空格, 例如 swisse men's vitality -> swisse men vitality
-    经过验证，该处理在 one-hot svm 不会提升准确率，因此不需要处理
-    """
-    keyword = re.sub(r'(?<=\w)\'s(?=\b)', ' ', keyword)
-
-    keyword = re.sub(r'[;\'"?!]$', ' ', keyword)
-
-    def parse_num(match):
-        num = re.sub(r'(g|G|T|t)', '', match.group(1))
-        if num.isdigit() and int(num) % 2 == 0:
-            return ' '
-        else:
-            return match.group()
-    """
-    存储单位 32g内存条 中 32g 是容量修饰词，内存是实体词, 无需保留单位
-    """
-    keyword = re.sub(
-        r'\b(\d+(?:g|G|T|t))(?=[\u4e00-\u9fa5]|\s)', parse_num, keyword)
-
-    jieba.load_userdict('./userdict/tw.txt')
-    token_list = jieba.lcut(keyword)
-    new_token_list = []
-    for token in token_list:
-        strip_token: str = token.strip()
-        if strip_token and strip_token not in stop_word_list:
-            if not strip_token.isascii() or len(strip_token) > 1:
-                new_token_list.append(strip_token)
-
-    return new_token_list
-
+from typing import Sequence
 
 token_dict = {
     'SG': tokenize_sg,
@@ -227,8 +62,6 @@ class KeywordCategoriesDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[list[str], str]:
         return self.data[idx]
 
-# 自定义分词器，仅按空格分割
-
 
 def build_vocab(dataset: KeywordCategoriesDataset):
     """
@@ -269,9 +102,22 @@ def collate_batch(batch, vocab: dict[str, int]):
     return text_padded, labels_tensor
 
 
+def get_data(file_path: str, sheet_name: str) -> DataFrame:
+    pkl_path = f'./data/{sheet_name}.pkl'
+    if os.path.exists(pkl_path):
+        with open(pkl_path, 'rb') as f:
+            data = pickle.load(f)
+        return data
+
+    data = pd.read_excel(file_path, sheet_name=sheet_name)
+    with open(pkl_path, 'wb') as f:
+        pickle.dump(data, f)
+    return data
+
+
 if __name__ == '__main__':
     import pandas as pd
-    data = pd.read_excel('./data/Keyword Categorization.xlsx', sheet_name='TW')
+    data = get_data('./data/Keyword Categorization.xlsx', 'TW')
     keywords = data['Keyword'].tolist()
     labels = data['Category'].tolist()
     dataset = KeywordCategoriesDataset(keywords, labels, 'TW')
