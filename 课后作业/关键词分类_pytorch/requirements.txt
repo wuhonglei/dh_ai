@@ -1,2 +1,3 @@
 pyvi
 pythainlp
+jieba

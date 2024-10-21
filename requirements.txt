@@ -14,3 +14,4 @@ captcha
 torchinfo
 python-dotenv
 pymilvus
+nltk
