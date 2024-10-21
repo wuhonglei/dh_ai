@@ -70,7 +70,7 @@ def build_vocab(dataset: KeywordCategoriesDataset):
         ['xiaomi', 'x10'],
     ]
     """
-    documents = [item[0] for item in dataset]
+    documents = [text for row in dataset for text in row[0] ]
     vocab = Counter(documents)
     vocab = {token: index + 2 for index,
              (token, _) in enumerate(vocab.items())}
