@@ -26,8 +26,10 @@ excel = pd.read_excel("./data/Keyword Categorization.xlsx",
 for info in countries_info:
     sheet_name = info["country"]
     stopwords = info["stopwords"]
+    df = excel[sheet_name].drop_duplicates(
+        subset=['Keyword'], keep='first').reset_index(drop=True)
     dataset = KeywordCategoriesDataset(
-        excel[sheet_name], stopwords)  # type: ignore
+        df, stopwords)  # type: ignore
     dataloader = DataLoader(dataset, batch_size=len(dataset))
 
     for keywords_list, category_list in dataloader:
