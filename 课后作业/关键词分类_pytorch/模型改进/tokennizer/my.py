@@ -3,18 +3,13 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from pathlib import Path
-# fmt: off
-import sys
-# 将当前目录加入到sys.path
-sys.path.append(str(Path(__file__).resolve().parents[0]))
-import utils
-# fmt: on
+from .utils import get_stop_words
 
 
 def tokenize_my(text: str) -> list[str]:
     stop_word_list = set(stopwords.words(
         'english') + stopwords.words(
-        'chinese') + utils.get_stop_words('./stopwords/common.txt'))
+        'chinese') + get_stop_words('./stopwords/common.txt'))
 
     """
     + 符号在 keyword 中表示语义或者连接关系，需要替换为空格, 例如 sharp+microwave -> sharp microwave

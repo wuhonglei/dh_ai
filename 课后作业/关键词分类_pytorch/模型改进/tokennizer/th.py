@@ -1,9 +1,7 @@
-import re
-import nltk
-from nltk.corpus import stopwords
-from utils import get_stop_words
-from pythainlp.tokenize import word_tokenize as th_word_tokenize  # 泰文分词
 from pythainlp.corpus.common import thai_stopwords
+from pythainlp.tokenize import word_tokenize as th_word_tokenize  # 泰文分词
+import re
+from .utils import get_stop_words
 
 
 def tokenize_th(text: str) -> list[str]:

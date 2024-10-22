@@ -1,6 +1,8 @@
 from typing import Union
 from pandas import DataFrame
-from model import KeywordCategoryModel, get_class_weights
+from model import KeywordCategoryModel
+# from simple_model import KeywordCategoryModel
+from utils.model import get_class_weights
 from dataset import collate_batch
 from dataset import build_vocab
 from dataset import KeywordCategoriesDataset
@@ -49,11 +51,11 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
                           else 'cpu')
     # 定义模型的必要参数
     vocab_size = len(vocab)
-    embed_dim = 60
+    embed_dim = 128
     hidden_size = 64
     num_classes = len(train_dataset.label2index)
     padding_idx = vocab['<PAD>']
-    num_epochs = 10
+    num_epochs = 50
     learning_rate = 0.01
     batch_size = 2048
 
@@ -76,8 +78,7 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    criterion = nn.CrossEntropyLoss(
-        weight=get_class_weights(train_labels).to(DEVICE))
+    criterion = nn.CrossEntropyLoss()
 
     epoch_progress = tqdm(range(num_epochs), leave=True)
     for epoch in epoch_progress:
