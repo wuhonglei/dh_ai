@@ -7,7 +7,8 @@ from tqdm import tqdm
 from dataset import collate_batch
 from dataset import get_vocab
 from dataset import KeywordCategoriesDataset
-from models.rnn_model import KeywordCategoryModel
+# from models.rnn_model import KeywordCategoryModel
+from models.simple_model import KeywordCategoryModel
 from utils.model import save_training_json
 
 
@@ -35,11 +36,11 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
                           else 'cpu')
     # 定义模型的必要参数
     vocab_size = len(vocab)
-    embed_dim = 10
-    hidden_size = 64
+    embed_dim = 20
+    hidden_size = 40
     num_classes = len(train_dataset.label2index)
     padding_idx = vocab['<PAD>']
-    num_epochs = 15
+    num_epochs = 30
     learning_rate = 0.01
     batch_size = 2048
     dropout = 0.25

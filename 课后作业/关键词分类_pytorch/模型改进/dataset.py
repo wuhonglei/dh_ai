@@ -142,6 +142,21 @@ def get_data(file_path: str, sheet_name: str = ''):
     return data[sheet_name] if sheet_name else data
 
 
+def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
+    df = pd.read_csv(file_path)
+    filename = file_path.split('/')[-1].split('.')[0]
+    cache_name = f'./data/cache/{filename}_csv.pkl'
+    if use_cache and os.path.exists(cache_name):
+        with open(cache_name, 'rb') as f:
+            df = pickle.load(f)
+        return df
+
+    with open(cache_name, 'wb') as f:
+        pickle.dump(df, f)
+
+    return df
+
+
 if __name__ == '__main__':
     import pandas as pd
     country = 'SG'
