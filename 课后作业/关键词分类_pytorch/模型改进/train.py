@@ -1,25 +1,14 @@
 from torch.utils.data import DataLoader
-import pickle
 from torch import optim
 from torch import nn
 import torch
-import json
 from tqdm import tqdm
 
 from dataset import collate_batch
-from dataset import build_vocab, get_vocab
+from dataset import get_vocab
 from dataset import KeywordCategoriesDataset
 from models.rnn_model import KeywordCategoryModel
-
-
-def save_training_json(params: dict[str, int], path: str):
-    with open(path, "w") as f:
-        f.write(json.dumps(params, indent=4))
-
-
-def load_training_json(path: str) -> dict[str, int]:
-    with open(path, "r") as f:
-        return json.loads(f.read())
+from utils.model import save_training_json
 
 
 def train(train_keywords: list[str], train_labels: list[str], country: str, test_keywords: list[str], test_labels: list[str]):
@@ -46,13 +35,14 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
                           else 'cpu')
     # 定义模型的必要参数
     vocab_size = len(vocab)
-    embed_dim = 128
+    embed_dim = 50
     hidden_size = 64
     num_classes = len(train_dataset.label2index)
     padding_idx = vocab['<PAD>']
-    num_epochs = 50
+    num_epochs = 15
     learning_rate = 0.01
     batch_size = 2048
+    dropout = 0.25
 
     save_training_json({
         "vocab_size": vocab_size,
@@ -67,9 +57,9 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
 
     # 定义模型
     model = KeywordCategoryModel(
-        vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
+        vocab_size, embed_dim, hidden_size, num_classes, padding_idx, dropout)
     # model.load_state_dict(torch.load(
-    #     f"./models/{country}_model.pth", map_location=DEVICE, weights_only=True))
+    #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)

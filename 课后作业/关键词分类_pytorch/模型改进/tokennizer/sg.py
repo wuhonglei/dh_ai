@@ -39,11 +39,12 @@ def tokenize_sg(text: str) -> list[str]:
     doc = nlp(keyword)
     for token in doc:
         text = (token.text).strip()
+        text_lemma = token.lemma_
         if not text or text in stop_word_list or token.is_punct or is_float(text) or is_number(text):
             continue
         if contain_chinese_text(text):
             new_token_list.extend(tokenize_tw(text))
-        elif not is_one_ascii(text):
-            new_token_list.append(token.lemma_)
+        elif not is_one_ascii(text_lemma):
+            new_token_list.append(text_lemma)
 
     return new_token_list

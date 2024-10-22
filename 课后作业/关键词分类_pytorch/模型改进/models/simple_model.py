@@ -6,7 +6,7 @@ import torch.nn as nn
 
 
 class KeywordCategoryModel(nn.Module):
-    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, output_size: int, padding_idx: int):
+    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, output_size: int, padding_idx: int, dropout: float = 0):
         super(KeywordCategoryModel, self).__init__()
         self.embedding = nn.Embedding(
             vocab_size, embed_dim, padding_idx=padding_idx)

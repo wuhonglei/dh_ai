@@ -25,9 +25,13 @@ def add_space_between_unit(text: str, units: list[str]) -> str:
     >>> add_space_between_unit("1kg", "1 kg ")
     """
     for unit in units:
-        # 构建模式，使用 re.escape 以防变量中包含特殊字符
-        pattern = r"(?<=\d)\s*" + f'({re.escape(unit)})' + r"(?=\s*\w*)"
-        text = re.sub(pattern, r' \1 ', text, re.IGNORECASE)
+        # 先处理 单位左侧含有数字的情况
+        pattern = r"(?<=\d)\s*" + f'({re.escape(unit)})' + r"(?=([^a-zA-Z]|$))"
+        text = re.sub(pattern, r' \1', text, re.IGNORECASE)
+
+        # 再处理 单位右侧含有名词的情况
+        pattern = r"(?<=\b)" + f'({re.escape(unit)})' + r"(?=[^a-zA-Z])"
+        text = re.sub(pattern, r'\1 ', text, re.IGNORECASE)
 
     return text
 

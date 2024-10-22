@@ -25,11 +25,11 @@ token_dict = {
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, keywords: list[str], labels: list[str], country: str) -> None:
+    def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
         unique_labels = list(set(labels))
         self.label2index = self.get_label_to_index(unique_labels)
         self.index2label = self.get_index_to_label(unique_labels)
-        self.data = self.process_data(keywords, labels, country)
+        self.data = self.process_data(keywords, labels, country, use_cache)
 
     def get_label_to_index(self, labels: Sequence[str]) -> dict[str, int]:
         label_to_index = {}
@@ -43,7 +43,14 @@ class KeywordCategoriesDataset(Dataset):
             index_to_label[index] = category
         return index_to_label
 
-    def process_data(self, keywords: list[str], labels: list[str], country: str) -> list[tuple[list[str], str]]:
+    def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
+        count = len(keywords)
+        cache_path = f'./tokennizer/cache/{country}_{count}.pkl'
+        if use_cache and os.path.exists(cache_path):
+            with open(cache_path, 'rb') as f:
+                data = pickle.load(f)
+            return data
+
         # 遍历 dataframe
         data_list = []
         for index, keyword in enumerate(keywords):
@@ -55,6 +62,9 @@ class KeywordCategoriesDataset(Dataset):
             token_list = token_dict.get(country, tokenize_sg)(keyword.lower())
             if token_list:
                 data_list.append((token_list, self.label2index[category]))
+
+        with open(cache_path, 'wb') as f:
+            pickle.dump(data_list, f)
 
         return data_list
 
@@ -127,9 +137,6 @@ def get_data(file_path: str, sheet_name: str = ''):
         return data[sheet_name] if sheet_name else data
 
     data = pd.read_excel(file_path, sheet_name=None, dtype=str)
-    for df in data.values():
-        df['Keyword'] = df['Keyword'].str.lower()
-
     with open(pkl_path, 'wb') as f:
         pickle.dump(data, f)
     return data[sheet_name] if sheet_name else data
