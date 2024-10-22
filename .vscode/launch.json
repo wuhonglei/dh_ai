@@ -11,7 +11,7 @@
       "program": "${file}",
       "cwd": "${fileDirname}",
       "console": "integratedTerminal",
-      "python": "${workspaceFolder}/myenv/bin/python"
+      "python": "python"
     }
   ]
 }
