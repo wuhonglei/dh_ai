@@ -52,7 +52,7 @@ class KeywordCategoriesDataset(Dataset):
             if not isinstance(keyword, str) or not isinstance(category, str):
                 continue
 
-            token_list = token_dict.get(country, tokenize_sg)(keyword)
+            token_list = token_dict.get(country, tokenize_sg)(keyword.lower())
             if token_list:
                 data_list.append((token_list, self.label2index[category]))
 
@@ -74,12 +74,15 @@ def build_vocab(dataset: KeywordCategoriesDataset):
     """
     documents = [text for row in dataset for text in row[0]]
     vocab = Counter(documents)
-    vocab = {token: index + 2 for index,
-             (token, _) in enumerate(vocab.items())}
-    vocab['<PAD>'] = 0  # type: ignore
-    vocab['<UNK>'] = 1  # type: ignore
+    word_2_index = {
+        '<PAD>': 0,
+        '<UNK>': 1,
+    }
+    for (word, freq) in vocab.items():
+        if freq >= 1:
+            word_2_index[word] = len(word_2_index)
 
-    return vocab
+    return word_2_index
 
 
 def collate_batch(batch, vocab: dict[str, int]):
@@ -119,7 +122,7 @@ def get_data(file_path: str, sheet_name: str = ''):
 if __name__ == '__main__':
     import pandas as pd
     country = 'SG'
-    excel = get_data('./data/Keyword Categorization.xlsx', country)
+    excel = get_data('./data/Keyword Categorization.xlsx')
     data = excel[country].drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
     X = data["Keyword"]
@@ -136,3 +139,12 @@ if __name__ == '__main__':
 
     train_vocab = build_vocab(train_dataset)
     test_vocab = build_vocab(test_dataset)
+
+    train_vocab_words = set(train_vocab.keys())
+    test_vocab_words = set(test_vocab.keys())
+
+    with open(f"./vocab/{country}/train_vocab.txt", "w") as f:
+        f.write('\n'.join(train_vocab_words))
+
+    with open(f"./vocab/{country}/test_vocab.txt", "w") as f:
+        f.write('\n'.join(test_vocab_words))
