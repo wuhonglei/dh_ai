@@ -1,11 +1,3 @@
-from typing import Union
-from pandas import DataFrame
-from model import KeywordCategoryModel
-# from simple_model import KeywordCategoryModel
-# from utils.model import get_class_weights
-from dataset import collate_batch
-from dataset import build_vocab
-from dataset import KeywordCategoriesDataset
 from torch.utils.data import DataLoader
 import pickle
 from torch import optim
@@ -13,6 +5,11 @@ from torch import nn
 import torch
 import json
 from tqdm import tqdm
+
+from dataset import collate_batch
+from dataset import build_vocab
+from dataset import KeywordCategoriesDataset
+from models.rnn_model import KeywordCategoryModel
 
 
 def save_training_json(params: dict[str, int], path: str):
@@ -113,7 +110,7 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
         epoch_progress.set_postfix(train_acc=train_acc, test_acc=test_acc)
 
     # 保存模型
-    torch.save(model.state_dict(), f"./models/{country}_model.pth")
+    torch.save(model.state_dict(), f"./models/weights/{country}_model.pth")
 
 
 def evaluate(dataloader: DataLoader, model):

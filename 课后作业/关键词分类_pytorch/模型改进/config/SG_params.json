@@ -1,5 +1,5 @@
 {
-    "vocab_size": 10869,
+    "vocab_size": 10883,
     "embed_dim": 128,
     "hidden_size": 64,
     "num_classes": 31,
