@@ -31,8 +31,11 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     # 定义模型的必要参数
-    hidden_size1 = 60
-    hidden_size2 = 64
+    hidden_size = [
+        64,
+        31
+    ]
+    dropout = 0
     num_classes = len(train_dataset.label2index)
     input_size = train_dataset[0][0].shape[0]
     num_epochs = 1000
@@ -40,7 +43,7 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
 
     # 定义模型
     model = KeywordCategoryModel(
-        input_size, hidden_size1, hidden_size2, num_classes,)
+        input_size, hidden_size, num_classes, dropout)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)

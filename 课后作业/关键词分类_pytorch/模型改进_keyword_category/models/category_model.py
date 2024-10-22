@@ -7,18 +7,24 @@ import torch.nn as nn
 
 
 class KeywordCategoryModel(nn.Module):
-    def __init__(self, input_size: int,  hidden_size1: int, hidden_size2: int, output_size: int):
+    def __init__(self, input_size: int,  hidden_size: list[int], output_size: int, dropout: float = 0.5):
         super(KeywordCategoryModel, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size1)
-        self.output = nn.Linear(hidden_size1, output_size)
-        self.activation = nn.ReLU()
+        self.fc = nn.Sequential(*[
+            nn.Sequential(
+                nn.Linear(input_size if i ==
+                          0 else hidden_size[i-1], hidden_size[i]),
+                nn.Tanh(),
+                nn.Dropout(dropout)
+            ) for i in range(len(hidden_size))
+        ])
+
+        self.output = nn.Linear(hidden_size[-1], output_size)
 
     def forward(self, x):
         """
         input: [batch_size, num_features]
         output: [batch_size, output_size]
         """
-        x = self.fc1(x)
-        x = self.activation(x)
+        x = self.fc(x)
         x = self.output(x)
         return x
