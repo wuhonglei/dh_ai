@@ -13,9 +13,9 @@ from utils.model import save_training_json
 
 def train(train_keywords: list[str], train_labels: list[str], country: str, test_keywords: list[str], test_labels: list[str]):
     train_dataset = KeywordCategoriesDataset(
-        train_keywords, train_labels, country)
+        train_keywords, train_labels, country, use_cache=True)
     test_dataset = KeywordCategoriesDataset(
-        test_keywords, test_labels, country)
+        test_keywords, test_labels, country, use_cache=True)
     vocab = get_vocab(
         train_dataset, f"./vocab/{country}_vocab.pkl", use_cache=True)
 
@@ -35,7 +35,7 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
                           else 'cpu')
     # 定义模型的必要参数
     vocab_size = len(vocab)
-    embed_dim = 50
+    embed_dim = 10
     hidden_size = 64
     num_classes = len(train_dataset.label2index)
     padding_idx = vocab['<PAD>']
