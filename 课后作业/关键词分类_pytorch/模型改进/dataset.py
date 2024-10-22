@@ -85,6 +85,19 @@ def build_vocab(dataset: KeywordCategoriesDataset):
     return word_2_index
 
 
+def get_vocab(train_dataset: KeywordCategoriesDataset, file_path: str, use_cache: bool = True):
+
+    if use_cache and os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            data = pickle.load(f)
+        return data
+
+    vocab = build_vocab(train_dataset)
+    with open(file_path, 'wb') as f:
+        pickle.dump(vocab, f)
+    return vocab
+
+
 def collate_batch(batch, vocab: dict[str, int]):
     text_list = list()
     labels = list()
@@ -113,7 +126,10 @@ def get_data(file_path: str, sheet_name: str = ''):
             data = pickle.load(f)
         return data[sheet_name] if sheet_name else data
 
-    data = pd.read_excel(file_path, sheet_name=None)
+    data = pd.read_excel(file_path, sheet_name=None, dtype=str)
+    for df in data.values():
+        df['Keyword'] = df['Keyword'].str.lower()
+
     with open(pkl_path, 'wb') as f:
         pickle.dump(data, f)
     return data[sheet_name] if sheet_name else data

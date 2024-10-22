@@ -7,7 +7,7 @@ import json
 from tqdm import tqdm
 
 from dataset import collate_batch
-from dataset import build_vocab
+from dataset import build_vocab, get_vocab
 from dataset import KeywordCategoriesDataset
 from models.rnn_model import KeywordCategoryModel
 
@@ -27,10 +27,8 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
         train_keywords, train_labels, country)
     test_dataset = KeywordCategoriesDataset(
         test_keywords, test_labels, country)
-    vocab = build_vocab(train_dataset)
-    # 词表的保存
-    with open(f"./vocab/{country}_vocab.pkl", "wb") as f:
-        pickle.dump(vocab, f)
+    vocab = get_vocab(
+        train_dataset, f"./vocab/{country}_vocab.pkl", use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
