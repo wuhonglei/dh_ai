@@ -6,6 +6,8 @@ from torch.utils.data import Dataset
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
 import pickle
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from tokennizer.sg import tokenize_sg
 from tokennizer.my import tokenize_my
@@ -117,9 +119,20 @@ def get_data(file_path: str, sheet_name: str = ''):
 if __name__ == '__main__':
     import pandas as pd
     country = 'SG'
-    data = get_data('./data/Keyword Categorization.xlsx', country)
-    keywords = data['Keyword'].tolist()  # type: ignore
-    labels = data['Category'].tolist()  # type: ignore
-    dataset = KeywordCategoriesDataset(keywords, labels, country)
-    vocab = build_vocab(dataset)
-    pass
+    excel = get_data('./data/Keyword Categorization.xlsx', country)
+    data = excel[country].drop_duplicates(
+        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+    X = data["Keyword"]
+    y = data["Category"]
+
+    # 使用 train_test_split 将数据划分为训练集和测试集
+    X_train, X_test, y_train, y_test = train_test_split(
+        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
+
+    train_dataset = KeywordCategoriesDataset(
+        X_train, y_train, country)
+    test_dataset = KeywordCategoriesDataset(
+        X_test, y_test, country)
+
+    train_vocab = build_vocab(train_dataset)
+    test_vocab = build_vocab(test_dataset)

@@ -31,7 +31,7 @@ class KeywordCategoriesDataset(Dataset):
             new_token_list = []
             for token in token_list:
                 strip_token = token.strip()
-                if token not in stop_words and len(strip_token) > 1:
+                if strip_token not in stop_words and len(strip_token) > 1:
                     new_token_list.append(strip_token)
 
             if len(new_token_list) > 0:

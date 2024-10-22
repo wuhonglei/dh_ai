@@ -2,7 +2,7 @@ import re
 import nltk
 from nltk.corpus import stopwords
 import jieba
-from .utils import get_stop_words
+from .utils import get_stop_words, get_abs_path
 
 
 def tokenize_tw(text: str) -> list[str]:
@@ -46,7 +46,7 @@ def tokenize_tw(text: str) -> list[str]:
     keyword = re.sub(
         r'\b(\d+(?:g|G|T|t))(?=[\u4e00-\u9fa5]|\s)', parse_num, keyword)
 
-    jieba.load_userdict(utils.get_abs_path('./userdict/tw.txt'))
+    jieba.load_userdict(get_abs_path('./userdict/tw.txt'))
     token_list = jieba.lcut(keyword)
     new_token_list = []
     for token in token_list:

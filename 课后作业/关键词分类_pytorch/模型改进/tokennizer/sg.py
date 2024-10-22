@@ -35,7 +35,8 @@ def tokenize_sg(text: str) -> list[str]:
     new_token_list = []
     for token in token_list:
         strip_token = token.strip()
-        if token not in stop_word_list and len(strip_token) > 1:
-            new_token_list.append(strip_token)
+        if strip_token and strip_token not in stop_word_list:
+            if not strip_token.isascii() or len(strip_token) > 1:
+                new_token_list.append(strip_token)
 
     return new_token_list

@@ -2,7 +2,7 @@ from typing import Union
 from pandas import DataFrame
 from model import KeywordCategoryModel
 # from simple_model import KeywordCategoryModel
-from utils.model import get_class_weights
+# from utils.model import get_class_weights
 from dataset import collate_batch
 from dataset import build_vocab
 from dataset import KeywordCategoriesDataset
