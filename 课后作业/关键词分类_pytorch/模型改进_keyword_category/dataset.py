@@ -25,11 +25,13 @@ token_dict = {
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
+    def __init__(self, keywords, labels: list[str], country: str, use_cache=False) -> None:
         unique_labels = list(set(labels))
         self.label2index = self.get_label_to_index(unique_labels)
         self.index2label = self.get_index_to_label(unique_labels)
-        self.data = self.process_data(keywords, labels, country, use_cache)
+        self.data = keywords.astype(float)
+        self.labels = labels
+        # self.data = self.process_data(keywords, labels, country, use_cache)
 
     def get_label_to_index(self, labels: Sequence[str]) -> dict[str, int]:
         label_to_index = {}
@@ -71,8 +73,10 @@ class KeywordCategoriesDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, idx: int) -> tuple[list[str], str]:
-        return self.data[idx]
+    def __getitem__(self, idx: int):
+        feature = torch.tensor(self.data[idx], dtype=torch.float32)
+        label = self.label2index[self.labels[idx]]
+        return feature, label
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):

@@ -1,7 +1,9 @@
 from sklearn.model_selection import train_test_split
-from dataset import get_data
-from train import train
+from dataset import get_data, get_df_from_csv
+# from train import train
+from train_only_category import train
 import time
+import pandas as pd
 
 countries_info = [
     {"country": "SG", "stopwords": "english"},
@@ -19,19 +21,23 @@ countries_info = [
 
 data_list: list[dict] = []
 start_time = time.time()
-excel = get_data('./data/Keyword Categorization.xlsx')
 print(f"Time taken to load data: {time.time() - start_time:.2f}s")
 for info in countries_info:
     country = info["country"]
     if country != "SG":
         continue
-    data = excel[country].drop_duplicates(
+    df = get_df_from_csv(f"./data/csv/{country}.csv")
+    data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    X = data["Keyword"]
+
+    dummy_cols = ['imp_level1_category_1d', 'pv_level1_category_1d',
+                  'order_level1_category_1d']
+    feat_cols = ["Keyword"] + dummy_cols
+    X = pd.get_dummies(data[dummy_cols], columns=dummy_cols, dummy_na=True)
     y = data["Category"]
     # 使用 train_test_split 将数据划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
+        X.to_numpy(), y.to_numpy(), test_size=0.05, random_state=0)
 
     train(X_train, y_train, country, X_test, y_test)
 
