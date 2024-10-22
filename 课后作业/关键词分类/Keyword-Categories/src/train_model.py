@@ -105,14 +105,14 @@ def train_model(
         data.drop(["Category"], axis=1),
         data["Category"],
         random_state=0,
-        test_size=0.2,
+        test_size=0.05,
     )
 
     model = LinearSVC()
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
     # 保存模型
-    joblib.dump(model, f"./models/{country}.pkl")
+    # joblib.dump(model, f"./models/{country}.pkl")
     # result = pd.DataFrame({"Keyword": raw_data["Keyword"], "Category": y_pred})
     # 统计分类成功率
     result = {
