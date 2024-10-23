@@ -37,7 +37,7 @@ for info in countries_info:
     y = data["Category"]
     # 使用 train_test_split 将数据划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(
-        X.to_numpy(), y.to_numpy(), test_size=0.05, random_state=0)
+        X, y, test_size=0.05, random_state=0)
 
     train(X_train, y_train, country, X_test, y_test)
 

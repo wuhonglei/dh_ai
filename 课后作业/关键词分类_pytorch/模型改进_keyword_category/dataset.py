@@ -1,5 +1,6 @@
 import os
 
+from numpy import ndarray
 from pandas import DataFrame
 import torch
 from torch.utils.data import Dataset
@@ -25,13 +26,17 @@ token_dict = {
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, keywords, labels: list[str], country: str, use_cache=False) -> None:
+    def __init__(self, data: DataFrame, labels, country: str, use_cache=False) -> None:
+        labels = labels.tolist()
         unique_labels = list(set(labels))
         self.label2index = self.get_label_to_index(unique_labels)
         self.index2label = self.get_index_to_label(unique_labels)
-        self.data = keywords.astype(float)
-        self.labels = labels
-        # self.data = self.process_data(keywords, labels, country, use_cache)
+
+        keyword_name = 'Keyword'
+        sub_categories = data.drop(
+            keyword_name, axis=1).to_numpy(dtype=float)
+        self.data = self.process_data(
+            data[keyword_name].tolist(), sub_categories, labels, country, use_cache)
 
     def get_label_to_index(self, labels: Sequence[str]) -> dict[str, int]:
         label_to_index = {}
@@ -45,7 +50,7 @@ class KeywordCategoriesDataset(Dataset):
             index_to_label[index] = category
         return index_to_label
 
-    def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
+    def process_data(self, keywords: list[str], sub_categories: ndarray, labels: list[str], country: str, use_cache: bool):
         count = len(keywords)
         cache_path = f'./tokennizer/cache/{country}_{count}.pkl'
         if use_cache and os.path.exists(cache_path):
@@ -54,16 +59,18 @@ class KeywordCategoriesDataset(Dataset):
             return data
 
         # 遍历 dataframe
-        data_list = []
+        data_list: list[tuple[list[str], list[float], int]] = []
         for index, keyword in enumerate(keywords):
             # 通过 index 获取 dataframe 的行
             category = labels[index]
+            sub_category: list[float] = sub_categories[index].tolist()
             if not isinstance(keyword, str) or not isinstance(category, str):
                 continue
 
             token_list = token_dict.get(country, tokenize_sg)(keyword.lower())
             if token_list:
-                data_list.append((token_list, self.label2index[category]))
+                data_list.append(
+                    (token_list, sub_category, self.label2index[category]))
 
         with open(cache_path, 'wb') as f:
             pickle.dump(data_list, f)
@@ -74,9 +81,8 @@ class KeywordCategoriesDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx: int):
-        feature = torch.tensor(self.data[idx], dtype=torch.float32)
-        label = self.label2index[self.labels[idx]]
-        return feature, label
+        title, sub_categories, label = self.data[idx]
+        return title, sub_categories, label
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):

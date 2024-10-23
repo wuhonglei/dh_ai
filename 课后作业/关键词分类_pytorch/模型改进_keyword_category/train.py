@@ -13,13 +13,14 @@ from models.category_model import KeywordCategoryModel
 from utils.model import save_training_json
 
 
-def train(train_keywords: list[str], train_labels: list[str], country: str, test_keywords: list[str], test_labels: list[str]):
+def train(train_data, train_labels: list[str], country: str, test_data, test_labels: list[str]):
     train_dataset = KeywordCategoriesDataset(
-        train_keywords, train_labels, country, use_cache=True)
+        train_data, train_labels, country, use_cache=True)
     test_dataset = KeywordCategoriesDataset(
-        test_keywords, test_labels, country, use_cache=True)
+        test_data, test_labels, country, use_cache=True)
 
     # 小批量读取数据
+
     train_dataloader = DataLoader(train_dataset,
                                   batch_size=1024,
                                   shuffle=True,
