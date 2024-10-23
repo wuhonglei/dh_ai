@@ -1,10 +1,7 @@
 {
-    "vocab_size": 9948,
-    "embed_dim": 50,
-    "hidden_size": 64,
+    "hidden_size": 256,
     "num_classes": 31,
-    "padding_idx": 0,
-    "num_epochs": 15,
-    "learning_rate": 0.01,
-    "batch_size": 2048
+    "num_epochs": 5,
+    "learning_rate": 2e-05,
+    "batch_size": 32
 }

@@ -4,23 +4,31 @@
 
 import torch
 import torch.nn as nn
+from transformers import BertModel
 
 
 class KeywordCategoryModel(nn.Module):
-    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, output_size: int, padding_idx: int, dropout: float = 0):
+    def __init__(self, bert_model_name: str, hidden_size: int,  num_labels: int, dropout: float = 0.0):
         super(KeywordCategoryModel, self).__init__()
-        self.embedding = nn.Embedding(
-            vocab_size, embed_dim, padding_idx=padding_idx)
-        self.fc = nn.Linear(embed_dim, output_size)
+        self.bert = BertModel.from_pretrained(
+            bert_model_name)
 
-    def forward(self, x):
-        """
-        input: [batch_size, seq_len]
-        output: [batch_size, seq_len, embed_dim]
-        """
-        x = self.embedding(x)
-        # [batch_size, seq_len, embed_dim] -> [batch_size, embed_dim]
-        x = torch.sum(x, dim=1)
-        # [batch_size, embed_dim] -> [batch_size, output_size]
-        output = self.fc(x)
-        return output
+        self.fc = nn.Sequential(
+            nn.Linear(self.bert.config.hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+        )
+        # 分类头
+        self.classifier = nn.Linear(hidden_size, num_labels)
+
+    def forward(self, input_ids, attention_mask):
+        bert_outputs = self.bert(input_ids, attention_mask)
+        # 提取[CLS]向量
+        # shape: (batch_size, hidden_size)
+        cls_output = bert_outputs.pooler_output
+
+        features_output = self.fc(cls_output)
+
+        # 将[CLS]位置的向量传入分类头
+        cls_output = self.classifier(features_output)
+        return cls_output

@@ -1,5 +1,7 @@
+from typing import Sequence
 import os
 
+import numpy as np
 from pandas import DataFrame
 import torch
 from torch.utils.data import Dataset
@@ -8,13 +10,23 @@ from torch.nn.utils.rnn import pad_sequence
 import pickle
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 from tokennizer.sg import tokenize_sg
 from tokennizer.my import tokenize_my
 from tokennizer.th import tokenize_th
 from tokennizer.tw import tokenize_tw
 
-from typing import Sequence
+from utils.common import exists_cache, save_cache, load_cache
+
+from transformers import BertTokenizer
+import torch
+
+# 加载预训练的BERT分词器
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+# 分词与编码函数
+
 
 token_dict = {
     'SG': tokenize_sg,
@@ -26,53 +38,51 @@ token_dict = {
 
 class KeywordCategoriesDataset(Dataset):
     def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
-        unique_labels = list(set(labels))
-        self.label2index = self.get_label_to_index(unique_labels)
-        self.index2label = self.get_index_to_label(unique_labels)
-        self.data = self.process_data(keywords, labels, country, use_cache)
+        # 2. 标签编码
+        label_encoder = LabelEncoder()
+        self.label_encoder = label_encoder
+        self.labels: list[int] = label_encoder.fit_transform(
+            labels).tolist()  # type: ignore
 
-    def get_label_to_index(self, labels: Sequence[str]) -> dict[str, int]:
-        label_to_index = {}
-        for index, category in enumerate(labels):
-            label_to_index[category] = index
-        return label_to_index
+        encodings_cache_name = os.path.abspath(
+            f'./cache/dataset/{country}_{len(keywords)}_{keywords[0].split()[0]}_encodings.pkl')
+        if use_cache and exists_cache(encodings_cache_name):
+            encodings = load_cache(encodings_cache_name)
+        else:
+            seq_lengths = [len(keyword.split()) for keyword in keywords]
+            MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
+            encodings = self.encode_texts(keywords, tokenizer, MAX_LEN)
+            save_cache(encodings_cache_name, encodings)
 
-    def get_index_to_label(self, labels: Sequence[str]) -> dict[int, str]:
-        index_to_label = {}
-        for index, category in enumerate(labels):
-            index_to_label[index] = category
-        return index_to_label
+        self.input_ids = encodings['input_ids']
+        self.attention_masks = encodings['attention_mask']
 
-    def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
-        count = len(keywords)
-        cache_path = f'./tokennizer/cache/{country}_{count}.pkl'
-        if use_cache and os.path.exists(cache_path):
-            with open(cache_path, 'rb') as f:
-                data = pickle.load(f)
-            return data
+    def get_max_len(self, data: DataFrame) -> int:
+        """
+        获取数据集中文本的最大长度
+        """
+        max_len = 0
+        for text in data['text']:
+            max_len = max(max_len, len(text))
+        return max_len
 
-        # 遍历 dataframe
-        data_list = []
-        for index, keyword in enumerate(keywords):
-            # 通过 index 获取 dataframe 的行
-            category = labels[index]
-            if not isinstance(keyword, str) or not isinstance(category, str):
-                continue
-
-            token_list = token_dict.get(country, tokenize_sg)(keyword.lower())
-            if token_list:
-                data_list.append((token_list, self.label2index[category]))
-
-        with open(cache_path, 'wb') as f:
-            pickle.dump(data_list, f)
-
-        return data_list
+    def encode_texts(self, texts, tokenizer, max_len):
+        return tokenizer.batch_encode_plus(
+            texts,
+            add_special_tokens=True,      # 添加[CLS]和[SEP]
+            max_length=max_len,
+            padding='max_length',         # 填充到最大长度
+            truncation=True,              # 超出长度则截断
+            return_attention_mask=True,
+            return_token_type_ids=False,  # 对于单句分类任务不需要
+            return_tensors='pt'           # 返回PyTorch张量
+        )
 
     def __len__(self) -> int:
-        return len(self.data)
+        return len(self.input_ids)
 
-    def __getitem__(self, idx: int) -> tuple[list[str], str]:
-        return self.data[idx]
+    def __getitem__(self, idx: int):
+        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.labels[idx])
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):
@@ -130,15 +140,13 @@ def collate_batch(batch, vocab: dict[str, int]):
 
 
 def get_data(file_path: str, sheet_name: str = ''):
-    pkl_path = f'./data/excel.pkl'
-    if os.path.exists(pkl_path):
-        with open(pkl_path, 'rb') as f:
-            data = pickle.load(f)
+    cache_name = os.path.abspath(f'./cache/data/excel.pkl')
+    if exists_cache(cache_name):
+        data = load_cache(cache_name)
         return data[sheet_name] if sheet_name else data
 
     data = pd.read_excel(file_path, sheet_name=None, dtype=str)
-    with open(pkl_path, 'wb') as f:
-        pickle.dump(data, f)
+    save_cache(cache_name, data)
     return data[sheet_name] if sheet_name else data
 
 

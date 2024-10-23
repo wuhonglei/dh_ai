@@ -1,102 +1,119 @@
+from pandas import Series
 from torch.utils.data import DataLoader
 from torch import optim
 from torch import nn
 import torch
 from tqdm import tqdm
+from sklearn.model_selection import train_test_split
+from transformers import get_linear_schedule_with_warmup
 
-from dataset import collate_batch
-from dataset import get_vocab
 from dataset import KeywordCategoriesDataset
-# from models.rnn_model import KeywordCategoryModel
 from models.simple_model import KeywordCategoryModel
-from utils.model import save_training_json
+from utils.model import save_training_json, get_class_weights
 
 
-def train(train_keywords: list[str], train_labels: list[str], country: str, test_keywords: list[str], test_labels: list[str]):
+def train(X: Series, y: Series, country: str, ):
+    # 使用 train_test_split 将数据划分为训练集和测试集
+    X_train, X_test, y_train, y_test = train_test_split(
+        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train, y_train, test_size=0.05, random_state=0)
+
     train_dataset = KeywordCategoriesDataset(
-        train_keywords, train_labels, country, use_cache=True)
+        X_train, y_train, country, use_cache=True)
     test_dataset = KeywordCategoriesDataset(
-        test_keywords, test_labels, country, use_cache=True)
-    vocab = get_vocab(
-        train_dataset, f"./vocab/{country}_vocab.pkl", use_cache=True)
+        X_test, y_test, country, use_cache=True)
+    val_dataset = KeywordCategoriesDataset(
+        X_val, y_val, country, use_cache=True)
 
-    # 回调函数，用于不同长度的文本进行填充
-    def collate(batch): return collate_batch(batch, vocab)
-    # 小批量读取数据
-    train_dataloader = DataLoader(train_dataset,
-                                  batch_size=1,
-                                  shuffle=True,
-                                  collate_fn=collate)
-    test_dataloader = DataLoader(test_dataset,
-                                 batch_size=1,
-                                 shuffle=False,
-                                 collate_fn=collate)
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
-    # 定义模型的必要参数
-    vocab_size = len(vocab)
-    embed_dim = 20
-    hidden_size = 40
-    num_classes = len(train_dataset.label2index)
-    padding_idx = vocab['<PAD>']
-    num_epochs = 30
-    learning_rate = 0.01
-    batch_size = 2048
+    hidden_size = 256
+    num_classes = len(train_dataset.label_encoder.classes_)
+    num_epochs = 5
+    learning_rate = 2e-5
+    eps = 1e-8
+    batch_size = 32
     dropout = 0.25
 
     save_training_json({
-        "vocab_size": vocab_size,
-        "embed_dim": embed_dim,
         "hidden_size": hidden_size,
         "num_classes": num_classes,
-        "padding_idx": padding_idx,
         "num_epochs": num_epochs,
         "learning_rate": learning_rate,  # type: ignore
         'batch_size': batch_size,
     }, f"./config/{country}_params.json")
 
+    # 小批量读取数据
+    train_dataloader = DataLoader(train_dataset,
+                                  batch_size=batch_size,
+                                  shuffle=True,)
+    val_dataloader = DataLoader(val_dataset,
+                                batch_size=batch_size,
+                                shuffle=False,)
+    test_dataloader = DataLoader(test_dataset,
+                                 batch_size=batch_size,
+                                 shuffle=False,)
+
     # 定义模型
     model = KeywordCategoryModel(
-        vocab_size, embed_dim, hidden_size, num_classes, padding_idx, dropout)
+        'bert-base-uncased', hidden_size, num_classes, dropout)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    criterion = nn.CrossEntropyLoss()
+    # 定义优化器参数，通常只优化需要训练的参数
+    optimizer = optim.AdamW(model.parameters(),
+                            lr=learning_rate,          # 学习率
+                            eps=eps          # 稳定性参数
+                            )
+    # 定义学习率调度器
+    # 计算总训练步数
+    total_steps = len(train_dataloader) * num_epochs
+    scheduler = get_linear_schedule_with_warmup(optimizer,
+                                                num_warmup_steps=0,               # 预热步数
+                                                num_training_steps=total_steps)    # 总训练步数
+    criterion = nn.CrossEntropyLoss(
+        weight=get_class_weights(y_train).to(DEVICE)
+    )
 
     epoch_progress = tqdm(range(num_epochs), leave=True)
     for epoch in epoch_progress:
         epoch_progress.set_description(f'epoch: {epoch + 1}')
 
         model.train()
-        loss_sum = 0.0
+        total_loss = 0.0
         batch_progress = tqdm(enumerate(train_dataloader), leave=False)
-        for batch_idx, (text, label) in batch_progress:
+        for batch_idx, (input_ids, attention_mask, labels) in batch_progress:
             batch_progress.set_description(
                 f'batch: {batch_idx + 1}/{len(train_dataloader)}')
 
-            text = text.to(DEVICE)
-            label = label.to(DEVICE)
+            # 获取批次数据并移动到设备
+            b_input_ids = input_ids.to(DEVICE)
+            b_attention_mask = attention_mask.to(DEVICE)
+            b_labels = labels.to(DEVICE)
+
             optimizer.zero_grad()
-            predict = model(text)
-            loss = criterion(predict, label)
-            loss_sum += loss
-            if (batch_idx + 1) % batch_size == 0:
-                loss_sum.backward()
-                optimizer.step()
-                batch_progress.set_postfix(loss=loss_sum.item() / batch_size)
-                loss_sum = 0.0
-
-        if loss_sum != 0.0:
-            loss_sum.backward()  # type: ignore
+            predict = model(b_input_ids, b_attention_mask)
+            loss = criterion(predict, b_labels)
+            total_loss += loss.item()
+            loss.backward()
+            # 防止梯度爆炸
+            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
-            loss_sum = 0.0
+            scheduler.step()
 
-        train_acc = evaluate(train_dataloader, model)
-        test_acc = evaluate(test_dataloader, model)
-        epoch_progress.set_postfix(train_acc=train_acc, test_acc=test_acc)
+        # 计算该轮的平均训练损失
+        avg_train_loss = total_loss / len(train_dataloader)
+        val_acc = evaluate(val_dataloader, model)
+
+        epoch_progress.set_postfix(
+            avg_train_loss=avg_train_loss, val_acc=val_acc)
+
+    test_acc = evaluate(test_dataloader, model)
+    epoch_progress.set_postfix(
+        avg_train_loss=avg_train_loss, val_acc=val_acc, test_acc=test_acc)
 
     # 保存模型
     torch.save(model.state_dict(), f"./models/weights/{country}_model.pth")
@@ -109,12 +126,17 @@ def evaluate(dataloader: DataLoader, model):
     correct = 0
     total = 0
     with torch.no_grad():
-        for text, label in dataloader:
-            text = text.to(DEVICE)
-            label = label.to(DEVICE)
-            predict = model(text)
+        for (input_ids, attention_mask, labels) in dataloader:
+            # 获取批次数据并移动到设备
+            b_input_ids = input_ids.to(DEVICE)
+            b_attention_mask = attention_mask.to(DEVICE)
+            b_labels = labels.to(DEVICE)
+
+            predict = model(
+                b_input_ids, b_attention_mask
+            )
             _, predicted = torch.max(predict.data, 1)
-            total += label.size(0)
-            correct += (predicted == label).sum().item()
+            total += labels.size(0)
+            correct += (predicted == b_labels).sum().item()
     # print(f"Accuracy: {correct / total * 100:.2f}%")
     return f'{correct / total * 100:.2f}%'

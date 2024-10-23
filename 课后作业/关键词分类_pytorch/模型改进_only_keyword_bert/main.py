@@ -29,11 +29,8 @@ for info in countries_info:
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
     X = data["Keyword"]
     y = data["Category"]
-    # 使用 train_test_split 将数据划分为训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
 
-    train(X_train, y_train, country, X_test, y_test)
+    train(X, y, country)
 
 
 # df = pd.DataFrame(data_list)
