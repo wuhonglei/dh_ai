@@ -8,7 +8,7 @@ nlp = spacy.load('en_core_web_sm')
 
 def tokenize_sg(text: str) -> list[str]:
     stop_word_list = set(list(nlp.Defaults.stop_words) +
-                         get_stop_words('./stopwords/common.txt'))
+                         get_stop_words('./stopwords/common.txt') + get_stop_words('./stopwords/sg.txt'))
 
     """
     + 符号在 keyword 中表示语义或者连接关系，需要替换为空格, 例如 sharp+microwave -> sharp microwave
@@ -43,8 +43,10 @@ def tokenize_sg(text: str) -> list[str]:
         if not text or text in stop_word_list or token.is_punct or is_float(text) or is_number(text):
             continue
         if contain_chinese_text(text):
+            # 中文文本，使用 jieba 分词
             new_token_list.extend(tokenize_tw(text))
-        elif not is_one_ascii(text_lemma):
+        elif not is_one_ascii(text_lemma) and token.pos_ != 'ADJ':
+            # 过滤单个英文字符，过滤形容词
             new_token_list.append(text_lemma)
 
     return new_token_list
