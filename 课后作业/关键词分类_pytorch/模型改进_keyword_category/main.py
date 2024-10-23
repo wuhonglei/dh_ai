@@ -33,7 +33,7 @@ for info in countries_info:
     dummy_cols = ['imp_level1_category_1d', 'pv_level1_category_1d',
                   'order_level1_category_1d']
     feat_cols = ["Keyword"] + dummy_cols
-    X = pd.get_dummies(data[dummy_cols], columns=dummy_cols, dummy_na=True)
+    X = pd.get_dummies(data[dummy_cols], columns=dummy_cols)
     y = data["Category"]
     # 使用 train_test_split 将数据划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(
