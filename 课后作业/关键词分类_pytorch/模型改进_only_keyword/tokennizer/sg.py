@@ -45,8 +45,8 @@ def tokenize_sg(text: str) -> list[str]:
         if contain_chinese_text(text):
             # 中文文本，使用 jieba 分词
             new_token_list.extend(tokenize_tw(text))
-        elif not is_one_ascii(text_lemma) and token.pos_ != 'ADJ':
-            # 过滤单个英文字符，过滤形容词
+        elif not is_one_ascii(text_lemma):
+            # 过滤单个英文字符
             new_token_list.append(text_lemma)
 
     return new_token_list
