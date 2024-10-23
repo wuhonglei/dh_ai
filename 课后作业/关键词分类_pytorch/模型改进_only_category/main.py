@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 from dataset import get_data, get_df_from_csv
 # from train import train
-from train_only_category import train
+from train import train
 import time
 import pandas as pd
 
