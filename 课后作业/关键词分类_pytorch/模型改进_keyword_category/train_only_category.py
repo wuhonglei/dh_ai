@@ -33,7 +33,7 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
     # 定义模型的必要参数
     hidden_size = [
         64,
-        31
+        # 31
     ]
     dropout = 0
     num_classes = len(train_dataset.label2index)
