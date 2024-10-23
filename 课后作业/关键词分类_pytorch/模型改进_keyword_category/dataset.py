@@ -120,23 +120,27 @@ def get_vocab(train_dataset: KeywordCategoriesDataset, file_path: str, use_cache
 
 def collate_batch(batch, vocab: dict[str, int]):
     text_list = list()
+    sub_categories_list = list()
     labels = list()
     # 每次读取一组数据
-    for text, label in batch:
+    for text, sub_categories, label in batch:
         text_tokens = [vocab.get(token, vocab["<UNK>"])
                        for token in text]
         text_tensor = torch.tensor(text_tokens, dtype=torch.long)
         text_list.append(text_tensor)
+        sub_categories_list.append(sub_categories)
         labels.append(torch.tensor(label, dtype=torch.long))
 
     padding_idx = vocab['<PAD>']
     # 将batch填充为相同长度文本
     text_padded = pad_sequence(
         text_list, batch_first=True, padding_value=padding_idx)
+    sub_categories_tensor = torch.tensor(
+        sub_categories_list, dtype=torch.float)
     labels_tensor = torch.stack(labels)
 
     # 返回文本和标签的张量形式，用于后续的模型训练
-    return text_padded, labels_tensor
+    return text_padded, sub_categories_tensor, labels_tensor
 
 
 def get_data(file_path: str, sheet_name: str = ''):
@@ -153,7 +157,6 @@ def get_data(file_path: str, sheet_name: str = ''):
 
 
 def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
-    df = pd.read_csv(file_path)
     filename = file_path.split('/')[-1].split('.')[0]
     cache_name = f'./data/cache/{filename}_csv.pkl'
     if use_cache and os.path.exists(cache_name):
@@ -161,6 +164,7 @@ def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
             df = pickle.load(f)
         return df
 
+    df = pd.read_csv(file_path)
     with open(cache_name, 'wb') as f:
         pickle.dump(df, f)
 

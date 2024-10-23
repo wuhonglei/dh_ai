@@ -26,13 +26,13 @@ for info in countries_info:
     country = info["country"]
     if country != "SG":
         continue
-    df = get_df_from_csv(f"./data/csv/{country}.csv")
+    df = get_df_from_csv(f"./data/csv/{country.lower()}.csv", use_cache=False)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
 
-    dummy_cols = ['imp_level1_category_1d', 'pv_level1_category_1d',
-                  'order_level1_category_1d']
-    one_hot_df = pd.get_dummies(data[dummy_cols], columns=dummy_cols)
+    dummy_cols = ['imp_level1_category_1d']
+    one_hot_df = pd.get_dummies(
+        data[dummy_cols], columns=dummy_cols, dummy_na=True)
     X = pd.concat([data['Keyword'], one_hot_df], axis=1)
     y = data["Category"]
     # 使用 train_test_split 将数据划分为训练集和测试集
