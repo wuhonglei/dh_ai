@@ -25,8 +25,8 @@ def train(X: DataFrame, y: Series, country: str, ):
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     hidden_size = 256
-    num_shared_cat = len(
-        dataset.encoder['shared_cat'].classes_)  # type: ignore
+    num_cat = len(
+        dataset.encoder['cat'].get_feature_names_out())  # type: ignore
     num_embeddings = 10
     num_classes = len(dataset.encoder['label'].classes_)  # type: ignore
     num_epochs = 15
@@ -56,7 +56,7 @@ def train(X: DataFrame, y: Series, country: str, ):
 
     # 定义模型
     model = KeywordCategoryModel(
-        'bert-base-uncased', num_shared_cat, num_embeddings, num_classes, dropout)
+        'bert-base-uncased', num_cat, num_embeddings, num_classes, dropout)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
@@ -83,21 +83,18 @@ def train(X: DataFrame, y: Series, country: str, ):
         model.train()
         total_loss = 0.0
         batch_progress = tqdm(enumerate(train_dataloader), leave=False)
-        for batch_idx, (input_ids, attention_mask, cat1, cat2, cat3, labels) in batch_progress:
+        for batch_idx, (input_ids, attention_mask, cat, labels) in batch_progress:
             batch_progress.set_description(
                 f'batch: {batch_idx + 1}/{len(train_dataloader)}')
 
             # 获取批次数据并移动到设备
             b_input_ids = input_ids.to(DEVICE)
             b_attention_mask = attention_mask.to(DEVICE)
-            b_cat1 = cat1.to(DEVICE)
-            b_cat2 = cat2.to(DEVICE)
-            b_cat3 = cat3.to(DEVICE)
+            b_cat = cat.to(DEVICE)
             b_labels = labels.to(DEVICE)
 
             optimizer.zero_grad()
-            predict = model(b_input_ids, b_attention_mask,
-                            b_cat1, b_cat2, b_cat3)
+            predict = model(b_input_ids, b_attention_mask, b_cat)
             loss = criterion(predict, b_labels)
             total_loss += loss.item()
             loss.backward()
@@ -128,18 +125,16 @@ def evaluate(dataloader: DataLoader, model):
     correct = 0
     total = 0
     with torch.no_grad():
-        for (input_ids, attention_mask, cat1, cat2, cat3, labels) in dataloader:
+        for (input_ids, attention_mask, cat, labels) in dataloader:
             # 获取批次数据并移动到设备
            # 获取批次数据并移动到设备
             b_input_ids = input_ids.to(DEVICE)
             b_attention_mask = attention_mask.to(DEVICE)
-            b_cat1 = cat1.to(DEVICE)
-            b_cat2 = cat2.to(DEVICE)
-            b_cat3 = cat3.to(DEVICE)
+            b_cat = cat.to(DEVICE)
             b_labels = labels.to(DEVICE)
 
             predict = model(
-                b_input_ids, b_attention_mask, b_cat1, b_cat2, b_cat3
+                b_input_ids, b_attention_mask, b_cat
             )
             _, predicted = torch.max(predict.data, 1)
             total += labels.size(0)

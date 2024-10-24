@@ -12,10 +12,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from tokennizer.sg import tokenize_sg
-from tokennizer.my import tokenize_my
-from tokennizer.th import tokenize_th
-from tokennizer.tw import tokenize_tw
+# from tokennizer.sg import tokenize_sg
+# from tokennizer.my import tokenize_my
+# from tokennizer.th import tokenize_th
+# from tokennizer.tw import tokenize_tw
 
 from utils.common import exists_cache, save_cache, load_cache
 
@@ -28,12 +28,12 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # 分词与编码函数
 
 
-token_dict = {
-    'SG': tokenize_sg,
-    'MY': tokenize_my,
-    'TH': tokenize_th,
-    'TW': tokenize_tw,
-}
+# token_dict = {
+#     'SG': tokenize_sg,
+#     'MY': tokenize_my,
+#     'TH': tokenize_th,
+#     'TW': tokenize_tw,
+# }
 
 
 class KeywordCategoriesDataset(Dataset):
@@ -41,24 +41,16 @@ class KeywordCategoriesDataset(Dataset):
         # 2. 标签编码
         self.encoder = {
             'label': LabelEncoder(),
-            'shared_cat': LabelEncoder(),
+            'cat': OneHotEncoder(),
         }
 
         catgory_names = ['imp_level1_category_1d',
                          'pv_level1_category_1d',
                          'order_level1_category_1d'
                          ]
-        all_categories = pd.concat(
-            [df[catgory_names[0]], df[catgory_names[1]], df[catgory_names[2]]], axis=0).unique()
-        self.encoder['shared_cat'].fit(all_categories)
 
-        self.cat1 = self.encoder['shared_cat'].transform(
-            df[catgory_names[0]]).tolist()  # type: ignore
-        self.cat2 = self.encoder['shared_cat'].transform(
-            df[catgory_names[1]]).tolist()  # type: ignore
-        self.cat3 = self.encoder['shared_cat'].transform(
-            df[catgory_names[2]]).tolist()  # type: ignore
-
+        self.cat = self.encoder['cat'].fit_transform(
+            df[catgory_names[2]].to_numpy().reshape(-1, 1)).toarray()
         self.labels: list[int] = self.encoder['label'].fit_transform(
             labels).tolist()  # type: ignore
 
@@ -102,7 +94,7 @@ class KeywordCategoriesDataset(Dataset):
         return len(self.input_ids)
 
     def __getitem__(self, idx: int):
-        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.cat1[idx], dtype=torch.int), torch.tensor(self.cat2[idx], dtype=torch.int), torch.tensor(self.cat3[idx], dtype=torch.int),  torch.tensor(self.labels[idx])
+        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.cat[idx], dtype=torch.int),  torch.tensor(self.labels[idx])
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):
@@ -187,7 +179,8 @@ if __name__ == '__main__':
     country = 'SG'
     excel = get_data('./data/Keyword Categorization.xlsx')
     data = excel[country].drop_duplicates(
-        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+        # type: ignore
+        subset=['Keyword'], keep='first').reset_index(drop=True)
     X = data["Keyword"]
     y = data["Category"]
 
