@@ -3,6 +3,7 @@ import pickle
 
 
 def save_cache(file_path: str, data):
+    print('saving cache to', file_path)
     with open(file_path, 'wb') as f:
         pickle.dump(data, f)
 

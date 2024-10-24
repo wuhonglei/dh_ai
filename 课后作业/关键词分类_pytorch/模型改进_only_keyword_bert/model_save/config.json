@@ -1,5 +1,5 @@
 {
-  "_name_or_path": "/mnt/nlp/dh_ai/\u8bfe\u540e\u4f5c\u4e1a/\u5173\u952e\u8bcd\u5206\u7c7b_pytorch/\u6a21\u578b\u6539\u8fdb_only_keyword_bert/model_save",
+  "_name_or_path": "bert-base-uncased",
   "architectures": [
     "BertForSequenceClassification"
   ],

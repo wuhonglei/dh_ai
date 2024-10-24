@@ -5,7 +5,7 @@ from torch import nn
 import torch
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-from transformers import get_linear_schedule_with_warmup
+from transformers import AdamW, get_linear_schedule_with_warmup
 
 from dataset import KeywordCategoriesDataset
 from models.simple_model import KeywordCategoryModel
@@ -15,27 +15,27 @@ from utils.model import save_training_json, get_class_weights
 def train(X: Series, y: Series, country: str, ):
     # 使用 train_test_split 将数据划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
+        X.tolist(), y.tolist(), test_size=0.1, random_state=42)
     X_train, X_val, y_train, y_val = train_test_split(
-        X_train, y_train, test_size=0.05, random_state=0)
+        X_train, y_train, test_size=0.1, random_state=42)
 
     train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country, use_cache=True)
+        X_train, y_train, country, use_cache=False)
     test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country, use_cache=True)
+        X_test, y_test, country, use_cache=False)
     val_dataset = KeywordCategoriesDataset(
-        X_val, y_val, country, use_cache=True)
+        X_val, y_val, country, use_cache=False)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     hidden_size = 256
     num_classes = len(train_dataset.label_encoder.classes_)
-    num_epochs = 5
+    num_epochs = 15
     learning_rate = 2e-5
     eps = 1e-8
     batch_size = 32
-    dropout = 0.25
+    dropout = 0.1
 
     save_training_json({
         "hidden_size": hidden_size,
@@ -64,8 +64,8 @@ def train(X: Series, y: Series, country: str, ):
     model.to(DEVICE)
 
     # 定义优化器参数，通常只优化需要训练的参数
-    optimizer = optim.AdamW(model.parameters(),
-                            lr=learning_rate,          # 学习率
+    optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()),  # type: ignore
+                            lr=learning_rate,  # 学习率
                             eps=eps          # 稳定性参数
                             )
     # 定义学习率调度器
@@ -74,9 +74,7 @@ def train(X: Series, y: Series, country: str, ):
     scheduler = get_linear_schedule_with_warmup(optimizer,
                                                 num_warmup_steps=0,               # 预热步数
                                                 num_training_steps=total_steps)    # 总训练步数
-    criterion = nn.CrossEntropyLoss(
-        weight=get_class_weights(y_train).to(DEVICE)
-    )
+    criterion = nn.CrossEntropyLoss()
 
     epoch_progress = tqdm(range(num_epochs), leave=True)
     for epoch in epoch_progress:
@@ -99,6 +97,7 @@ def train(X: Series, y: Series, country: str, ):
             loss = criterion(predict, b_labels)
             total_loss += loss.item()
             loss.backward()
+
             # 防止梯度爆炸
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
@@ -107,13 +106,12 @@ def train(X: Series, y: Series, country: str, ):
         # 计算该轮的平均训练损失
         avg_train_loss = total_loss / len(train_dataloader)
         val_acc = evaluate(val_dataloader, model)
-
+        test_acc = evaluate(test_dataloader, model)
+        train_acc = 'unknown'
+        if (epoch + 1) % 3 == 0:
+            train_acc = evaluate(train_dataloader, model)
         epoch_progress.set_postfix(
-            avg_train_loss=avg_train_loss, val_acc=val_acc)
-
-    test_acc = evaluate(test_dataloader, model)
-    epoch_progress.set_postfix(
-        avg_train_loss=avg_train_loss, val_acc=val_acc, test_acc=test_acc)
+            avg_train_loss=avg_train_loss, train_acc=train_acc, val_acc=val_acc, test_acc=test_acc)
 
     # 保存模型
     torch.save(model.state_dict(), f"./models/weights/{country}_model.pth")

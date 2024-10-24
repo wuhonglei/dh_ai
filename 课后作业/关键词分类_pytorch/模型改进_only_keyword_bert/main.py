@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split
-from dataset import get_data
+from dataset import get_data, get_df_from_csv
 from train import train
 import time
 
@@ -18,14 +18,12 @@ countries_info = [
 ]
 
 data_list: list[dict] = []
-start_time = time.time()
-excel = get_data('./data/Keyword Categorization.xlsx')
-print(f"Time taken to load data: {time.time() - start_time:.2f}s")
 for info in countries_info:
     country = info["country"]
     if country != "SG":
         continue
-    data = excel[country].drop_duplicates(
+    df = get_df_from_csv(f"./data/csv/{country.lower()}.csv")
+    data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
     X = data["Keyword"]
     y = data["Category"]

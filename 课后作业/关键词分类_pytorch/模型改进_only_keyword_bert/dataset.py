@@ -50,7 +50,8 @@ class KeywordCategoriesDataset(Dataset):
             encodings = load_cache(encodings_cache_name)
         else:
             seq_lengths = [len(keyword.split()) for keyword in keywords]
-            MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
+            # MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
+            MAX_LEN = 6  # 选择95%分位数作为最大长度
             encodings = self.encode_texts(keywords, tokenizer, MAX_LEN)
             save_cache(encodings_cache_name, encodings)
 
@@ -151,17 +152,14 @@ def get_data(file_path: str, sheet_name: str = ''):
 
 
 def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
-    df = pd.read_csv(file_path)
     filename = file_path.split('/')[-1].split('.')[0]
-    cache_name = f'./data/cache/{filename}_csv.pkl'
-    if use_cache and os.path.exists(cache_name):
-        with open(cache_name, 'rb') as f:
-            df = pickle.load(f)
+    cache_name = os.path.abspath(f'./cache/data/{filename}_csv.pkl')
+    if use_cache and exists_cache(cache_name):
+        df = load_cache(cache_name)
         return df
 
-    with open(cache_name, 'wb') as f:
-        pickle.dump(df, f)
-
+    df = pd.read_csv(file_path)
+    save_cache(cache_name, df)
     return df
 
 
