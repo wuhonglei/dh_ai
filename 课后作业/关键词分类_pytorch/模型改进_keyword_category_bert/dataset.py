@@ -10,7 +10,7 @@ from torch.nn.utils.rnn import pad_sequence
 import pickle
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from tokennizer.sg import tokenize_sg
 from tokennizer.my import tokenize_my
@@ -37,13 +37,25 @@ token_dict = {
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
-        # 2. 标签编码
+    def __init__(self, df: DataFrame, labels: list[str], country: str, use_cache=False) -> None:
         label_encoder = LabelEncoder()
-        self.label_encoder = label_encoder
+        one_hot_encoder = OneHotEncoder()
+
+        # 2. 标签编码
+        self.encoder = {
+            'label': label_encoder,
+            'sub_categories': one_hot_encoder,
+        }
+
+        catgory_names = ['imp_level1_category_1d',
+                         'pv_level1_category_1d', 'order_level1_category_1d']
+
+        self.sub_categories = one_hot_encoder.fit_transform(
+            df[catgory_names].to_numpy()).toarray()  # type: ignore
         self.labels: list[int] = label_encoder.fit_transform(
             labels).tolist()  # type: ignore
 
+        keywords = df['Keyword'].tolist()
         encodings_cache_name = os.path.abspath(
             f'./cache/dataset/{country}_{len(keywords)}_{keywords[0].split()[0]}_encodings.pkl')
         if use_cache and exists_cache(encodings_cache_name):
@@ -83,7 +95,7 @@ class KeywordCategoriesDataset(Dataset):
         return len(self.input_ids)
 
     def __getitem__(self, idx: int):
-        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.labels[idx])
+        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.sub_categories[idx], dtype=torch.float32), torch.tensor(self.labels[idx])
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):

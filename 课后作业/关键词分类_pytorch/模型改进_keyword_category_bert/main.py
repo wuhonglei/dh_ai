@@ -25,7 +25,7 @@ for info in countries_info:
     df = get_df_from_csv(f"./data/csv/{country.lower()}.csv")
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    X = data["Keyword"]
+    X = data.drop(columns=["Category"], axis=1)
     y = data["Category"]
 
     train(X, y, country)

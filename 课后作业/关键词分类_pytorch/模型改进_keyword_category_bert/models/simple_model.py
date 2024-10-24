@@ -9,7 +9,7 @@ from transformers.models.bert.modeling_bert import BertPreTrainedModel
 
 
 class KeywordCategoryModel(nn.Module):
-    def __init__(self, bert_model_name: str, hidden_size: int,  num_labels: int, dropout: float = 0.0):
+    def __init__(self, bert_model_name: str, hidden_size: int, num_categories: int, num_labels: int, dropout: float = 0.0):
         super(KeywordCategoryModel, self).__init__()
         self.bert = BertModel.from_pretrained(bert_model_name)
         config = self.bert.config
@@ -25,11 +25,11 @@ class KeywordCategoryModel(nn.Module):
         # )
         # 分类头
         self.classifier = nn.Sequential(
-            nn.Dropout(0.1),
-            nn.Linear(config.hidden_size, num_labels)
+            nn.Dropout(config.hidden_dropout_prob),
+            nn.Linear(config.hidden_size + num_categories, num_labels)
         )
 
-    def forward(self, input_ids, attention_mask):
+    def forward(self, input_ids, attention_mask, sub_categories):
         bert_outputs = self.bert(
             input_ids, attention_mask, token_type_ids=None)
         # 提取[CLS]向量
@@ -37,7 +37,8 @@ class KeywordCategoryModel(nn.Module):
         pooled_output = bert_outputs.pooler_output
 
         # features_output = self.fc(cls_output)
+        concat_output = torch.cat([pooled_output, sub_categories], dim=1)
 
         # 将[CLS]位置的向量传入分类头
-        cls_output = self.classifier(pooled_output)
+        cls_output = self.classifier(concat_output)
         return cls_output

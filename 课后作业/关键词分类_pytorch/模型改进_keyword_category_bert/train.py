@@ -1,4 +1,4 @@
-from pandas import Series
+from pandas import DataFrame, Series
 from torch.utils.data import DataLoader
 from torch import optim
 from torch import nn
@@ -12,25 +12,22 @@ from models.simple_model import KeywordCategoryModel
 from utils.model import save_training_json, get_class_weights
 
 
-def train(X: Series, y: Series, country: str, ):
-    # 使用 train_test_split 将数据划分为训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.1, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_train, y_train, test_size=0.1, random_state=42)
+def train(X: DataFrame, y: Series, country: str, ):
+    dataset = KeywordCategoriesDataset(X, y.tolist(), country, use_cache=True)
 
-    train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country, use_cache=True)
-    test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country, use_cache=True)
-    val_dataset = KeywordCategoriesDataset(
-        X_val, y_val, country, use_cache=True)
+    # 使用 train_test_split 将数据划分为训练集和测试集
+    train_dataset, test_dataset = train_test_split(
+        dataset, test_size=0.1, random_state=42)
+    train_dataset, val_dataset = train_test_split(
+        train_dataset, test_size=0.1, random_state=42)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     hidden_size = 256
-    num_classes = len(train_dataset.label_encoder.classes_)
+    num_categories = len(
+        dataset.encoder['sub_categories'].get_feature_names_out())  # type: ignore
+    num_classes = len(dataset.encoder['label'].classes_)  # type: ignore
     num_epochs = 15
     learning_rate = 2e-5
     eps = 1e-8
@@ -58,7 +55,7 @@ def train(X: Series, y: Series, country: str, ):
 
     # 定义模型
     model = KeywordCategoryModel(
-        'bert-base-uncased', hidden_size, num_classes, dropout)
+        'bert-base-uncased', hidden_size, num_categories,  num_classes, dropout)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
@@ -85,17 +82,18 @@ def train(X: Series, y: Series, country: str, ):
         model.train()
         total_loss = 0.0
         batch_progress = tqdm(enumerate(train_dataloader), leave=False)
-        for batch_idx, (input_ids, attention_mask, labels) in batch_progress:
+        for batch_idx, (input_ids, attention_mask, sub_categories, labels) in batch_progress:
             batch_progress.set_description(
                 f'batch: {batch_idx + 1}/{len(train_dataloader)}')
 
             # 获取批次数据并移动到设备
             b_input_ids = input_ids.to(DEVICE)
             b_attention_mask = attention_mask.to(DEVICE)
+            b_sub_categories = sub_categories.to(DEVICE)
             b_labels = labels.to(DEVICE)
 
             optimizer.zero_grad()
-            predict = model(b_input_ids, b_attention_mask)
+            predict = model(b_input_ids, b_attention_mask, b_sub_categories)
             loss = criterion(predict, b_labels)
             total_loss += loss.item()
             loss.backward()
@@ -126,14 +124,15 @@ def evaluate(dataloader: DataLoader, model):
     correct = 0
     total = 0
     with torch.no_grad():
-        for (input_ids, attention_mask, labels) in dataloader:
+        for (input_ids, attention_mask, sub_categories, labels) in dataloader:
             # 获取批次数据并移动到设备
             b_input_ids = input_ids.to(DEVICE)
             b_attention_mask = attention_mask.to(DEVICE)
+            b_sub_categories = sub_categories.to(DEVICE)
             b_labels = labels.to(DEVICE)
 
             predict = model(
-                b_input_ids, b_attention_mask
+                b_input_ids, b_attention_mask, b_sub_categories
             )
             _, predicted = torch.max(predict.data, 1)
             total += labels.size(0)
