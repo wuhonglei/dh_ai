@@ -27,7 +27,7 @@ def train(X: DataFrame, y: Series, country: str, ):
     hidden_size = 256
     num_shared_cat = len(
         dataset.encoder['shared_cat'].classes_)  # type: ignore
-    num_embeddings = 5
+    num_embeddings = 10
     num_classes = len(dataset.encoder['label'].classes_)  # type: ignore
     num_epochs = 15
     learning_rate = 2e-5
