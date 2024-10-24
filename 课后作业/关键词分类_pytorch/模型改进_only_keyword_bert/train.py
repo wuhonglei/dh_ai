@@ -13,24 +13,20 @@ from utils.model import save_training_json, get_class_weights
 
 
 def train(X: Series, y: Series, country: str, ):
-    # 使用 train_test_split 将数据划分为训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.1, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(
-        X_train, y_train, test_size=0.1, random_state=42)
+    dataset = KeywordCategoriesDataset(
+        X.tolist(), y.tolist(), country, use_cache=True)
 
-    train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country, use_cache=True)
-    test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country, use_cache=True)
-    val_dataset = KeywordCategoriesDataset(
-        X_val, y_val, country, use_cache=True)
+    # 使用 train_test_split 将数据划分为训练集和测试集
+    train_dataset, test_dataset = train_test_split(
+        dataset, test_size=0.1, random_state=42)
+    train_dataset, val_dataset = train_test_split(
+        train_dataset, test_size=0.1, random_state=42)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     hidden_size = 256
-    num_classes = len(train_dataset.label_encoder.classes_)
+    num_classes = len(dataset.label_encoder.classes_)
     num_epochs = 15
     learning_rate = 2e-5
     eps = 1e-8
