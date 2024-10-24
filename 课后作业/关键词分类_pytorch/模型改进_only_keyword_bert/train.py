@@ -20,11 +20,11 @@ def train(X: Series, y: Series, country: str, ):
         X_train, y_train, test_size=0.1, random_state=42)
 
     train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country, use_cache=False)
+        X_train, y_train, country, use_cache=True)
     test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country, use_cache=False)
+        X_test, y_test, country, use_cache=True)
     val_dataset = KeywordCategoriesDataset(
-        X_val, y_val, country, use_cache=False)
+        X_val, y_val, country, use_cache=True)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
@@ -74,7 +74,9 @@ def train(X: Series, y: Series, country: str, ):
     scheduler = get_linear_schedule_with_warmup(optimizer,
                                                 num_warmup_steps=0,               # 预热步数
                                                 num_training_steps=total_steps)    # 总训练步数
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(
+        # weight=get_class_weights(y_train).to(DEVICE),
+    )
 
     epoch_progress = tqdm(range(num_epochs), leave=True)
     for epoch in epoch_progress:
