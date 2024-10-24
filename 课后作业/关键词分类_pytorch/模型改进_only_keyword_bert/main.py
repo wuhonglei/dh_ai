@@ -20,7 +20,7 @@ countries_info = [
 data_list: list[dict] = []
 for info in countries_info:
     country = info["country"]
-    if country != "SG":
+    if country != "TW":
         continue
     df = get_df_from_csv(f"./data/csv/{country.lower()}.csv")
     data = df.drop_duplicates(

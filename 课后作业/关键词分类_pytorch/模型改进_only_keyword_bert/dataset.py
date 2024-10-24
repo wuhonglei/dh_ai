@@ -12,10 +12,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-from tokennizer.sg import tokenize_sg
-from tokennizer.my import tokenize_my
-from tokennizer.th import tokenize_th
-from tokennizer.tw import tokenize_tw
+# from tokennizer.sg import tokenize_sg
+# from tokennizer.my import tokenize_my
+# from tokennizer.th import tokenize_th
+# from tokennizer.tw import tokenize_tw
 
 from utils.common import exists_cache, save_cache, load_cache
 
@@ -28,12 +28,12 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # 分词与编码函数
 
 
-token_dict = {
-    'SG': tokenize_sg,
-    'MY': tokenize_my,
-    'TH': tokenize_th,
-    'TW': tokenize_tw,
-}
+# token_dict = {
+#     'SG': tokenize_sg,
+#     'MY': tokenize_my,
+#     'TH': tokenize_th,
+#     'TW': tokenize_tw,
+# }
 
 
 class KeywordCategoriesDataset(Dataset):
