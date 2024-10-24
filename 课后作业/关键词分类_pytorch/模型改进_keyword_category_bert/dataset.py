@@ -38,21 +38,28 @@ token_dict = {
 
 class KeywordCategoriesDataset(Dataset):
     def __init__(self, df: DataFrame, labels: list[str], country: str, use_cache=False) -> None:
-        label_encoder = LabelEncoder()
-        one_hot_encoder = OneHotEncoder()
-
         # 2. 标签编码
         self.encoder = {
-            'label': label_encoder,
-            'sub_categories': one_hot_encoder,
+            'label': LabelEncoder(),
+            'shared_cat': LabelEncoder(),
         }
 
         catgory_names = ['imp_level1_category_1d',
-                         'pv_level1_category_1d', 'order_level1_category_1d']
+                         'pv_level1_category_1d',
+                         'order_level1_category_1d'
+                         ]
+        all_categories = pd.concat(
+            [df[catgory_names[0]], df[catgory_names[1]], df[catgory_names[2]]], axis=0).unique()
+        self.encoder['shared_cat'].fit(all_categories)
 
-        self.sub_categories = one_hot_encoder.fit_transform(
-            df[catgory_names].to_numpy()).toarray()  # type: ignore
-        self.labels: list[int] = label_encoder.fit_transform(
+        self.cat1 = self.encoder['shared_cat'].transform(
+            df[catgory_names[0]]).tolist()  # type: ignore
+        self.cat2 = self.encoder['shared_cat'].transform(
+            df[catgory_names[1]]).tolist()  # type: ignore
+        self.cat3 = self.encoder['shared_cat'].transform(
+            df[catgory_names[2]]).tolist()  # type: ignore
+
+        self.labels: list[int] = self.encoder['label'].fit_transform(
             labels).tolist()  # type: ignore
 
         keywords = df['Keyword'].tolist()
@@ -95,7 +102,7 @@ class KeywordCategoriesDataset(Dataset):
         return len(self.input_ids)
 
     def __getitem__(self, idx: int):
-        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.sub_categories[idx], dtype=torch.float32), torch.tensor(self.labels[idx])
+        return self.input_ids[idx], self.attention_masks[idx], torch.tensor(self.cat1[idx], dtype=torch.int), torch.tensor(self.cat2[idx], dtype=torch.int), torch.tensor(self.cat3[idx], dtype=torch.int),  torch.tensor(self.labels[idx])
 
 
 def build_vocab(dataset: KeywordCategoriesDataset):
