@@ -15,6 +15,7 @@ for csv_name in os.listdir('./data/origin_csv'):
     df = pd.read_csv(f'./data/origin_csv/{csv_name}')
     df['Keyword'] = df['Keyword'].str.lower()
     new_df = df.drop_duplicates(subset=['Keyword'],)
+    new_df = df.dropna(subset=['Keyword'])
     new_df.to_csv(f'./data/unique_csv/{csv_name}', index=False)
     info.append(
         (csv_name.split('.')[0], len(df), len(

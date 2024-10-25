@@ -6,15 +6,30 @@
         "finish": true
     },
     "th": {
-        "error_batch_index": 186,
-        "finish": false
+        "finish": true
     },
     "br": {
-        "error_batch_index": 260,
-        "finish": false
+        "finish": true
     },
     "co": {
-        "error_batch_index": 20,
-        "finish": false
+        "finish": true
+    },
+    "tw": {
+        "finish": true
+    },
+    "id": {
+        "finish": true
+    },
+    "vn": {
+        "finish": true
+    },
+    "ph": {
+        "finish": true
+    },
+    "mx": {
+        "finish": true
+    },
+    "cl": {
+        "finish": true
     }
 }

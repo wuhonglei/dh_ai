@@ -41,7 +41,7 @@ translate_state = load_translate_state()
 
 def main():
     for country in countries:
-        csv_file = f'./data/unique_csv/{country}.csv'
+        csv_file = f'./data/translated_csv/{country}.csv'
         src_language = language_code[country]
         df = pd.read_csv(csv_file)
 
@@ -68,7 +68,7 @@ def main():
         last_index = current_state.get('error_batch_index', 0)
         for batch_index, (b_keyword, b_index) in enumerate(dataloader):
             # 跳过已经翻译过的
-            if batch_index < last_index:
+            if batch_index > last_index:
                 continue
 
             print(
