@@ -1,9 +1,10 @@
+import time
 import requests
 
 key = 'AIzaSyBmNYceXws8PIztEO5NTseytNSeJiR06Z0'
 
 
-def translate(text, src_language,  target_language):
+def translate(text, src_language, target_language, retry=3):
     is_array = isinstance(text, list)
     url = f"https://translation.googleapis.com/language/translate/v2?key={key}"
 
@@ -27,4 +28,8 @@ def translate(text, src_language,  target_language):
             return result['data']['translations'][0]['translatedText']
     except:
         print(f"Failed to translate: {text}")
+        if retry > 0:
+            time.sleep(3)
+            return translate(text, src_language, target_language, retry - 1)
+
         return None
