@@ -1,11 +1,11 @@
 import os
 import pandas as pd
-import json
 
 from translate.api import translate
 from torch.utils.data import DataLoader
 from dataset import KeywordDataset
-from utils import re_order_columns, save_csv, load_translate_state, save_translate_state
+from utils import save_csv, load_translate_state, save_translate_state
+from config import countries
 
 # 映射为 IETF BCP 47 language tag
 language_code = {
@@ -22,19 +22,7 @@ language_code = {
     'cl': 'es-CL',
 }
 
-countries = [
-    'sg',
-    'my',
-    'th',
-    'tw',
-    'id',
-    'vn',
-    'ph',
-    'br',
-    'mx',
-    'co',
-    'cl'
-]
+
 target_language = 'en'  # 翻译为英文
 translate_state = load_translate_state()
 
