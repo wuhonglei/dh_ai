@@ -1,8 +1,9 @@
-只使用关键词: epoch: 15: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 15/15 [04:11<00:00, 16.78s/it, avg_train_loss=0.0865, test_acc=72.68%, train_acc=97.54%, val_acc=49.88%]
-使用关键词+类别(one-hot编码): epoch: 15: 100%|████████████████████████████████████████████████████████████████████████| 15/15 [05:49<00:00, 23.28s/it, avg_train_loss=0.0879, test_acc=74.59%, train_acc=98.66%, val_acc=73.49%]
-使用关键词+类别(独立的embedding 编码): epoch: 14:  87%|██████████████████████████████████████████████████████████████▍         | 13/15 [04:32<00:41, 20.93s/it, avg_train_loss=0.105, test_acc=74.02%, train_acc=unknown, val_acc=72.77%]
-使用关键词+类别(共享的embedding 编码, num_embeddings = 5): epoch: 15: 100%|████████████████████████████████████████████████████████████████████████| 15/15 [06:26<00:00, 25.78s/it, avg_train_loss=0.0835, test_acc=74.20%, train_acc=98.76%, val_acc=73.10%]
-使用关键词+类别(共享的embedding 编码, num_embeddings = 15)epoch: 15: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 15/15 [04:13<00:00, 16.90s/it, avg_train_loss=0.0796, test_acc=74.76%, train_acc=98.89%, val_acc=72.72%]
-使用关键词+1个类别(imp_level1_category_1d) epoch: 15: 100%|███████████████████████████████████████████████████| 15/15 [04:03<00:00, 16.26s/it, avg_train_loss=0.0881, test_acc=73.94%, train_acc=98.76%, val_acc=72.86%]
-使用关键词+1个类别(pv_level1_category_1d) epoch: 15: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 15/15 [03:29<00:00, 13.94s/it, avg_train_loss=0.0848, test_acc=74.46%, train_acc=98.79%, val_acc=73.01%]
-使用关键词+1个类别(order_level1_category_1d)epoch: 15: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 15/15 [03:30<00:00, 14.05s/it, avg_train_loss=0.0794, test_acc=73.63%, train_acc=98.88%, val_acc=72.43%]
+测试方法, train loss, 测试集准确率, 训练集准确率, 验证集准确率
+只使用关键词, avg_train_loss=0.0865, test_acc=72.68%, train_acc=97.54%, val_acc=49.88%
+使用关键词+类别(one-hot编码), avg_train_loss=0.0879, test_acc=74.59%, train_acc=98.66%, val_acc=73.49%
+使用关键词+类别(独立的embedding 编码), avg_train_loss=0.105, test_acc=74.02%, train_acc=unknown, val_acc=72.77%
+使用关键词+类别(共享的embedding 编码_num_embeddings = 5), avg_train_loss=0.0835, test_acc=74.20%, train_acc=98.76%, val_acc=73.10%
+使用关键词+类别(共享的embedding 编码_num_embeddings = 15), avg_train_loss=0.0796, test_acc=74.76%, train_acc=98.89%, val_acc=72.72%
+使用关键词+1个类别(imp_level1_category_1d), avg_train_loss=0.0881, test_acc=73.94%, train_acc=98.76%, val_acc=72.86%
+使用关键词+1个类别(pv_level1_category_1d), avg_train_loss=0.0848, test_acc=74.46%, train_acc=98.79%, val_acc=73.01%
+使用关键词+1个类别(order_level1_category_1d), avg_train_loss=0.0794, test_acc=73.63%, train_acc=98.88%, val_acc=72.43%
