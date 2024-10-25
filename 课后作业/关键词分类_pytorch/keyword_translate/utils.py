@@ -1,3 +1,7 @@
+from pandas import DataFrame
+import json
+
+
 def get_item_index(item, list):
     """ 获取列表中指定元素的索引 """
     indices = []
@@ -28,3 +32,21 @@ def re_order_columns(df, new_index, category_name):
         df[category_name] = temp_column
 
     return df[columns]
+
+
+def save_csv(df: DataFrame, new_keyword_name: str, file_path: str):
+    """ 保存数据到csv文件 """
+    df = re_order_columns(df, 1, new_keyword_name)
+    df.to_csv(file_path, index=False)
+
+
+def load_translate_state():
+    """ 从文件中加载翻译状态 """
+    with open('./state.json', 'r') as f:
+        return json.load(f)
+
+
+def save_translate_state(state: dict):
+    """ 保存翻译状态到文件 """
+    with open('./state.json', 'w') as f:
+        json.dump(state, f, indent=4)

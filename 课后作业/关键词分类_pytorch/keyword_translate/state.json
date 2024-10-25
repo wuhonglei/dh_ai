@@ -1,0 +1,20 @@
+{
+    "sg": {
+        "finish": true
+    },
+    "my": {
+        "finish": true
+    },
+    "th": {
+        "error_batch_index": 186,
+        "finish": false
+    },
+    "br": {
+        "error_batch_index": 260,
+        "finish": false
+    },
+    "co": {
+        "error_batch_index": 20,
+        "finish": false
+    }
+}
