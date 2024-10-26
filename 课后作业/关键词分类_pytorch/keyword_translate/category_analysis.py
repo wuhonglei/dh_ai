@@ -5,21 +5,7 @@
 import pandas as pd
 import numpy as np
 
-# from config import countries
-
-countries = [
-    'sg',
-    'my',
-    'th',
-    'tw',
-    'id',
-    'vn',
-    'ph',
-    'br',
-    'mx',
-    'co',
-    'cl'
-]
+from config import countries
 
 
 category_name1 = 'imp_level1_category_1d'
