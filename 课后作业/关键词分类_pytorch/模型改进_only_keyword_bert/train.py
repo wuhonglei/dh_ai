@@ -18,7 +18,7 @@ def train(X: Series, y: Series, country: str, ):
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
-        dataset, test_size=0.1, random_state=42)
+        dataset, test_size=0.05, random_state=42)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
