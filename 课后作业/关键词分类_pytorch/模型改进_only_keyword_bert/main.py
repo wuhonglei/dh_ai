@@ -20,13 +20,13 @@ countries_info = [
 data_list: list[dict] = []
 for info in countries_info:
     country = info["country"]
-    if country != "TW":
+    if country != "SG":
         continue
-    df = get_df_from_csv(f"./data/csv/{country.lower()}.csv")
+    df = get_df_from_csv(f"./data/sg_final.csv")
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
     X = data["Keyword"]
-    y = data["Category"]
+    y = data["sg_category"]
 
     train(X, y, country)
 

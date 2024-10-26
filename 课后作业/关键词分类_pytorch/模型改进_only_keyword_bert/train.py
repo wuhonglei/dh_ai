@@ -5,7 +5,7 @@ from torch import nn
 import torch
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-from transformers import AdamW, get_linear_schedule_with_warmup
+from transformers import get_linear_schedule_with_warmup
 
 from dataset import KeywordCategoriesDataset
 from models.simple_model import KeywordCategoryModel
@@ -19,8 +19,6 @@ def train(X: Series, y: Series, country: str, ):
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.1, random_state=42)
-    train_dataset, val_dataset = train_test_split(
-        train_dataset, test_size=0.1, random_state=42)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
@@ -45,9 +43,6 @@ def train(X: Series, y: Series, country: str, ):
     train_dataloader = DataLoader(train_dataset,
                                   batch_size=batch_size,
                                   shuffle=True,)
-    val_dataloader = DataLoader(val_dataset,
-                                batch_size=batch_size,
-                                shuffle=False,)
     test_dataloader = DataLoader(test_dataset,
                                  batch_size=batch_size,
                                  shuffle=False,)
@@ -103,13 +98,12 @@ def train(X: Series, y: Series, country: str, ):
 
         # 计算该轮的平均训练损失
         avg_train_loss = total_loss / len(train_dataloader)
-        val_acc = evaluate(val_dataloader, model)
         test_acc = evaluate(test_dataloader, model)
         train_acc = 'unknown'
         if (epoch + 1) % 3 == 0:
             train_acc = evaluate(train_dataloader, model)
         epoch_progress.set_postfix(
-            avg_train_loss=avg_train_loss, train_acc=train_acc, val_acc=val_acc, test_acc=test_acc)
+            avg_train_loss=avg_train_loss, train_acc=train_acc, test_acc=test_acc)
 
     # 保存模型
     torch.save(model.state_dict(), f"./models/weights/{country}_model.pth")
