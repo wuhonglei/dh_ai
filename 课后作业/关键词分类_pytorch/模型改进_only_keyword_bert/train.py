@@ -1,4 +1,4 @@
-from pandas import Series
+from pandas import DataFrame, Series
 from torch.utils.data import DataLoader
 from torch import optim
 from torch import nn
@@ -12,19 +12,26 @@ from models.simple_model import KeywordCategoryModel
 from utils.model import save_training_json, get_class_weights
 
 
-def train(X: Series, y: Series, country: str, ):
-    dataset = KeywordCategoriesDataset(
-        X.tolist(), y.tolist(), country, use_cache=True)
+def train(df_train: DataFrame, df_test: DataFrame, country: str, ):
+    X_train = df_train["Keyword"]
+    y_train = df_train[f"sg_category"]
+    X_test = df_test["Keyword"]
+    y_test = df_test[f"sg_category"]
 
-    # 使用 train_test_split 将数据划分为训练集和测试集
-    train_dataset, test_dataset = train_test_split(
-        dataset, test_size=0.05, random_state=42)
+    train_dataset = KeywordCategoriesDataset(
+        X_train.tolist(), y_train.tolist(), country, use_cache=True)
+    test_dataset = KeywordCategoriesDataset(
+        X_test.tolist(), y_test.tolist(), country, use_cache=True)
+
+    # # 使用 train_test_split 将数据划分为训练集和测试集
+    # train_dataset, test_dataset = train_test_split(
+    #     dataset, test_size=0.05, random_state=42)
 
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     hidden_size = 256
-    num_classes = len(dataset.label_encoder.classes_)
+    num_classes = 29
     num_epochs = 15
     learning_rate = 2e-5
     eps = 1e-8
