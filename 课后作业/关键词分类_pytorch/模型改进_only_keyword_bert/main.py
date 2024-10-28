@@ -22,7 +22,7 @@ for info in countries_info:
     country = info["country"]
     if country != "TW":
         continue
-    df = get_df_from_csv(f"./data/csv/sg.csv", use_cache=True)
+    df = get_df_from_csv(f"./data/csv/{country.lower()}.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
     data = data[data["Category"] != "童話樹"]

@@ -14,15 +14,6 @@ class KeywordCategoryModel(nn.Module):
         self.bert = BertModel.from_pretrained(bert_model_name)
         config = self.bert.config
 
-        # 冻结 BERT 参数
-        # for param in self.bert.parameters():
-        #     param.requires_grad = False
-
-        # self.fc = nn.Sequential(
-        #     nn.Linear(self.bert.config.hidden_size, hidden_size),
-        #     nn.ReLU(),
-        #     nn.Dropout(dropout),
-        # )
         # 分类头
         self.classifier = nn.Sequential(
             nn.Dropout(0.1),
