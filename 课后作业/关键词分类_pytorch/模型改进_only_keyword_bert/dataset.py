@@ -22,8 +22,6 @@ from utils.common import exists_cache, save_cache, load_cache
 from transformers import BertTokenizer
 import torch
 
-# 加载预训练的BERT分词器
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 # 分词与编码函数
 
@@ -37,7 +35,7 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
+    def __init__(self, bert_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
         # 2. 标签编码
         label_encoder = LabelEncoder()
         self.label_encoder = label_encoder
@@ -49,6 +47,8 @@ class KeywordCategoriesDataset(Dataset):
         if use_cache and exists_cache(encodings_cache_name):
             encodings = load_cache(encodings_cache_name)
         else:
+            # 加载预训练的BERT分词器
+            tokenizer = BertTokenizer.from_pretrained(bert_name)
             seq_lengths = [len(keyword.split()) for keyword in keywords]
             # MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
             MAX_LEN = 6  # 选择95%分位数作为最大长度

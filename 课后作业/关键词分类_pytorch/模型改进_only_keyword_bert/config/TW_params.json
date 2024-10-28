@@ -1,6 +1,6 @@
 {
     "hidden_size": 256,
-    "num_classes": 24,
+    "num_classes": 31,
     "num_epochs": 15,
     "learning_rate": 2e-05,
     "batch_size": 32

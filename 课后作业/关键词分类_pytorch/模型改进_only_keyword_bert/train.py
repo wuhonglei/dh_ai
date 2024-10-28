@@ -11,10 +11,13 @@ from dataset import KeywordCategoriesDataset
 from models.simple_model import KeywordCategoryModel
 from utils.model import save_training_json, get_class_weights
 
+# bert 中文模型
+bert_name = 'bert-base-chinese'
+
 
 def train(X: Series, y: Series, country: str, ):
-    dataset = KeywordCategoriesDataset(
-        X.tolist(), y.tolist(), country, use_cache=True)
+    dataset = KeywordCategoriesDataset(bert_name,
+                                       X.tolist(), y.tolist(), country, use_cache=True)
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
@@ -49,7 +52,7 @@ def train(X: Series, y: Series, country: str, ):
 
     # 定义模型
     model = KeywordCategoryModel(
-        'bert-base-uncased', hidden_size, num_classes, dropout)
+        bert_name, hidden_size, num_classes, dropout)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)

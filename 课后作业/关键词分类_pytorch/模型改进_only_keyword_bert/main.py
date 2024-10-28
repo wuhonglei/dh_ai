@@ -20,11 +20,12 @@ countries_info = [
 data_list: list[dict] = []
 for info in countries_info:
     country = info["country"]
-    if country != "SG":
+    if country != "TW":
         continue
     df = get_df_from_csv(f"./data/csv/sg.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+    data = data[data["Category"] != "童話樹"]
     X = data["Keyword"]
     y = data["Category"]
 
