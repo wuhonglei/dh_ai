@@ -6,6 +6,7 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
 from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
 
 from src.utils import timer
 
