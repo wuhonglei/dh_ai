@@ -11,6 +11,7 @@ import pickle
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from transformers import AutoModel, AutoTokenizer
 
 # from tokennizer.sg import tokenize_sg
 # from tokennizer.my import tokenize_my
@@ -35,7 +36,7 @@ import torch
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, bert_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
+    def __init__(self, model_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
         # 2. 标签编码
         label_encoder = LabelEncoder()
         self.label_encoder = label_encoder
@@ -48,7 +49,8 @@ class KeywordCategoriesDataset(Dataset):
             encodings = load_cache(encodings_cache_name)
         else:
             # 加载预训练的BERT分词器
-            tokenizer = BertTokenizer.from_pretrained(bert_name)
+            # tokenizer = BertTokenizer.from_pretrained(model_name)
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
             seq_lengths = [len(keyword.split()) for keyword in keywords]
             # MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
             MAX_LEN = 6  # 选择95%分位数作为最大长度
@@ -68,7 +70,7 @@ class KeywordCategoriesDataset(Dataset):
         return max_len
 
     def encode_texts(self, texts, tokenizer, max_len):
-        return tokenizer.batch_encode_plus(
+        return tokenizer(
             texts,
             add_special_tokens=True,      # 添加[CLS]和[SEP]
             max_length=max_len,
@@ -161,56 +163,3 @@ def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
     df = pd.read_csv(file_path)
     save_cache(cache_name, df)
     return df
-
-
-if __name__ == '__main__':
-    import pandas as pd
-    country = 'SG'
-    excel = get_data('./data/Keyword Categorization.xlsx')
-    data = excel[country].drop_duplicates(
-        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    X = data["Keyword"]
-    y = data["Category"]
-
-    # 使用 train_test_split 将数据划分为训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
-
-    train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country)
-    test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country)
-
-    train_vocab = build_vocab(train_dataset)
-    test_vocab = build_vocab(test_dataset)
-
-    train_vocab_words = set(train_vocab.keys())
-    test_vocab_words = set(test_vocab.keys())
-
-    with open(f"./vocab/{country}/train_vocab.txt", "w") as f:
-        f.write('\n'.join(train_vocab_words))
-
-    with open(f"./vocab/{country}/test_vocab.txt", "w") as f:
-        f.write('\n'.join(test_vocab_words))
-
-    def read_vocab(vocab_path):
-        with open(vocab_path, 'r') as f:
-            return f.readlines()
-
-    def write_vocab(vocab_path, words):
-        with open(vocab_path, 'w') as f:
-            f.writelines(words)
-
-    # 分析训练集和测试集的分词结果的差异
-    train_vocab_path = f'./vocab/{country}/train_vocab.txt'
-    test_vocab_path = f'./vocab/{country}/test_vocab.txt'
-
-    train_words = read_vocab(train_vocab_path)
-    test_words = read_vocab(test_vocab_path)
-    train_words, test_words = set(train_words), set(test_words)
-    print(f'训练集词汇量: {len(train_words)}')
-    print(f'测试集词汇量: {len(test_words)}')
-    print(f'测试集和训练集词汇量差异: {len(test_words - train_words)}')
-    print(f'测试集和训练集词汇量差异: {(test_words - train_words)}')
-    write_vocab(f'./vocab/{country}/test_train_diff_vocab.txt',
-                test_words - train_words)
