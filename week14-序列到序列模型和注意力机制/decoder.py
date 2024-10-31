@@ -23,7 +23,7 @@ class Decoder(nn.Module):
 
     def forward(self, input, hidden, cell, encoder_output):
         # input: 当前解码器的输入词 [batch_size]
-        # hidden: 上一个时间步的隐藏状态 [batch_size, hid_dim]
+        # hidden: 上一个时间步的隐藏状态 [num_layers, batch_size, hid_dim]
         # cell: 上一个时间步的细胞状态 [batch_size, hid_dim]
         # encoder_outputs: 编码器的所有隐藏状态 [batch_size, src_len, hid_dim]
 
