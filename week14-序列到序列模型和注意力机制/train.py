@@ -20,13 +20,13 @@ decoder = Decoder(output_size, embed_size, hidden_size,
 model = Seq2Seq(encoder, decoder, device).to(device)
 model.apply(init_weights)  # 初始化模型参数
 
-# 创建 seq_len=7, batch_size=3 的输入
-src = torch.randint(0, input_size, (7, 3)).to(device)
+# 创建 batch_size=3, seq_len=7 的输入
+src = torch.randint(0, input_size, (3, 7)).to(device)
 
-# 创建 seq_len=5, batch_size=3 的输出
-trg = torch.randint(0, output_size, (5, 3)).to(device)
+# 创建 batch_size=3, seq_len=5 的输出
+trg = torch.randint(0, output_size, (3, 5)).to(device)
 
 teacher_force_ratio = 0.5
 outputs = model(src, trg, teacher_force_ratio)
 
-print(outputs.shape)  # torch.Size([5, 3, 100])
+print(outputs.shape)  # torch.Size([3, 5, 100])

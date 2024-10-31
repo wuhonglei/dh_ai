@@ -14,68 +14,38 @@ class Decoder(nn.Module):
 
         self.dropout = nn.Dropout(p)
         self.embedding = nn.Embedding(output_size, embed_size)
+        # 拼接 context 和 embedding 后的输入维度为 embed_size + hidden_size
         self.rnn = nn.LSTM(
-            embed_size + hidden_size, hidden_size, num_layers, dropout=p)
+            embed_size + hidden_size, hidden_size, num_layers, dropout=p, batch_first=True)
+        # 拼接 context 和 hidden 后的输入维度为 hidden_size * 2
         self.fc = nn.Linear(hidden_size * 2, output_size)
         self.attention = Attention(hidden_size)
 
     def forward(self, input, hidden, cell, encoder_output):
-        """
-        input: [batch_size]
-        hidden: [num_layers, batch_size, hidden_size]
-        cell: [num_layers, batch_size, hidden_size]
-        embedding: [1, batch_size, embed_size]
-        output: [1, batch_size, hidden_size]
-        encoder_output: [seq_len, batch_size, hidden_size]
-        """
-        input = input.unsqueeze(0)
+        # input: 当前解码器的输入词 [batch_size]
+        # hidden: 上一个时间步的隐藏状态 [batch_size, hid_dim]
+        # cell: 上一个时间步的细胞状态 [batch_size, hid_dim]
+        # encoder_outputs: 编码器的所有隐藏状态 [batch_size, src_len, hid_dim]
+
+        input = input.unsqueeze(1)  # [batch_size] => [batch_size, 1]
+        # [batch_size, 1, embed_size]
         embedding = self.dropout(self.embedding(input))
 
-        attention_weights = self.attention(hidden[-1], encoder_output)
-        context = attention_weights.bmm(encoder_output.transpose(0, 1))
-        context = context.transpose(0, 1)
-        lstm_input = torch.cat((embedding, context), dim=2)
+        # 计算注意力权重
+        a = self.attention(hidden[-1], encoder_output)  # [batch_size, src_len]
+        a = a.unsqueeze(1)  # [batch_size, 1, src_len]
+        context = torch.bmm(a, encoder_output)  # [batch_size, 1, hid_dim]
 
-        """
-        output: [1, batch_size, hidden_size]
-        hidden: [num_layers, batch_size, hidden_size]
-        cell: [num_layers, batch_size, hidden_size]
-        """
-        output, (hidden, cell) = self.rnn(lstm_input, (hidden, cell))
+        # 解码器的输入为上下文向量和嵌入向量的拼接
+        # [batch_size, 1, embed_size + hid_dim]
+        rnn_input = torch.concat((embedding, context), dim=2)
 
-        """
-        prediction: [1, batch_size, output_size]
-        """
-        combined = torch.cat((output.squeeze(0), context.squeeze(0)), dim=1)
-        prediction = self.fc(combined)
+        # 通过 RNN 计算下一个隐藏状态
+        # output: [batch_size, 1, hid_dim]
+        output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
+        output = output.squeeze(1)  # [batch_size, hid_dim]
+        context = context.squeeze(1)  # [batch_size, hid_dim]
 
-        return prediction, hidden, cell
-
-
-if __name__ == '__main__':
-    output_size = 100  # 词典大小
-    embed_size = 50  # 词向量维度
-    hidden_size = 1024  # 隐藏层维度
-    num_layers = 2  # LSTM层数
-    p = 0.5  # dropout概率
-
-    decoder = Decoder(output_size, embed_size, hidden_size, num_layers, p)
-    print(decoder)
-    input = torch.randint(0, 1, (1,))
-    hidden = torch.zeros(num_layers, 1, hidden_size)
-    cell = torch.zeros(num_layers, 1, hidden_size)
-    prediction, hidden, cell = decoder(input, hidden, cell)
-    # summary(decoder, input_size=(1,), dtypes=[torch.long], device='cpu', col_names=[
-    #         "input_size", "output_size", "num_params"])
-    print(prediction.shape, hidden.shape, cell.shape)
-
-    for i in range(5):
-        prediction, hidden, cell = decoder(input, hidden, cell)
-        print(prediction.shape, hidden.shape, cell.shape)
-        input = prediction.argmax(1)
-        print(input)
-        print(prediction.argmax(1))
-        print(prediction.argmax(1).item())
-        print(prediction.argmax(1).item() == 0)
-        if prediction.argmax(1).item() == 0:
-            break
+        # 最终输出预测结果
+        output = self.fc(torch.concat((output, context), dim=1))
+        return output, hidden, cell
