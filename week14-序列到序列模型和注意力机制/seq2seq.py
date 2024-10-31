@@ -21,11 +21,12 @@ class Seq2Seq(nn.Module):
         outputs = torch.zeros(trg_len, batch_size,
                               trg_vocab_size).to(self.device)
 
-        hidden, cell = self.encoder(src)
+        encoder_output, hidden, cell = self.encoder(src)
 
         input = trg[0, :]
         for t in range(1, trg_len):
-            output, hidden, cell = self.decoder(input, hidden, cell)
+            output, hidden, cell = self.decoder(
+                input, hidden, cell, encoder_output)
             outputs[t] = output
             teacher_force = torch.rand(1) < teacher_force_ratio
             top1 = output.argmax(1)

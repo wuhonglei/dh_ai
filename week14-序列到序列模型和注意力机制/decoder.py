@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from torchinfo import summary
+from attention import Attention
 
 
 class Decoder(nn.Module):
@@ -14,31 +15,39 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(p)
         self.embedding = nn.Embedding(output_size, embed_size)
         self.rnn = nn.LSTM(
-            embed_size, hidden_size, num_layers, dropout=p)
-        self.fc = nn.Linear(hidden_size, output_size)
+            embed_size + hidden_size, hidden_size, num_layers, dropout=p)
+        self.fc = nn.Linear(hidden_size * 2, output_size)
+        self.attention = Attention(hidden_size)
 
-    def forward(self, input, hidden, cell):
+    def forward(self, input, hidden, cell, encoder_output):
         """
         input: [batch_size]
         hidden: [num_layers, batch_size, hidden_size]
         cell: [num_layers, batch_size, hidden_size]
         embedding: [1, batch_size, embed_size]
         output: [1, batch_size, hidden_size]
+        encoder_output: [seq_len, batch_size, hidden_size]
         """
         input = input.unsqueeze(0)
         embedding = self.dropout(self.embedding(input))
+
+        attention_weights = self.attention(hidden[-1], encoder_output)
+        context = attention_weights.bmm(encoder_output.transpose(0, 1))
+        context = context.transpose(0, 1)
+        lstm_input = torch.cat((embedding, context), dim=2)
 
         """
         output: [1, batch_size, hidden_size]
         hidden: [num_layers, batch_size, hidden_size]
         cell: [num_layers, batch_size, hidden_size]
         """
-        output, (hidden, cell) = self.rnn(embedding, (hidden, cell))
+        output, (hidden, cell) = self.rnn(lstm_input, (hidden, cell))
 
         """
         prediction: [1, batch_size, output_size]
         """
-        prediction = self.fc(output.squeeze(0))
+        combined = torch.cat((output.squeeze(0), context.squeeze(0)), dim=1)
+        prediction = self.fc(combined)
 
         return prediction, hidden, cell
 

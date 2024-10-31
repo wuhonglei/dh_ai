@@ -23,12 +23,13 @@ class Encoder(nn.Module):
         embedding = self.dropout(self.embedding(src))
 
         """
+        output: [seq_len, batch_size, hidden_size]
         hidden: [num_layers, batch_size, hidden_size]
         cell: [num_layers, batch_size, hidden_size]
         """
-        _, (hidden, cell) = self.rnn(embedding)
+        output, (hidden, cell) = self.rnn(embedding)
 
-        return hidden, cell
+        return output, hidden, cell
 
 
 if __name__ == '__main__':
