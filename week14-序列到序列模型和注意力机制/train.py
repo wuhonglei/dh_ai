@@ -1,9 +1,33 @@
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 
 from encoder import Encoder
 from decoder import Decoder
 from seq2seq import Seq2Seq, init_weights
+
+from dataset import TranslateDataset, build_vocab, collate_fn
+
+train_dataset = TranslateDataset('./csv/train.csv')
+valid_dataset = TranslateDataset('./csv/validation.csv')
+test_dataset = TranslateDataset('./csv/test.csv')
+
+
+def collate(batch): return collate_fn(batch, src_vocab, target_vocab)
+
+
+src_vocab, target_vocab = build_vocab(train_dataset)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True,
+                          collate_fn=collate)
+valid_loader = DataLoader(valid_dataset, batch_size=32,
+                          shuffle=False, collate_fn=collate)  # 验证集和测试集不需要shuffle
+test_loader = DataLoader(test_dataset, batch_size=32,
+                         shuffle=False, collate_fn=collate)
+
+for batch_idx, (src, target) in enumerate(train_loader):
+    print(src.shape, target.shape)
+    break
+
 
 input_size = 100  # 词典大小
 output_size = 100  # 词典大小

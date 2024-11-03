@@ -25,7 +25,6 @@ for i, word in enumerate(counter):
 
 print('vocab', vocab)
 s_index = [vocab.get(word, vocab["<unk>"]) for word in s]
-print(s_index)
 
 with open('vocab.pkl', 'wb') as f:
     pickle.dump(vocab, f)
