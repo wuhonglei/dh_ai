@@ -27,11 +27,12 @@ def tokenize_en(text: str):
 dataset = load_dataset("iwslt2017", "iwslt2017-en-zh", trust_remote_code=True)
 for name, data in dataset.items():
     print(name, data)
-    df = pd.DataFrame(columns=["en", "zh"])
+    rows_to_add = []
     for i in range(len(data)):
-        df.loc[len(df)] = [
-            " ".join(tokenize_en(data[i]['translation']["en"])),
-            " ".join(tokenize_zh(data[i]['translation']["zh"]))
-        ]
+        rows_to_add.append(
+            [" ".join(tokenize_en(data[i]['translation']["en"])),
+             " ".join(tokenize_zh(data[i]['translation']["zh"]))]
+        )
 
+    df = pd.DataFrame(rows_to_add, columns=["en", "zh"])
     df.to_csv(f"{name}.csv", index=False, sep="\t")
