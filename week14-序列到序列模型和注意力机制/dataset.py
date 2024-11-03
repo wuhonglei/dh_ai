@@ -6,19 +6,44 @@ import pickle
 from torch.nn.utils.rnn import pad_sequence
 
 
+def split_token(text: str):
+    return [token for token in text.split() if token]
+
+
+class Vocab():
+    def __init__(self, vocab_dict: dict[str, int]):
+        self.word_to_index = vocab_dict
+        index_to_word = {}
+        for word, index in vocab_dict.items():
+            index_to_word[index] = word
+        self.index_to_word = index_to_word
+
+    def __len__(self):
+        return len(self.word_to_index)
+
+    def get_itos(self):
+        return self.index_to_word
+
+    def get_stoi(self):
+        return self.word_to_index
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            return self.word_to_index.get(key, self.word_to_index['<unk>'])
+        elif isinstance(key, int):
+            return self.index_to_word.get(key, '<unk>')
+
+
 class TranslateDataset(Dataset):
     def __init__(self, csv_path: str, ):
         df = pd.read_csv(csv_path, sep="\t")
         self.src = df['en'].apply(
-            lambda x: ['<sos>'] + self.split_token(x) + ['<eos>'])
+            lambda x: ['<sos>'] + split_token(x) + ['<eos>'])
         self.target = df['zh'].apply(
-            lambda x: ['<sos>'] + self.split_token(x) + ['<eos>'])
+            lambda x: ['<sos>'] + split_token(x) + ['<eos>'])
 
     def __len__(self):
         return len(self.src)
-
-    def split_token(self, text: str):
-        return [token for token in text.split() if token]
 
     def __getitem__(self, idx):
         return self.src[idx], self.target[idx]
@@ -35,7 +60,7 @@ def build_vocab_from_list(word_list: list[str]):
     for i, word in enumerate(counter):
         if word not in vocab:
             vocab[word] = len(vocab)
-    return vocab
+    return Vocab(vocab)
 
 
 def build_vocab(dataset: TranslateDataset):

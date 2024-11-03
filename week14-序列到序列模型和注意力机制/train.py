@@ -1,12 +1,12 @@
+from dataset import TranslateDataset, build_vocab, collate_fn
+from seq2seq import Seq2Seq, init_weights, test_translate
+from decoder import Decoder
+from encoder import Encoder
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import torch.optim as optim
 
-from encoder import Encoder
-from decoder import Decoder
-from seq2seq import Seq2Seq, init_weights
-
-from dataset import TranslateDataset, build_vocab, collate_fn
 
 train_dataset = TranslateDataset('./csv/train.csv')
 valid_dataset = TranslateDataset('./csv/validation.csv')
@@ -24,17 +24,19 @@ valid_loader = DataLoader(valid_dataset, batch_size=32,
 test_loader = DataLoader(test_dataset, batch_size=32,
                          shuffle=False, collate_fn=collate)
 
-for batch_idx, (src, target) in enumerate(train_loader):
-    print(src.shape, target.shape)
+for batch_idx, (b_src, b_target) in enumerate(train_loader):
+    print(b_src.shape, b_target.shape)
     break
 
 
-input_size = 100  # 词典大小
-output_size = 100  # 词典大小
+input_size = len(src_vocab)  # 词典大小
+output_size = len(target_vocab)  # 词典大小
 embed_size = 50  # 词向量维度
 hidden_size = 1024  # 隐藏层维度
 num_layers = 2  # LSTM层数
 dropout = 0.5  # dropout概率
+teacher_force_ratio = 0.5
+num_epochs = 3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 encoder = Encoder(input_size, embed_size, hidden_size,
@@ -44,13 +46,25 @@ decoder = Decoder(output_size, embed_size, hidden_size,
 model = Seq2Seq(encoder, decoder, device).to(device)
 model.apply(init_weights)  # 初始化模型参数
 
-# 创建 batch_size=3, seq_len=7 的输入
-src = torch.randint(0, input_size, (3, 7)).to(device)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.CrossEntropyLoss(ignore_index=target_vocab['<pad>'])
 
-# 创建 batch_size=3, seq_len=5 的输出
-trg = torch.randint(0, output_size, (3, 5)).to(device)
+for epoch in range(num_epochs):
+    model.train()
+    for batch_idx, (b_src, b_target) in enumerate(train_loader):
+        b_src = b_src.to(device)
+        b_target = b_target.to(device)
+        # [batch_size, seq_len, output_size]
+        output = model(b_src, b_target, teacher_force_ratio)
+        new_output = output[:, 1:].reshape(-1, output.shape[2])
+        new_b_target = b_target[:, 1:].reshape(-1)
+        optimizer.zero_grad()
+        loss = criterion(new_output, new_b_target)
+        loss.backward()
+        # 梯度裁剪
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
+        optimizer.step()
+        if batch_idx % 100 == 0:
+            print(f'Epoch: {epoch}, Loss: {loss.item()}')
 
-teacher_force_ratio = 0.5
-outputs = model(src, trg, teacher_force_ratio)
-
-print(outputs.shape)  # torch.Size([3, 5, 100])
+    test_translate(model, src_vocab, target_vocab)
