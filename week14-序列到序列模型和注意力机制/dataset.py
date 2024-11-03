@@ -7,7 +7,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 def split_token(text: str):
-    return [token for token in text.split() if token]
+    return [token.lower() for token in text.split() if token]
 
 
 class Vocab():
