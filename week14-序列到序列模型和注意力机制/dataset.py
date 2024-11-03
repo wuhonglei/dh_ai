@@ -29,7 +29,7 @@ dataset = load_dataset("iwslt2017", "iwslt2017-en-zh", trust_remote_code=True)
 for name, data in dataset.items():
     print(name, data)
     rows_to_add = []
-    data_progress = tqdm(range(len(data_progress)))
+    data_progress = tqdm(range(len(data)))
     for i in data_progress:
         rows_to_add.append(
             [" ".join(tokenize_en(data[i]['translation']["en"])),
@@ -37,4 +37,4 @@ for name, data in dataset.items():
         )
 
     df = pd.DataFrame(rows_to_add, columns=["en", "zh"])
-    df.to_csv(f"{name}.csv", index=False, sep="\t")
+    df.to_csv(f"./csv/{name}.csv", index=False, sep="\t")
