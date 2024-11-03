@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
-
+from tqdm import tqdm
 
 train_dataset = TranslateDataset('./csv/train.csv')
 valid_dataset = TranslateDataset('./csv/validation.csv')
@@ -47,11 +47,18 @@ model = Seq2Seq(encoder, decoder, device).to(device)
 model.apply(init_weights)  # 初始化模型参数
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-criterion = nn.CrossEntropyLoss(ignore_index=target_vocab['<pad>'])
+criterion = nn.CrossEntropyLoss(
+    ignore_index=target_vocab['<pad>'])  # type: ignore
 
-for epoch in range(num_epochs):
+epoch_progress = tqdm(range(num_epochs), leave=True)
+for epoch in epoch_progress:
+    epoch_progress.set_description(f'epoch: {epoch + 1}')
     model.train()
-    for batch_idx, (b_src, b_target) in enumerate(train_loader):
+    batch_progress = tqdm(enumerate(train_loader), leave=False)
+    for batch_idx, (b_src, b_target) in batch_progress:
+        batch_progress.set_description(
+            f'batch: {batch_idx + 1}/{len(train_loader)}')
+
         b_src = b_src.to(device)
         b_target = b_target.to(device)
         # [batch_size, seq_len, output_size]
@@ -64,7 +71,7 @@ for epoch in range(num_epochs):
         # 梯度裁剪
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
         optimizer.step()
-        if batch_idx % 100 == 0:
-            print(f'Epoch: {epoch}, Loss: {loss.item()}')
+        if batch_idx % 10 == 0:
+            batch_progress.set_postfix(loss=loss.item())
 
     test_translate(model, src_vocab, target_vocab)
