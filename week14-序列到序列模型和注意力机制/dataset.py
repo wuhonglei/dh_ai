@@ -4,6 +4,7 @@ from collections import Counter
 from torch.utils.data import Dataset
 import pickle
 from torch.nn.utils.rnn import pad_sequence
+import time
 
 
 def split_token(text: str):
@@ -77,6 +78,7 @@ def build_vocab(dataset: TranslateDataset):
 
 
 def collate_fn(batch, src_vocab, target_vocab):
+    start_time = time.time()
     src = list()
     target = list()
     for src_sample, target_sample in batch:
@@ -91,6 +93,7 @@ def collate_fn(batch, src_vocab, target_vocab):
     target_batch = pad_sequence(
         target, padding_value=target_vocab['<pad>'], batch_first=True)
 
+    # print(f'collate_fn time: {time.time() - start_time}')
     return src_batch, target_batch
 
 

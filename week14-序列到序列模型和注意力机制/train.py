@@ -24,16 +24,12 @@ valid_loader = DataLoader(valid_dataset, batch_size=32,
 test_loader = DataLoader(test_dataset, batch_size=32,
                          shuffle=False, collate_fn=collate)
 
-for batch_idx, (b_src, b_target) in enumerate(train_loader):
-    print(b_src.shape, b_target.shape)
-    break
-
 
 input_size = len(src_vocab)  # 词典大小
 output_size = len(target_vocab)  # 词典大小
 embed_size = 50  # 词向量维度
-hidden_size = 1024  # 隐藏层维度
-num_layers = 2  # LSTM层数
+hidden_size = 100  # 隐藏层维度
+num_layers = 1  # LSTM层数
 dropout = 0.5  # dropout概率
 teacher_force_ratio = 0.5
 num_epochs = 3
@@ -74,4 +70,5 @@ for epoch in epoch_progress:
         if batch_idx % 10 == 0:
             batch_progress.set_postfix(loss=loss.item())
 
+    torch.save(model.state_dict(), f'./models/seq2seq_{epoch}.pth')
     test_translate(model, src_vocab, target_vocab)
