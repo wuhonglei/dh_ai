@@ -48,8 +48,7 @@ def test_translate(model, src_vocab, trg_vocab):
     device = model.device
     sample = "<sos> I like math . <eos>"  # 定义一个测试样本
     src_tokens = split_token(sample)  # 分词结果
-    src_index = [src_vocab.get(token, src_vocab['<unk>'])
-                 for token in src_tokens]  # 通过词表转为词语的索引
+    src_index = [src_vocab[token]for token in src_tokens]  # 通过词表转为词语的索引
     src_tensor = torch.LongTensor(src_index).view(1, -1).to(device)  # 转为张量
 
     EOS_token = trg_vocab['<eos>']  # 获得目标序列的EOS
@@ -66,7 +65,7 @@ def test_translate(model, src_vocab, trg_vocab):
     trg_itos = trg_vocab.get_itos()
     predict_word = list()
     for id in predict:
-        word = trg_itos[id]
+        word = trg_itos[id.item()]
         if word == '<eos>':
             break
         predict_word.append(word)

@@ -41,6 +41,7 @@ decoder = Decoder(output_size, embed_size, hidden_size,
                   num_layers, dropout).to(device)
 model = Seq2Seq(encoder, decoder, device).to(device)
 model.apply(init_weights)  # 初始化模型参数
+model.load_state_dict(torch.load('./models/seq2seq_0.pth'))
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss(
