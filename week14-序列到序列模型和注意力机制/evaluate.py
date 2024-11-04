@@ -1,5 +1,5 @@
 from dataset import TranslateDataset, build_vocab, collate_fn
-from seq2seq import Seq2Seq, init_weights, test_translate
+from seq2seq import Seq2Seq, init_weights, test_translate, test_samples
 from decoder import Decoder
 from encoder import Encoder
 import torch
@@ -33,3 +33,11 @@ decoder = Decoder(output_size, embed_size, hidden_size,
                   num_layers, dropout).to(device)
 model = Seq2Seq(encoder, decoder, device).to(device)
 model.load_state_dict(torch.load('./models/seq2seq_0.pth'))
+
+model.eval()
+for i, (src, target) in enumerate(test_loader):
+    src = src.to(device)
+    target = target.to(device)
+    test_samples(model, src, target, src_vocab, target_vocab)
+    if i == 10:
+        break
