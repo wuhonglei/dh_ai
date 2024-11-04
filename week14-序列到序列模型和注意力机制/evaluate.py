@@ -38,6 +38,10 @@ model.eval()
 for i, (src, target) in enumerate(test_loader):
     src = src.to(device)
     target = target.to(device)
-    test_samples(model, src, target, src_vocab, target_vocab)
+    # 对于每个测试样本，调用函数test_sample测试效果
+    predict, target, bleu_score = test_samples(
+        model, src, target, src_vocab, target_vocab)
+    # 打印测试结果
+    print(f"{str(predict)} vs {str(target)} = {bleu_score:.2f}")
     if i == 10:
         break
