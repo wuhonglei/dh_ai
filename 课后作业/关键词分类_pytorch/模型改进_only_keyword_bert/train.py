@@ -6,13 +6,14 @@ import torch
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from transformers import get_linear_schedule_with_warmup
+from sklearn.metrics import accuracy_score
 
 from dataset import KeywordCategoriesDataset
 from models.simple_model import KeywordCategoryModel
 from utils.model import save_training_json, get_class_weights
 
 # bert 中文模型
-bert_name = 'bert-base-chinese'
+bert_name = 'bert-base-uncased'
 
 
 def train(X: Series, y: Series, country: str, ):
@@ -116,8 +117,8 @@ def evaluate(dataloader: DataLoader, model):
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     model.eval()
-    correct = 0
-    total = 0
+    y_true = []
+    y_pred = []
     with torch.no_grad():
         for (input_ids, attention_mask, labels) in dataloader:
             # 获取批次数据并移动到设备
@@ -129,7 +130,7 @@ def evaluate(dataloader: DataLoader, model):
                 b_input_ids, b_attention_mask
             )
             _, predicted = torch.max(predict.data, 1)
-            total += labels.size(0)
-            correct += (predicted == b_labels).sum().item()
-    # print(f"Accuracy: {correct / total * 100:.2f}%")
-    return f'{correct / total * 100:.2f}%'
+            y_true.extend(b_labels.tolist())
+            y_pred.extend(predicted.tolist())
+    accuracy = accuracy_score(y_true, y_pred)
+    return f'{accuracy * 100:.2f}%'

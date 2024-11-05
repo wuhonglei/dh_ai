@@ -50,8 +50,8 @@ class KeywordCategoriesDataset(Dataset):
             # 加载预训练的BERT分词器
             tokenizer = BertTokenizer.from_pretrained(bert_name)
             seq_lengths = [len(keyword.split()) for keyword in keywords]
-            # MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
-            MAX_LEN = 6  # 选择95%分位数作为最大长度
+            MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
+            # MAX_LEN = 6  # 选择95%分位数作为最大长度
             encodings = self.encode_texts(keywords, tokenizer, MAX_LEN)
             save_cache(encodings_cache_name, encodings)
 
@@ -175,11 +175,11 @@ if __name__ == '__main__':
     # 使用 train_test_split 将数据划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(
         X.tolist(), y.tolist(), test_size=0.05, random_state=0)
-
+    bert_name = 'bert-base-chinese'
     train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country)
+        bert_name, X_train, y_train, country)
     test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country)
+        bert_name, X_test, y_test, country)
 
     train_vocab = build_vocab(train_dataset)
     test_vocab = build_vocab(test_dataset)

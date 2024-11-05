@@ -2,7 +2,7 @@ import torch
 
 from sklearn.model_selection import train_test_split
 from dataset import get_data, get_df_from_csv
-from train import train
+from train import evaluate
 import time
 from dataset import KeywordCategoriesDataset
 from models.simple_model import KeywordCategoryModel
@@ -23,19 +23,31 @@ countries_info = [
     {"country": "CO", "stopwords": "spanish"},
 ]
 
-bert_name = ''
+bert_name = 'bert-base-uncased'
+ignored_country_categories = {
+    'SG': [
+        'Lifestyle',  # 2.06%
+        'Others',  # 1.32%
+        'Platform Terms (Lazada / Shopee)',  # 1.05%
+        'Miscellaneous (Adult)',  # 0.01%
+        'Pets & Supplies'  # 0.01%
+    ]
+}
 
 data_list: list[dict] = []
 for info in countries_info:
     country = info["country"]
-    if country != "TW":
+    if country != "SG":
         continue
     df = get_df_from_csv(f"./data/csv/sg.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    data = data[data["Category"] != "童話樹"]
+
+    category_name = 'Category'
+    data = data[~df[category_name].isin(
+        ignored_country_categories.get(country, []))]
     X = data["Keyword"]
-    y = data["Category"]
+    y = data[category_name]
 
     dataset = KeywordCategoriesDataset(bert_name,
                                        X.tolist(), y.tolist(), country, use_cache=True)
@@ -54,10 +66,12 @@ for info in countries_info:
     # 定义模型
     model = KeywordCategoryModel(
         bert_name, train_args['hidden_size'], train_args[' num_classes'], train_args['dropout'])
-    # model.load_state_dict(torch.load(
-    #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
-    train(X, y, country)
+    model.load_state_dict(torch.load(
+        f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
+
+    acc = evaluate(test_dataloader, model)
+    print(f"Accuracy: {acc}")
 
 
 # df = pd.DataFrame(data_list)

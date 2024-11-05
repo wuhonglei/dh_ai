@@ -33,6 +33,9 @@ def origin_csv_rename():
         category: str = df.loc[i, 'fe_display_categories']  # type: ignore
         # 获取每行的category_list
         category_list = find_first_category(category)
+        if not category_list:
+            continue
+
         # 获取每行的category_list长度
         data_list.append([item_id, name] + category_list[0:3])
 
@@ -53,6 +56,6 @@ def keyword_len():
 
 
 if __name__ == '__main__':
-    # origin_csv_rename()
-    keyword_len()
+    origin_csv_rename()
+    # keyword_len()
     pass

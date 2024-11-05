@@ -20,14 +20,15 @@ countries_info = [
 data_list: list[dict] = []
 for info in countries_info:
     country = info["country"]
-    if country != "TW":
+    if country != "SG":
         continue
-    df = get_df_from_csv(f"./data/csv/{country.lower()}.csv", use_cache=True)
+    df = get_df_from_csv(
+        f"./data/shopee_sg/keyword_category.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    data = data[data["Category"] != "童話樹"]
+    # data = data[data["Category"] != "童話樹"]
     X = data["Keyword"]
-    y = data["Category"]
+    y = data["fe_category_1"]
 
     train(X, y, country)
 
