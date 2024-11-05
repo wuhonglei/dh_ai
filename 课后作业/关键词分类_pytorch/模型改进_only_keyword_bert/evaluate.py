@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from dataset import get_data, get_df_from_csv
 from train import evaluate
 import time
-from dataset import KeywordCategoriesDataset
+from dataset import KeywordCategoriesDataset, get_labels
 from models.simple_model import KeywordCategoryModel
 from torch.utils.data import DataLoader
 from utils.model import load_training_json
@@ -24,16 +24,6 @@ countries_info = [
 ]
 
 bert_name = 'bert-base-uncased'
-ignored_country_categories = {
-    'SG': [
-        'Lifestyle',  # 2.06%
-        'Others',  # 1.32%
-        'Platform Terms (Lazada / Shopee)',  # 1.05%
-        'Miscellaneous (Adult)',  # 0.01%
-        'Pets & Supplies'  # 0.01%
-    ]
-}
-
 data_list: list[dict] = []
 for info in countries_info:
     country = info["country"]
@@ -44,13 +34,12 @@ for info in countries_info:
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
 
     category_name = 'Category'
-    data = data[~data[category_name].isin(
-        ignored_country_categories.get(country, []))]
+    data = data[data[category_name].isin(get_labels(country))]
     X = data["Keyword"]
     y = data[category_name]
 
     dataset = KeywordCategoriesDataset(bert_name,
-                                       X.tolist(), y.tolist(), country, use_cache=True, is_training=False)
+                                       X.tolist(), y.tolist(), country, use_cache=True, use_config=True)
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)

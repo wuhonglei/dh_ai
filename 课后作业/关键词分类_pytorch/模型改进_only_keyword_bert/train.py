@@ -18,7 +18,7 @@ bert_name = 'bert-base-uncased'
 
 def train(X: Series, y: Series, country: str, ):
     dataset = KeywordCategoriesDataset(bert_name,
-                                       X.tolist(), y.tolist(), country, use_cache=True, is_training=True)
+                                       X.tolist(), y.tolist(), country, use_cache=True, use_config=True)
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
@@ -28,11 +28,11 @@ def train(X: Series, y: Series, country: str, ):
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     hidden_size = 256
-    num_classes = len(dataset.label_encoder.classes_)
-    num_epochs = 15
+    num_classes = dataset.num_classes
+    num_epochs = 3
     learning_rate = 2e-5
     eps = 1e-8
-    batch_size = 32
+    batch_size = 128
     dropout = 0.1
 
     save_training_json({
@@ -56,7 +56,7 @@ def train(X: Series, y: Series, country: str, ):
     model = KeywordCategoryModel(
         bert_name, hidden_size, num_classes, dropout)
     # model.load_state_dict(torch.load(
-    #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
+    #     f"./models/weights/SG_model_shopee_epoch_5.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     # 定义优化器参数，通常只优化需要训练的参数

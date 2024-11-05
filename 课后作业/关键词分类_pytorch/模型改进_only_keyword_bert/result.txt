@@ -1,0 +1,1 @@
+只使用 shopee sg 商城 title 进行训练后，dataset 数据集的准确率 Accuracy: 48.32%

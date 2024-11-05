@@ -36,9 +36,15 @@ import torch
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, bert_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False, is_training=True) -> None:
+    def __init__(self, bert_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False, use_config=True) -> None:
         label_index_path = f'./config/{country}_label_to_index.json'
-        if is_training:
+        if use_config:
+            with open(label_index_path, 'r') as f:
+                label_to_index = json.load(f)
+
+            self.labels = [label_to_index[label] for label in labels]
+            self.num_classes = len(label_to_index)
+        else:
             # 2. 标签编码
             label_encoder = LabelEncoder()
             self.label_encoder = label_encoder
@@ -46,13 +52,9 @@ class KeywordCategoriesDataset(Dataset):
                 labels).tolist()  # type: ignore
             label_to_index = {label: index for index,
                               label in enumerate(label_encoder.classes_)}
+            self.num_classes = len(label_to_index)
             with open(label_index_path, 'w') as f:
                 json.dump(label_to_index, f, indent=4)
-        else:
-            with open(label_index_path, 'r') as f:
-                label_to_index = json.load(f)
-
-            self.labels = [label_to_index[label] for label in labels]
 
         encodings_cache_name = os.path.abspath(
             f'./cache/dataset/{country}_{len(keywords)}_{keywords[0].split()[0]}_encodings.pkl')
@@ -64,7 +66,9 @@ class KeywordCategoriesDataset(Dataset):
             seq_lengths = [len(keyword.split()) for keyword in keywords]
             MAX_LEN = int(np.percentile(seq_lengths, 95))  # 选择95%分位数作为最大长度
             # MAX_LEN = 6  # 选择95%分位数作为最大长度
+            print(f'最大长度: {MAX_LEN}')
             encodings = self.encode_texts(keywords, tokenizer, MAX_LEN)
+            print(f'编码完成')
             save_cache(encodings_cache_name, encodings)
 
         self.input_ids = encodings['input_ids']
@@ -173,6 +177,12 @@ def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
     df = pd.read_csv(file_path)
     save_cache(cache_name, df)
     return df
+
+
+def get_labels(country: str) -> list[str]:
+    with open(f'./config/{country}_label_to_index.json', 'r') as f:
+        label_to_index = json.load(f)
+    return list(label_to_index.keys())
 
 
 if __name__ == '__main__':

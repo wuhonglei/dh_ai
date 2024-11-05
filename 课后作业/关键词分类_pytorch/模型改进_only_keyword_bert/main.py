@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split
-from dataset import get_data, get_df_from_csv
+from dataset import get_data, get_df_from_csv, get_labels
 from train import train
 import time
 
@@ -26,8 +26,10 @@ for info in countries_info:
         f"./data/shopee_sg/keyword_category.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+    category_name = 'fe_category_1'
+    data = data[data[category_name].isin(get_labels(country))]
     X = data["Keyword"]
-    y = data["fe_category_1"]
+    y = data[category_name]
 
     train(X, y, country)
 
