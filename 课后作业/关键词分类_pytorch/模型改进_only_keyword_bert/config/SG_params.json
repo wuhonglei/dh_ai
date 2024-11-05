@@ -3,5 +3,6 @@
     "num_classes": 29,
     "num_epochs": 15,
     "learning_rate": 2e-05,
-    "batch_size": 128
+    "batch_size": 32,
+    "dropout": 0.1
 }

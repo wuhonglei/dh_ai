@@ -1,5 +1,6 @@
 from typing import Sequence
 import os
+import json
 
 import numpy as np
 from pandas import DataFrame
@@ -35,12 +36,23 @@ import torch
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, bert_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
-        # 2. 标签编码
-        label_encoder = LabelEncoder()
-        self.label_encoder = label_encoder
-        self.labels: list[int] = label_encoder.fit_transform(
-            labels).tolist()  # type: ignore
+    def __init__(self, bert_name: str, keywords: list[str], labels: list[str], country: str, use_cache=False, is_training=True) -> None:
+        label_index_path = f'./config/{country}_label_to_index.json'
+        if is_training:
+            # 2. 标签编码
+            label_encoder = LabelEncoder()
+            self.label_encoder = label_encoder
+            self.labels: list[int] = label_encoder.fit_transform(
+                labels).tolist()  # type: ignore
+            label_to_index = {label: index for index,
+                              label in enumerate(label_encoder.classes_)}
+            with open(label_index_path, 'w') as f:
+                json.dump(label_to_index, f, indent=4)
+        else:
+            with open(label_index_path, 'r') as f:
+                label_to_index = json.load(f)
+
+            self.labels = [label_to_index[label] for label in labels]
 
         encodings_cache_name = os.path.abspath(
             f'./cache/dataset/{country}_{len(keywords)}_{keywords[0].split()[0]}_encodings.pkl')

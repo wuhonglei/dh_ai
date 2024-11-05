@@ -44,13 +44,13 @@ for info in countries_info:
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
 
     category_name = 'Category'
-    data = data[~df[category_name].isin(
+    data = data[~data[category_name].isin(
         ignored_country_categories.get(country, []))]
     X = data["Keyword"]
     y = data[category_name]
 
     dataset = KeywordCategoriesDataset(bert_name,
-                                       X.tolist(), y.tolist(), country, use_cache=True)
+                                       X.tolist(), y.tolist(), country, use_cache=True, is_training=False)
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
@@ -59,18 +59,22 @@ for info in countries_info:
                                  batch_size=1,
                                  shuffle=False)
 
+    dataloader = DataLoader(dataset,
+                            batch_size=128,
+                            shuffle=False)
+
     train_args = load_training_json(f"./config/{country}_params.json")
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
 
     # 定义模型
     model = KeywordCategoryModel(
-        bert_name, train_args['hidden_size'], train_args[' num_classes'], train_args['dropout'])
+        bert_name, train_args['hidden_size'], train_args['num_classes'], train_args['dropout'])
     model.to(DEVICE)
     model.load_state_dict(torch.load(
         f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
 
-    acc = evaluate(test_dataloader, model)
+    acc = evaluate(dataloader, model)
     print(f"Accuracy: {acc}")
 
 

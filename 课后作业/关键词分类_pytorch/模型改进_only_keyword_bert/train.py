@@ -18,7 +18,7 @@ bert_name = 'bert-base-uncased'
 
 def train(X: Series, y: Series, country: str, ):
     dataset = KeywordCategoriesDataset(bert_name,
-                                       X.tolist(), y.tolist(), country, use_cache=True)
+                                       X.tolist(), y.tolist(), country, use_cache=True, is_training=True)
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
@@ -41,6 +41,7 @@ def train(X: Series, y: Series, country: str, ):
         "num_epochs": num_epochs,
         "learning_rate": learning_rate,  # type: ignore
         'batch_size': batch_size,
+        'dropout': dropout
     }, f"./config/{country}_params.json")
 
     # 小批量读取数据

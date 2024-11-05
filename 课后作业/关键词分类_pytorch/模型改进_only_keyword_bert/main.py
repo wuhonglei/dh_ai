@@ -26,7 +26,6 @@ for info in countries_info:
         f"./data/shopee_sg/keyword_category.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    # data = data[data["Category"] != "童話樹"]
     X = data["Keyword"]
     y = data["fe_category_1"]
 
