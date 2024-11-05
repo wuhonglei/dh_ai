@@ -1,0 +1,8 @@
+[
+  [11011760:Hobbies & Books, 11011795:Card & Board Games, 11011796:Jigsaw Puzzles & Brain Teasers],
+  [11011760:Hobbies & Books, 11011795:Card & Board Games, 11011797:Others],
+  [11011760:Hobbies & Books, 11011795:Card & Board Games, 11011798:Table Top & Board Games],
+  [11011760:Hobbies & Books, 11011795:Card & Board Games, 11011799:Trading Card Games (TCG)],
+  [11011760:Hobbies & Books, 11011795:Card & Board Games, 11011800:Mahjong & Accessories],
+  [11011760:Hobbies & Books, 11011795:Card & Board Games, 11011801:Poker Cards, Dice & Accessories]
+]
