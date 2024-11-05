@@ -15,12 +15,12 @@ test_loader = DataLoader(test_dataset, batch_size=1,
 
 input_size = len(src_vocab)  # 词典大小
 output_size = len(target_vocab)  # 词典大小
-embed_size = 256  # 词向量维度
-hidden_size = 512  # 隐藏层维度
-num_layers = 2  # LSTM层数
+embed_size = 50  # 词向量维度
+hidden_size = 100  # 隐藏层维度
+num_layers = 1  # LSTM层数
 dropout = 0.5  # dropout概率
 teacher_force_ratio = 0.5
-num_epochs = 5
+num_epochs = 3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 encoder = Encoder(input_size, embed_size, hidden_size,
@@ -28,7 +28,8 @@ encoder = Encoder(input_size, embed_size, hidden_size,
 decoder = Decoder(output_size, embed_size, hidden_size,
                   num_layers, dropout).to(device)
 model = Seq2Seq(encoder, decoder, device).to(device)
-model.load_state_dict(torch.load('./models/seq2seq_1.pth'))
+model.load_state_dict(torch.load(
+    './models/small_seq2seq_2.pth', map_location=device))
 
 model.eval()
 for i, (src, target) in enumerate(test_loader):
@@ -38,6 +39,10 @@ for i, (src, target) in enumerate(test_loader):
     predict, target, bleu_score = test_samples(
         model, src, target, src_vocab, target_vocab)
     # 打印测试结果
-    print(f"{str(predict)} vs {str(target)} = {bleu_score:.2f}")
+    print(f"{str(predict)}")
+    print(f"{str(target)}")
+    print(f"BLEU Score: {bleu_score}")
+    print('-----------------------------------')
+    print()
     if i == 10:
         break
