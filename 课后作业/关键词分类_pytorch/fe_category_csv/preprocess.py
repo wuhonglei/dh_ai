@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import re
+from tqdm import tqdm
 
 
 def find_first_category(cat_str: str) -> list[str]:
@@ -20,15 +21,20 @@ def find_first_category(cat_str: str) -> list[str]:
 
 def origin_csv_rename():
     df = pd.read_csv('data/fe_category_20241105-150816.csv')
-    df = df.dropna().drop_duplicates(
-        subset=['name']).reset_index(drop=True)  # type: ignore
+    df = df.dropna(subset=['name', 'fe_display_categories']).drop_duplicates(
+        subset=['name', 'item_id']).reset_index(drop=True)  # type: ignore
     data_list = []
     # 遍历所有行
-    for i in range(len(df)):
+    progress = tqdm(range(len(df)))
+    for i in tqdm(range(len(df))):
+        progress.set_description(f'Processing {i}')
         # 获取每行的item_id
         item_id = df.loc[i, 'item_id']
         # 商品名称
         name = df.loc[i, 'name']
+        if not item_id or not name:
+            continue
+
         # 获取每行的category
         category: str = df.loc[i, 'fe_display_categories']  # type: ignore
         # 获取每行的category_list
@@ -40,7 +46,7 @@ def origin_csv_rename():
         data_list.append([item_id, name] + category_list[0:3])
 
     new_df = pd.DataFrame(
-        columns=['item_id', 'Keyword', 'fe_category_1', 'fe_category_2', 'fe_category_3'], data=data_list)
+        columns=['item_id', 'name', 'fe_category_1', 'fe_category_2', 'fe_category_3'], data=data_list, dtype=str)
 
     new_df.to_csv('data/keyword_category.csv', index=False)
 
