@@ -23,16 +23,13 @@ for info in countries_info:
     if country != "SG":
         continue
     df = get_df_from_csv(
-        f"./data/csv/sg.csv", use_cache=True)
-    data = df.drop_duplicates(
-        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+        f"./data/shopee_sg/keyword.csv", use_cache=True)
+    keyname = 'Keyword'
     category_name = 'Category'
+    data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
+        subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
     data = data[data[category_name].isin(get_labels(country))]
-    X = data["Keyword"]
+    X = data[keyname]
     y = data[category_name]
 
     train(X, y, country)
-
-
-# df = pd.DataFrame(data_list)
-# df.to_csv("./csv/模型复现.csv", index=False)

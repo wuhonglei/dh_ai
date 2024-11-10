@@ -3,3 +3,4 @@ pythainlp
 jieba
 openpyxl
 spacy
+emoji

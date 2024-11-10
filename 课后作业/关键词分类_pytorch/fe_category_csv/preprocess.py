@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import re
 from tqdm import tqdm
+import emoji
+import random
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def find_first_category(cat_str: str) -> list[str]:
@@ -61,7 +64,113 @@ def keyword_len():
     new_df.to_csv('./data/name_len.csv', index=False)
 
 
+def clean_name():
+    """ 将 name 前缀的特殊字符去掉, 并新增一列 clean_name """
+    df = pd.read_csv('data/keyword_category.csv')
+    special_name = []
+    for name in df['name']:
+        if re.match(r'^[^a-zA-Z]', name):
+            special_name.append(name)
+    # 将特殊字符 special_name 保存到 csv 文件
+    new_df = pd.DataFrame(columns=['special_name'], data=special_name)
+    new_df.to_csv('./data/special_name.csv', index=False)
+
+
+def get_cleaned_name(name: str) -> str:
+    name = name.strip()
+
+    # 替换 emoji 表情或 颜文字
+    name = emoji.replace_emoji(name, replace=' ')
+
+    """
+    替换 【】, [], **, -><-, <>, (), （） 之间的内容
+    """
+    exclude_str = '|'.join([
+        r'【[^】]+?】',
+        r'\[[^\]]+?\]',
+        r'\*[^*]+?\*',
+        r'->[^<]+?<-',
+        r'<[^>]+?>',
+        r'\([^)]+?\)',
+        r'（[^）]+?）',
+        r'\{[^}]+?\}',
+        r'★[^★]+?★',
+        r'☆[^☆]+?☆',
+    ])
+
+    # 最多替换两次
+    for _ in range(2):
+        name = re.sub(f'^({exclude_str})', '', name.strip()).strip()
+
+    return name
+
+
+def clena_name_from_special_name():
+    """
+    移除特殊字符
+    """
+    df = pd.read_csv('data/keyword_category.csv')
+    df['clean_name'] = df['name'].apply(get_cleaned_name)
+    df.to_csv('data/keyword_category.csv', index=False)
+
+
+def extract_keywords(vec, feature_names, doc: str, top_n=3):
+    tfidf_scores = vec.toarray()[0]
+    # 获取非零元素的索引
+    indices = tfidf_scores.nonzero()[0]
+    # 词和对应的 tf-idf 值的列表
+    word_scores = [(feature_names[idx], tfidf_scores[idx])
+                   for idx in indices]
+    # 按照 tf-idf 值排序
+    sorted_word_scores = sorted(
+        word_scores, key=lambda x: x[1], reverse=True)
+
+    high_score_words = []
+    for word, score in sorted_word_scores[:top_n]:
+        high_score_words.append(word)
+
+    # 按照 high word 在 doc 中出现的顺序返回
+    high_score_words: list[str] = sorted(
+        high_score_words, key=lambda x: doc.find(x))
+
+    return high_score_words
+
+
+def extract_keyword_from_name():
+    """
+    从 name 中提取关键词
+    """
+    df = pd.read_csv('data/keyword_category.csv')
+    df = df.dropna(subset=['clean_name', 'fe_category_1'])
+    # random_index = random.sample(range(len(df)), 10000)
+    # # 根据 index 索引获取数据
+    # df = df.loc[random_index]
+    docs = df['clean_name'].tolist()
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(docs)
+    feature_names = vectorizer.get_feature_names_out()
+
+    data = []
+    for i, doc in enumerate(docs):
+        keywords = extract_keywords(
+            tfidf_matrix[i], feature_names, doc, top_n=3)
+        Category = df.iloc[i]['fe_category_1']
+
+        data.append([
+            doc,
+            ' '.join(keywords),
+            Category
+        ])
+
+    new_df = pd.DataFrame(
+        columns=['clean_name', 'Keyword', 'Category'], data=data)
+    new_df.to_csv('data/keyword.csv', index=False)
+
+
 if __name__ == '__main__':
-    origin_csv_rename()
+    # origin_csv_rename()
     # keyword_len()
+    # clean_name()
+    # clena_name_from_special_name()
+    extract_keyword_from_name()
     pass
