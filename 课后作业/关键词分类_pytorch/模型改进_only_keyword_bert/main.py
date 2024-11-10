@@ -24,7 +24,7 @@ for info in countries_info:
         continue
     df = get_df_from_csv(
         f"./data/shopee_sg/keyword.csv", use_cache=True)
-    keyname = 'Keyword'
+    keyname = 'clean_name'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore

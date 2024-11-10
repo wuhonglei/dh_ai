@@ -1,8 +1,8 @@
 {
     "hidden_size": 256,
     "num_classes": 26,
-    "num_epochs": 10,
+    "num_epochs": 3,
     "learning_rate": 2e-05,
-    "batch_size": 2048,
+    "batch_size": 128,
     "dropout": 0.1
 }
