@@ -1,2 +1,5 @@
 model.safetensors
 *.pth
+cache
+models/weights
+data/shopee_sg
