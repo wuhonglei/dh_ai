@@ -23,10 +23,10 @@ for info in countries_info:
     if country != "SG":
         continue
     df = get_df_from_csv(
-        f"./data/shopee_sg/keyword_category.csv", use_cache=True)
+        f"./data/csv/sg.csv", use_cache=True)
     data = df.drop_duplicates(
         subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    category_name = 'fe_category_1'
+    category_name = 'Category'
     data = data[data[category_name].isin(get_labels(country))]
     X = data["Keyword"]
     y = data[category_name]
