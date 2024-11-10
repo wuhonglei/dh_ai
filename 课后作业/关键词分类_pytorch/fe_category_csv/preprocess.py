@@ -3,7 +3,6 @@ import pandas as pd
 import re
 from tqdm import tqdm
 import emoji
-import random
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
@@ -131,7 +130,7 @@ def extract_keywords(vec, feature_names, doc: str, top_n=3):
 
     # 按照 high word 在 doc 中出现的顺序返回
     high_score_words: list[str] = sorted(
-        high_score_words, key=lambda x: doc.find(x))
+        high_score_words, key=lambda x: doc.lower().find(x.lower()))
 
     return high_score_words
 
@@ -146,12 +145,16 @@ def extract_keyword_from_name():
     # # 根据 index 索引获取数据
     # df = df.loc[random_index]
     docs = df['clean_name'].tolist()
-    vectorizer = TfidfVectorizer()
+    vectorizer = TfidfVectorizer(lowercase=True)
+    print('Fitting vectorizer...')
     tfidf_matrix = vectorizer.fit_transform(docs)
+    print('Fitting vectorizer done.')
     feature_names = vectorizer.get_feature_names_out()
 
     data = []
-    for i, doc in enumerate(docs):
+    docs_tqdm = tqdm(enumerate(docs))
+    for i, doc in docs_tqdm:
+        docs_tqdm.set_description(f'Processing {i}/{len(docs)}')
         keywords = extract_keywords(
             tfidf_matrix[i], feature_names, doc, top_n=3)
         Category = df.iloc[i]['fe_category_1']
@@ -165,6 +168,7 @@ def extract_keyword_from_name():
     new_df = pd.DataFrame(
         columns=['clean_name', 'Keyword', 'Category'], data=data)
     new_df.to_csv('data/keyword.csv', index=False)
+    print('Done.')
 
 
 if __name__ == '__main__':
