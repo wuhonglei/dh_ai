@@ -28,6 +28,7 @@ KeywordCategoryModel(
 
 2. 仅仅使用 SEO 搜索关键词进行训练的结果如下（模型结构 2）:
 30/30 [30:19<00:00, 60.64s/it, test_acc=73.18%, train_acc=96.48%]
+对应的模型存储名称: `SG_LSTM_128*2_model.pth`
 
 ```python
 KeywordCategoryModel(
