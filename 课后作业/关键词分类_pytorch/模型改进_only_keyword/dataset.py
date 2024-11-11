@@ -1,4 +1,5 @@
 import os
+import json
 
 from pandas import DataFrame
 import torch
@@ -14,6 +15,8 @@ from tokennizer.my import tokenize_my
 from tokennizer.th import tokenize_th
 from tokennizer.tw import tokenize_tw
 
+from utils.common import exists_cache, save_cache, load_cache
+
 from typing import Sequence
 
 token_dict = {
@@ -26,7 +29,7 @@ token_dict = {
 
 class KeywordCategoriesDataset(Dataset):
     def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
-        unique_labels = list(set(labels))
+        unique_labels = get_labels(country)
         self.label2index = self.get_label_to_index(unique_labels)
         self.index2label = self.get_index_to_label(unique_labels)
         self.data = self.process_data(keywords, labels, country, use_cache)
@@ -45,10 +48,9 @@ class KeywordCategoriesDataset(Dataset):
 
     def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
         count = len(keywords)
-        cache_path = f'./tokennizer/cache/{country}_{count}.pkl'
-        if use_cache and os.path.exists(cache_path):
-            with open(cache_path, 'rb') as f:
-                data = pickle.load(f)
+        cache_path = f'./cache/tokennizer/{country}_{count}.pkl'
+        if use_cache and exists_cache(cache_path):
+            data = load_cache(cache_path)
             return data
 
         # 遍历 dataframe
@@ -63,9 +65,7 @@ class KeywordCategoriesDataset(Dataset):
             if token_list:
                 data_list.append((token_list, self.label2index[category]))
 
-        with open(cache_path, 'wb') as f:
-            pickle.dump(data_list, f)
-
+        save_cache(cache_path, data_list)
         return data_list
 
     def __len__(self) -> int:
@@ -88,23 +88,24 @@ def build_vocab(dataset: KeywordCategoriesDataset):
         '<PAD>': 0,
         '<UNK>': 1,
     }
-    for (word, freq) in vocab.items():
-        if freq >= 1:
+    vocab_list = []
+    for word, freq in vocab.items():
+        vocab_list.append((word, freq))
+    vocab_list.sort(key=lambda x: x[1], reverse=True)
+    for (word, freq) in vocab_list:
+        if freq >= 10:
             word_2_index[word] = len(word_2_index)
-
     return word_2_index
 
 
-def get_vocab(train_dataset: KeywordCategoriesDataset, file_path: str, use_cache: bool = True):
-
-    if use_cache and os.path.exists(file_path):
-        with open(file_path, 'rb') as f:
-            data = pickle.load(f)
-        return data
+def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, use_cache: bool = True):
+    cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}.pkl"
+    if use_cache and exists_cache(cache_name):
+        vocab = load_cache(cache_name)
+        return vocab
 
     vocab = build_vocab(train_dataset)
-    with open(file_path, 'wb') as f:
-        pickle.dump(vocab, f)
+    save_cache(cache_name, vocab)
     return vocab
 
 
@@ -130,31 +131,32 @@ def collate_batch(batch, vocab: dict[str, int]):
 
 
 def get_data(file_path: str, sheet_name: str = ''):
-    pkl_path = f'./data/excel.pkl'
-    if os.path.exists(pkl_path):
-        with open(pkl_path, 'rb') as f:
-            data = pickle.load(f)
+    cache_name = os.path.abspath(f'./cache/data/excel.pkl')
+    if exists_cache(cache_name):
+        data = load_cache(cache_name)
         return data[sheet_name] if sheet_name else data
 
     data = pd.read_excel(file_path, sheet_name=None, dtype=str)
-    with open(pkl_path, 'wb') as f:
-        pickle.dump(data, f)
+    save_cache(cache_name, data)
     return data[sheet_name] if sheet_name else data
 
 
 def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
-    df = pd.read_csv(file_path)
     filename = file_path.split('/')[-1].split('.')[0]
-    cache_name = f'./data/cache/{filename}_csv.pkl'
-    if use_cache and os.path.exists(cache_name):
-        with open(cache_name, 'rb') as f:
-            df = pickle.load(f)
+    cache_name = os.path.abspath(f'./cache/data/{filename}_csv.pkl')
+    if use_cache and exists_cache(cache_name):
+        df = load_cache(cache_name)
         return df
 
-    with open(cache_name, 'wb') as f:
-        pickle.dump(df, f)
-
+    df = pd.read_csv(file_path)
+    save_cache(cache_name, df)
     return df
+
+
+def get_labels(country: str) -> list[str]:
+    with open(f'./config/{country}_label_to_index.json', 'r') as f:
+        label_to_index = json.load(f)
+    return list(label_to_index.keys())
 
 
 if __name__ == '__main__':

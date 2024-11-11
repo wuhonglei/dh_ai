@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split
-from dataset import get_data
+from dataset import get_data, get_df_from_csv, get_labels
 from train import train
 import time
 
@@ -19,21 +19,20 @@ countries_info = [
 
 data_list: list[dict] = []
 start_time = time.time()
-excel = get_data('./data/Keyword Categorization.xlsx')
-print(f"Time taken to load data: {time.time() - start_time:.2f}s")
 for info in countries_info:
     country = info["country"]
     if country != "SG":
         continue
-    data = excel[country].drop_duplicates(
-        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
-    X = data["Keyword"]
-    y = data["Category"]
-    # 使用 train_test_split 将数据划分为训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(
-        X.tolist(), y.tolist(), test_size=0.05, random_state=0)
-
-    train(X_train, y_train, country, X_test, y_test)
+    df = get_df_from_csv(
+        f"./data/csv/{country.lower()}.csv", use_cache=True)
+    keyname = 'Keyword'
+    category_name = 'Category'
+    data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
+        subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
+    data = data[data[category_name].isin(get_labels(country))]
+    X = data[keyname]
+    y = data[category_name]
+    train(X, y, country)
 
 
 # df = pd.DataFrame(data_list)

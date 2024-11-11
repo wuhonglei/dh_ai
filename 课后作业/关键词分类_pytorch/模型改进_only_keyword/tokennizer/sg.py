@@ -7,6 +7,8 @@ nlp = spacy.load('en_core_web_sm')
 
 
 def tokenize_sg(text: str) -> list[str]:
+    return list(text)
+
     stop_word_list = set(list(nlp.Defaults.stop_words) +
                          get_stop_words('./stopwords/common.txt') + get_stop_words('./stopwords/sg.txt'))
 
@@ -17,7 +19,7 @@ def tokenize_sg(text: str) -> list[str]:
     keyword = re.sub('[+]', ' ', text)
 
     """
-    & 符号在 keyword 中表示品牌名称，需要替换为 _， 避免被粉刺, 例如 charles & keith singapore -> charles_keith singapore
+    & 符号在 keyword 中表示品牌名称，需要替换为 _， 避免被分词, 例如 charles & keith singapore -> charles_keith singapore
     """
     keyword = re.sub(r'(?<=\w)\s*&\s*(?=\w)', '_', keyword)
 

@@ -3,22 +3,27 @@ from torch import optim
 from torch import nn
 import torch
 from tqdm import tqdm
+from pandas import Series
 
 from dataset import collate_batch
 from dataset import get_vocab
 from dataset import KeywordCategoriesDataset
 # from models.rnn_model import KeywordCategoryModel
-from models.simple_model import KeywordCategoryModel
+# from models.simple_model import KeywordCategoryModel
+from models.lstm_model import KeywordCategoryModel
 from utils.model import save_training_json
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 
-def train(train_keywords: list[str], train_labels: list[str], country: str, test_keywords: list[str], test_labels: list[str]):
-    train_dataset = KeywordCategoriesDataset(
-        train_keywords, train_labels, country, use_cache=True)
-    test_dataset = KeywordCategoriesDataset(
-        test_keywords, test_labels, country, use_cache=True)
-    vocab = get_vocab(
-        train_dataset, f"./vocab/{country}_vocab.pkl", use_cache=True)
+def train(X: Series, y: Series, country: str, ):
+    dataset = KeywordCategoriesDataset(
+        X.tolist(), y.tolist(), country, use_cache=True)
+
+    # 使用 train_test_split 将数据划分为训练集和测试集
+    train_dataset, test_dataset = train_test_split(
+        dataset, test_size=0.05, random_state=42)
+    vocab = get_vocab(train_dataset, country, use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
@@ -36,14 +41,13 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
                           else 'cpu')
     # 定义模型的必要参数
     vocab_size = len(vocab)
-    embed_dim = 20
-    hidden_size = 40
-    num_classes = len(train_dataset.label2index)
+    embed_dim = 25
+    hidden_size = 128
+    num_classes = len(dataset.label2index)
     padding_idx = vocab['<PAD>']
     num_epochs = 30
     learning_rate = 0.01
-    batch_size = 2048
-    dropout = 0.25
+    batch_size = 1024
 
     save_training_json({
         "vocab_size": vocab_size,
@@ -58,7 +62,7 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
 
     # 定义模型
     model = KeywordCategoryModel(
-        vocab_size, embed_dim, hidden_size, num_classes, padding_idx, dropout)
+        vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
@@ -85,12 +89,16 @@ def train(train_keywords: list[str], train_labels: list[str], country: str, test
             loss_sum += loss
             if (batch_idx + 1) % batch_size == 0:
                 loss_sum.backward()
+                # 防止梯度爆炸
+                # nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 batch_progress.set_postfix(loss=loss_sum.item() / batch_size)
                 loss_sum = 0.0
 
         if loss_sum != 0.0:
             loss_sum.backward()  # type: ignore
+            # 防止梯度爆炸
+            # nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             loss_sum = 0.0
 
@@ -106,15 +114,15 @@ def evaluate(dataloader: DataLoader, model):
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
     model.eval()
-    correct = 0
-    total = 0
+    y_true = []
+    y_pred = []
     with torch.no_grad():
         for text, label in dataloader:
             text = text.to(DEVICE)
             label = label.to(DEVICE)
             predict = model(text)
             _, predicted = torch.max(predict.data, 1)
-            total += label.size(0)
-            correct += (predicted == label).sum().item()
-    # print(f"Accuracy: {correct / total * 100:.2f}%")
-    return f'{correct / total * 100:.2f}%'
+            y_true.extend(label.tolist())
+            y_pred.extend(predicted.tolist())
+    accuracy = accuracy_score(y_true, y_pred)
+    return f'{accuracy * 100:.2f}%'
