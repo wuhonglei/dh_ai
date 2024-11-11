@@ -27,7 +27,7 @@ KeywordCategoryModel(
 ```
 
 2. 仅仅使用 SEO 搜索关键词进行训练的结果如下（模型结构 2）:
-15/30 [15:34<16:28, 65.91s/it, test_acc=70.18%, train_acc=88.96%]
+30/30 [30:19<00:00, 60.64s/it, test_acc=73.18%, train_acc=96.48%]
 
 ```python
 KeywordCategoryModel(
