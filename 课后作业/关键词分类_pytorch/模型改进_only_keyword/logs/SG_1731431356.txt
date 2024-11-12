@@ -1,0 +1,5 @@
+epcoh: 1; train acc: 97.94%; test acc: 74.36%
+epcoh: 2; train acc: 98.37%; test acc: 74.64%
+epcoh: 3; train acc: 98.70%; test acc: 74.36%
+epcoh: 4; train acc: 98.60%; test acc: 74.82%
+epcoh: 5; train acc: 98.68%; test acc: 74.55%

@@ -67,8 +67,8 @@ def train(X: Series, y: Series, country: str, ):
     model = KeywordCategoryModel(
         vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
     # init_model(DEVICE, model)
-    model.load_state_dict(torch.load(
-        f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model", map_location=DEVICE, weights_only=True))
+    # model.load_state_dict(torch.load(
+    #     f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
