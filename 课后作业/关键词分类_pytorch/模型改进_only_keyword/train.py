@@ -12,8 +12,11 @@ from dataset import KeywordCategoriesDataset
 # from models.simple_model import KeywordCategoryModel
 from models.lstm_model import KeywordCategoryModel, init_model
 from utils.model import save_training_json
+from utils.common import write_to_file
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+import time
+unix_time = int(time.time())
 
 
 def train(X: Series, y: Series, country: str, ):
@@ -105,6 +108,8 @@ def train(X: Series, y: Series, country: str, ):
 
         train_acc = evaluate(train_dataloader, model)
         test_acc = evaluate(test_dataloader, model)
+        desc = f'epcoh: {epoch + 1}; train acc: {train_acc}; test acc: {test_acc}'
+        write_to_file(f"./logs/{country}_{unix_time}.txt", desc)
         epoch_progress.set_postfix(train_acc=train_acc, test_acc=test_acc)
 
     # 保存模型

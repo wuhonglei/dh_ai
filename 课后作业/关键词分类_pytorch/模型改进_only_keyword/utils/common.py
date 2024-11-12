@@ -16,3 +16,10 @@ def load_cache(file_path: str):
 
 def exists_cache(file_path: str):
     return os.path.exists(file_path)
+
+
+def write_to_file(path: str, content: str):
+    # 追加内容到文件
+    with open(path, "a") as f:
+        f.write(content)
+        f.write("\n")

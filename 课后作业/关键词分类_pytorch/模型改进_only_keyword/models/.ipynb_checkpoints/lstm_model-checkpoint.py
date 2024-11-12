@@ -12,7 +12,7 @@ class KeywordCategoryModel(nn.Module):
         self.lstm = nn.LSTM(embed_dim, hidden_size,
                             batch_first=True, bidirectional=True, num_layers=2, dropout=0.25)
         self.dropout2 = nn.Dropout(0.35)
-        self.fc1 = nn.Linear(hidden_size * 6, hidden_size)
+        self.fc1 = nn.Linear(hidden_size * 2, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
@@ -31,14 +31,11 @@ class KeywordCategoryModel(nn.Module):
         正向层：output[:, -1, :hidden_size] 确实是正向层的最后一个时间步的输出。
         反向层：output[:, 0, hidden_size:] 才是反向层的最后一个时间步的输出，因为反向层是从序列末尾往前处理的。
         """
-        ouput, (hidden, _) = self.lstm(x)
+        _, (hidden, _) = self.lstm(x)
         hidden = self.dropout2(hidden)
-        last_layer_hidden = torch.cat(
-            (hidden[-2], hidden[-1]), dim=-1)  # [batch, hidden_size * 2]
-        avg_seq_output = torch.mean(ouput, dim=1)  # [batch, hidden_size * 2]
-        max_seq_output, _ = torch.max(ouput, dim=1)  # [batch, hidden_size * 2]
-        concat_hidden = torch.cat(
-            (last_layer_hidden, avg_seq_output, max_seq_output), dim=-1)  # [batch, hidden_size * 6]
+        # 第二层正向, 反向的最后隐藏状态 [batch, hidden_size * 2]
+        last_layer_hidden = torch.cat((hidden[-2], hidden[-1]), dim=-1)
+        concat_hidden = torch.cat((hidden[-2], hidden[-1]), dim=-1)
         output = self.fc1(concat_hidden)
         output = self.fc2(output)
         return output
@@ -77,4 +74,4 @@ if __name__ == "__main__":
     model = KeywordCategoryModel(
         vocab_size, embed_dim, hidden_size, output_size, padding_idx)
     print(model)
-    summary(model, input_size=(1, 10), device='cpu', dtypes=[torch.long])
+    # summary(model, input_size=(1, 10))
