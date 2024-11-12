@@ -33,7 +33,3 @@ for info in countries_info:
     X = data[keyname]
     y = data[category_name]
     train(X, y, country)
-
-
-# df = pd.DataFrame(data_list)
-# df.to_csv("./csv/模型复现.csv", index=False)

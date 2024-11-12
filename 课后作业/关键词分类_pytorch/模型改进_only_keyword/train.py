@@ -10,7 +10,7 @@ from dataset import get_vocab
 from dataset import KeywordCategoriesDataset
 # from models.rnn_model import KeywordCategoryModel
 # from models.simple_model import KeywordCategoryModel
-from models.lstm_model import KeywordCategoryModel
+from models.lstm_model import KeywordCategoryModel, init_model
 from utils.model import save_training_json
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -63,6 +63,7 @@ def train(X: Series, y: Series, country: str, ):
     # 定义模型
     model = KeywordCategoryModel(
         vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
+    init_model(DEVICE, model)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)

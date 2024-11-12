@@ -38,6 +38,30 @@ class KeywordCategoryModel(nn.Module):
         output = self.fc2(output)
         return output
 
+# （可选）重新初始化其他层的权重
+
+
+def init_weights(m):
+    if isinstance(m, (nn.Linear, nn.Embedding)):
+        nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+    elif isinstance(m, nn.LSTM):
+        for name, param in m.named_parameters():
+            if 'weight' in name:
+                nn.init.xavier_uniform_(param)
+            elif 'bias' in name:
+                nn.init.zeros_(param)
+
+
+def init_model(DEVICE, model):
+    state_dict = torch.load(
+        './models/weights/SG_LSTM_128*2_fc_1_model.pth', map_location=DEVICE)
+    model.embedding.weight.data.copy_(state_dict['embedding.weight'])
+    model.lstm.apply(init_weights)
+    model.fc1.apply(init_weights)
+    model.fc2.apply(init_weights)
+
 
 if __name__ == "__main__":
     vocab_size = 50
