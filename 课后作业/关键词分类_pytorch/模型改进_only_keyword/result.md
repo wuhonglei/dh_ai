@@ -1,7 +1,7 @@
 ### 结果说明
 #### 一、字符 LSTM 分类结果
 1. 仅仅使用 SEO 搜索关键词进行训练的结果如下（模型结构 1）:
-19/30 [17:16<09:44, 53.13s/it, test_acc=69.55%, train_acc=89.96%]
+30/30 [52:20<00:00, 104.67s/it, test_acc=71.18%, train_acc=96.51%]
 
 ```python
 KeywordCategoryModel(
