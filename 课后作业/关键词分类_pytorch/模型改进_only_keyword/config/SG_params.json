@@ -4,7 +4,7 @@
     "hidden_size": 128,
     "num_classes": 26,
     "padding_idx": 0,
-    "num_epochs": 3,
+    "num_epochs": 10,
     "learning_rate": 0.01,
     "batch_size": 2048
 }
