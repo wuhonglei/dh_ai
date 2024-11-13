@@ -50,7 +50,8 @@ def train(X: Series, y: Series, country: str, ):
     padding_idx = vocab['<PAD>']
     num_epochs = 5
     learning_rate = 0.01
-    batch_size = 2048
+    batch_size = 128
+    save_model = f'SG_LSTM_128*2_fc_2_shopee_title_model_x'
 
     save_training_json({
         "vocab_size": vocab_size,
@@ -61,6 +62,7 @@ def train(X: Series, y: Series, country: str, ):
         "num_epochs": num_epochs,
         "learning_rate": learning_rate,  # type: ignore
         'batch_size': batch_size,
+        'save_model': save_model
     }, f"./config/{country}_params.json")
 
     # 定义模型
@@ -113,12 +115,12 @@ def train(X: Series, y: Series, country: str, ):
                       time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
         # 保存模型
-        torch.save(model.state_dict(),
-                   f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_index_{epoch + 1}.pth")
+        # torch.save(model.state_dict(),
+        #            f"./models/weights/{save_model}_{epoch + 1}.pth")
 
     # 保存模型
     torch.save(model.state_dict(
-    ), f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_final.pth")
+    ), f"./models/weights/{save_model}.pth")
 
 
 def evaluate(dataloader: DataLoader, model):
