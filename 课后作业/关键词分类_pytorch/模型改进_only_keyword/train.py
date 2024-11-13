@@ -48,7 +48,7 @@ def train(X: Series, y: Series, country: str, ):
     hidden_size = 128
     num_classes = len(dataset.label2index)
     padding_idx = vocab['<PAD>']
-    num_epochs = 10
+    num_epochs = 5
     learning_rate = 0.01
     batch_size = 2048
 
@@ -67,8 +67,8 @@ def train(X: Series, y: Series, country: str, ):
     model = KeywordCategoryModel(
         vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
     # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
-    model.load_state_dict(torch.load(
-        f"./models/weights/{country}_model.pth", map_location=DEVICE, weights_only=True))
+    # model.load_state_dict(torch.load(
+    #     f"./models/weights/SG_LSTM_128*2_fc_2_shopee_title_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -112,9 +112,13 @@ def train(X: Series, y: Series, country: str, ):
         write_to_file(f"./logs/{country}_{unix_time}.txt",
                       time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
+        # 保存模型
+        torch.save(model.state_dict(),
+                   f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_index_{epoch + 1}.pth")
 
     # 保存模型
-    torch.save(model.state_dict(), f"./models/weights/{country}_model.pth")
+    torch.save(model.state_dict(
+    ), f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_final.pth")
 
 
 def evaluate(dataloader: DataLoader, model):
