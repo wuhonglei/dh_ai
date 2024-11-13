@@ -48,7 +48,7 @@ def train(X: Series, y: Series, country: str, ):
     hidden_size = 128
     num_classes = len(dataset.label2index)
     padding_idx = vocab['<PAD>']
-    num_epochs = 5
+    num_epochs = 3
     learning_rate = 0.01
     batch_size = 2048
 
@@ -67,8 +67,8 @@ def train(X: Series, y: Series, country: str, ):
     model = KeywordCategoryModel(
         vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
     # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
-    # model.load_state_dict(torch.load(
-    #     f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", map_location=DEVICE, weights_only=True))
+    model.load_state_dict(torch.load(
+        f"./models/weights/SG_LSTM_128*2_fc_2_shopee_title_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
