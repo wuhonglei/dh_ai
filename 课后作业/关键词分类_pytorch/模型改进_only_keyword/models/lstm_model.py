@@ -43,10 +43,9 @@ class KeywordCategoryModel(nn.Module):
         output = self.fc2(output)
         return output
 
-# （可选）重新初始化其他层的权重
-
 
 def init_weights(m):
+    # （可选）重新初始化其他层的权重
     if isinstance(m, (nn.Linear, nn.Embedding)):
         nn.init.xavier_uniform_(m.weight)
         if m.bias is not None:
@@ -59,9 +58,8 @@ def init_weights(m):
                 nn.init.zeros_(param)
 
 
-def init_model(DEVICE, model):
-    state_dict = torch.load(
-        './models/weights/SG_LSTM_128*2_fc_1_model.pth', map_location=DEVICE)
+def init_model(model, model_path: str, device: torch.device):
+    state_dict = torch.load(model_path, map_location=device)
     model.embedding.weight.data.copy_(state_dict['embedding.weight'])
     model.lstm.apply(init_weights)
     model.fc1.apply(init_weights)
