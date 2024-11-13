@@ -1,5 +1,4 @@
-from sklearn.model_selection import train_test_split
-from dataset import get_data, get_df_from_csv, get_labels
+from dataset import get_df_from_csv, get_labels
 from train import train
 import time
 
@@ -24,8 +23,8 @@ for info in countries_info:
     if country != "SG":
         continue
     df = get_df_from_csv(
-        f"./data/csv/{country.lower()}.csv", use_cache=True)
-    keyname = 'Keyword'
+        f"./data/shopee_sg/keyword.csv", use_cache=True)
+    keyname = 'clean_name'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore

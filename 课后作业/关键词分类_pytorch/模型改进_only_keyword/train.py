@@ -48,9 +48,9 @@ def train(X: Series, y: Series, country: str, ):
     hidden_size = 128
     num_classes = len(dataset.label2index)
     padding_idx = vocab['<PAD>']
-    num_epochs = 35
+    num_epochs = 5
     learning_rate = 0.01
-    batch_size = 1024
+    batch_size = 2048
 
     save_training_json({
         "vocab_size": vocab_size,
@@ -66,7 +66,7 @@ def train(X: Series, y: Series, country: str, ):
     # 定义模型
     model = KeywordCategoryModel(
         vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
-    init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
+    # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
     # model.load_state_dict(torch.load(
     #     f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
@@ -110,7 +110,7 @@ def train(X: Series, y: Series, country: str, ):
         test_acc = evaluate(test_dataloader, model)
         desc = f'epcoh: {epoch + 1}; test acc: {test_acc}; train acc: {train_acc}'
         write_to_file(f"./logs/{country}_{unix_time}.txt",
-                      time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + ' :' + desc)
+                      time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
 
     # 保存模型

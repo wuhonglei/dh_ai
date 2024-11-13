@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import Dataset
 from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
-import pickle
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -15,7 +14,7 @@ from tokennizer.my import tokenize_my
 from tokennizer.th import tokenize_th
 from tokennizer.tw import tokenize_tw
 
-from utils.common import exists_cache, save_cache, load_cache
+from utils.common import exists_cache, save_cache, load_cache, get_file_state, calculate_md5, save_json, load_json
 
 from typing import Sequence
 
@@ -48,7 +47,7 @@ class KeywordCategoriesDataset(Dataset):
 
     def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
         count = len(keywords)
-        cache_path = f'./cache/tokennizer/{country}_{count}.pkl'
+        cache_path = f'./cache/tokennizer/{country}_{count}_{calculate_md5("".join(keywords[0:10]))}.pkl'
         if use_cache and exists_cache(cache_path):
             data = load_cache(cache_path)
             return data
@@ -75,7 +74,7 @@ class KeywordCategoriesDataset(Dataset):
         return self.data[idx]
 
 
-def build_vocab(dataset: KeywordCategoriesDataset):
+def build_vocab(dataset: KeywordCategoriesDataset, min_freq: int = 10):
     """
     [
         ['sharp', 'microwave', 'oven'],
@@ -93,19 +92,20 @@ def build_vocab(dataset: KeywordCategoriesDataset):
         vocab_list.append((word, freq))
     vocab_list.sort(key=lambda x: x[1], reverse=True)
     for (word, freq) in vocab_list:
-        if freq >= 10:
+        if freq >= min_freq:
             word_2_index[word] = len(word_2_index)
     return word_2_index
 
 
 def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, use_cache: bool = True):
-    cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}.pkl"
+    seq_list = [''.join(row[0]) for row in train_dataset[0:10]]  # type: ignore
+    cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}_{calculate_md5(''.join(seq_list))}.json"
     if use_cache and exists_cache(cache_name):
-        vocab = load_cache(cache_name)
+        vocab = load_json(cache_name)
         return vocab
 
-    vocab = build_vocab(train_dataset)
-    save_cache(cache_name, vocab)
+    vocab = build_vocab(train_dataset, 1000)
+    save_json(cache_name, vocab)
     return vocab
 
 
@@ -143,7 +143,9 @@ def get_data(file_path: str, sheet_name: str = ''):
 
 def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
     filename = file_path.split('/')[-1].split('.')[0]
-    cache_name = os.path.abspath(f'./cache/data/{filename}_csv.pkl')
+    stat = get_file_state(file_path)
+    # type: ignore
+    cache_name = f'./cache/data/{filename}_{stat.st_size}_{int(stat.st_mtime)}_csv.pkl'
     if use_cache and exists_cache(cache_name):
         df = load_cache(cache_name)
         return df

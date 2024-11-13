@@ -75,11 +75,16 @@ def clean_name():
     new_df.to_csv('./data/special_name.csv', index=False)
 
 
+def remove_emoji(text, replace=' '):
+    return re.sub(r'[★✦✧✩✪✫✯✰♡♥❣❤❥❦❧✿❀❁❃❇❋❉❆❄✻✼♪♫♩♬♭♮♯➜➤➔➛➙➤➥➫➳☺☻☽☾✓✔✕✖✗✘•●◦◉○◍◎◌]', replace, text)
+
+
 def get_cleaned_name(name: str) -> str:
     name = name.strip()
 
     # 替换 emoji 表情或 颜文字
     name = emoji.replace_emoji(name, replace=' ')
+    name = remove_emoji(name)
 
     """
     替换 【】, [], **, -><-, <>, (), （） 之间的内容
@@ -111,6 +116,18 @@ def clena_name_from_special_name():
     df = pd.read_csv('data/keyword_category.csv')
     df['clean_name'] = df['name'].apply(get_cleaned_name)
     df.to_csv('data/keyword_category.csv', index=False)
+
+
+def clena_name_from_keyword_csv():
+    """
+    移除特殊字符
+    """
+    print('Reading data...')
+    df = pd.read_csv('data/keyword.csv')
+    print('Cleaning data...')
+    df['clean_name'] = df['clean_name'].apply(remove_emoji)
+    print('Saving data...')
+    df.to_csv('data/keyword_new.csv', index=False)
 
 
 def extract_keywords(vec, feature_names, doc: str, top_n=3):
@@ -179,5 +196,6 @@ if __name__ == '__main__':
     # keyword_len()
     # clean_name()
     # clena_name_from_special_name()
-    extract_keyword_from_name()
+    # extract_keyword_from_name()
+    clena_name_from_keyword_csv()
     pass
