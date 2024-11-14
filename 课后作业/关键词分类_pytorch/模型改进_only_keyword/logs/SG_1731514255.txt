@@ -1,3 +1,4 @@
+使用 shopee keyword_5 进行训练的结果如下（模型结构 3）:
 2024-11-13 16:51:50; epcoh: 1; test acc: 73.48%; train acc: 73.79%
 2024-11-13 17:31:50; epcoh: 2; test acc: 74.36%; train acc: 75.09%
 2024-11-13 18:12:05; epcoh: 3; test acc: 74.80%; train acc: 75.28%

@@ -42,41 +42,32 @@ def train(X: Series, y: Series, country: str, ):
     # 定义当前设备
     DEVICE = torch.device('cuda' if torch.cuda.is_available()
                           else 'cpu')
-    # 定义模型的必要参数
-    vocab_size = len(vocab)
-    embed_dim = 25
-    hidden_size = 128
-    num_classes = len(dataset.label2index)
-    padding_idx = vocab['<PAD>']
-    num_epochs = 20
-    learning_rate = 0.01
-    batch_size = 128
-    save_model = f'SG_LSTM_128*2_fc_2_shopee_keyword_5_model'
-
-    save_training_json({
-        "vocab_size": vocab_size,
-        "embed_dim": embed_dim,
-        "hidden_size": hidden_size,
-        "num_classes": num_classes,
-        "padding_idx": padding_idx,
-        "num_epochs": num_epochs,
-        "learning_rate": learning_rate,  # type: ignore
-        'batch_size': batch_size,
-        'save_model': save_model
-    }, f"./config/{country}_params.json")
+    train_args = {
+        "vocab_size": len(vocab),
+        "embed_dim": 25,
+        "hidden_size": 128,
+        "num_classes": len(dataset.label2index),
+        "padding_idx": vocab['<PAD>'],
+        "num_epochs": 20,
+        "learning_rate": 0.01,  # type: ignore
+        'batch_size': 2048,
+        'save_model': f'SG_LSTM_128*2_fc_2_shopee_keyword_5_model_seo_{unix_time}',
+        'log_file': f"./logs/{country}_{unix_time}.txt"
+    }
+    save_training_json(train_args, f"./config/{country}_params.json")
 
     # 定义模型
     model = KeywordCategoryModel(
-        vocab_size, embed_dim, hidden_size, num_classes, padding_idx)
+        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
     # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
     model.load_state_dict(torch.load(
-        f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_index_1.pth", map_location=DEVICE, weights_only=True))
+        f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_6.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=train_args['learning_rate'])
     criterion = nn.CrossEntropyLoss()
 
-    epoch_progress = tqdm(range(num_epochs), leave=True)
+    epoch_progress = tqdm(range(train_args['num_epochs']), leave=True)
     for epoch in epoch_progress:
         epoch_progress.set_description(f'epoch: {epoch + 1}')
 
@@ -93,12 +84,13 @@ def train(X: Series, y: Series, country: str, ):
             predict = model(text)
             loss = criterion(predict, label)
             loss_sum += loss
-            if (batch_idx + 1) % batch_size == 0:
+            if (batch_idx + 1) % train_args['batch_size'] == 0:
                 loss_sum.backward()
                 # 防止梯度爆炸
                 # nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
-                batch_progress.set_postfix(loss=loss_sum.item() / batch_size)
+                batch_progress.set_postfix(
+                    loss=loss_sum.item() / train_args['batch_size'])
                 loss_sum = 0.0
 
         if loss_sum != 0.0:
@@ -108,19 +100,25 @@ def train(X: Series, y: Series, country: str, ):
             optimizer.step()
             loss_sum = 0.0
 
-        train_acc = evaluate(train_dataloader, model)
+        train_acc = 'empty'
+        if len(dataset) > 20000 and (epoch + 1) % 2 == 0:
+            train_acc = evaluate(train_dataloader, model)
+        if len(dataset) > 100000 and (epoch + 1) % 4 == 0:
+            train_acc = evaluate(train_dataloader, model)
+        if len(dataset) < 20000:
+            train_acc = evaluate(train_dataloader, model)
         test_acc = evaluate(test_dataloader, model)
         desc = f'epcoh: {epoch + 1}; test acc: {test_acc}; train acc: {train_acc}'
-        write_to_file(f"./logs/{country}_{unix_time}.txt",
+        write_to_file(train_args['log_file'],
                       time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
         # 保存模型
-        torch.save(model.state_dict(),
-                   f"./models/weights/{save_model}_{epoch + 1}.pth")
+        # torch.save(model.state_dict(),
+        #            f"./models/weights/{save_model}_{epoch + 1}.pth")
 
     # 保存模型
     torch.save(model.state_dict(
-    ), f"./models/weights/{save_model}_final.pth")
+    ), f"./models/weights/{train_args['save_model']}_final.pth")
 
 
 def evaluate(dataloader: DataLoader, model):

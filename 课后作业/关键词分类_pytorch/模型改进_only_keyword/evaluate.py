@@ -8,7 +8,6 @@ from models.lstm_model import KeywordCategoryModel
 from torch.utils.data import DataLoader
 from utils.model import load_training_json
 
-from shutdown import shutdown
 
 countries_info = [
     {"country": "SG", "stopwords": "english"},
@@ -67,11 +66,9 @@ for info in countries_info:
     # 定义模型
     model = KeywordCategoryModel(
         train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
-    # model.load_state_dict(torch.load(
-    #     f"./models/weights/SG_LSTM_128*2_fc_2_shopee_title_model.pth", map_location=DEVICE, weights_only=True))
+    model.load_state_dict(torch.load(
+        f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_6.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     acc = evaluate(test_dataloader, model)
     print(f"Accuracy: {acc}")
-
-    shutdown(10)

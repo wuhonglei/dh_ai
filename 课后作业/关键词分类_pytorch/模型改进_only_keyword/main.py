@@ -23,8 +23,8 @@ for info in countries_info:
     if country != "SG":
         continue
     df = get_df_from_csv(
-        f"./data/shopee_sg/keyword.csv", use_cache=True)
-    keyname = 'keywords_5'
+        f"./data/csv/sg.csv", use_cache=True)
+    keyname = 'Keyword'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore

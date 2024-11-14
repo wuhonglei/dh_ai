@@ -1,0 +1,10 @@
+2024-11-14 14:56:39; epcoh: 1; test acc: 65.09%; train acc: 66.44%
+2024-11-14 14:57:34; epcoh: 2; test acc: 67.18%; train acc: 68.90%
+2024-11-14 14:58:30; epcoh: 3; test acc: 67.18%; train acc: 70.49%
+2024-11-14 14:59:25; epcoh: 4; test acc: 67.82%; train acc: 72.03%
+2024-11-14 15:00:27; epcoh: 5; test acc: 68.27%; train acc: 73.28%
+2024-11-14 15:01:27; epcoh: 6; test acc: 70.09%; train acc: 74.30%
+2024-11-14 15:02:29; epcoh: 7; test acc: 69.73%; train acc: 74.96%
+2024-11-14 15:03:31; epcoh: 8; test acc: 69.91%; train acc: 75.74%
+2024-11-14 15:04:33; epcoh: 9; test acc: 70.64%; train acc: 76.33%
+2024-11-14 15:05:32; epcoh: 10; test acc: 71.18%; train acc: 77.04%

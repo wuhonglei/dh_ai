@@ -169,6 +169,16 @@ class KeywordCategoryModel(nn.Module):
 
 
 5. 使用 shopee keyword_5 进行训练的结果如下（模型结构 3）:
+
+```txt
+2024-11-13 16:51:50; epcoh: 1; test acc: 73.48%; train acc: 73.79%
+2024-11-13 17:31:50; epcoh: 2; test acc: 74.36%; train acc: 75.09%
+2024-11-13 18:12:05; epcoh: 3; test acc: 74.80%; train acc: 75.28%
+2024-11-13 18:51:32; epcoh: 4; test acc: 75.62%; train acc: 76.21%
+2024-11-13 19:31:00; epcoh: 5; test acc: 75.67%; train acc: 76.33%
+2024-11-13 20:10:37; epcoh: 6; test acc: 75.91%; train acc: 76.51%
+```
+
 ```json
 {
     "vocab_size": 77,
@@ -224,3 +234,7 @@ class KeywordCategoryModel(nn.Module):
         output = self.fc2(output)
         return output
 ```
+
+基于以上结果，我们直接使用该模型在未进行预训练的情况下，对 seo `sg.csv` 关键词进行测试结果如下:
+- 整个样本的准确率为 **58.15%**
+- 测试集样本的准确率为 **57.91%**
