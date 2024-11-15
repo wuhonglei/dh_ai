@@ -26,7 +26,7 @@ def train(X: Series, y: Series, country: str, ):
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
-    vocab, cache_name = get_vocab(train_dataset, country, use_cache=True)
+    vocab, vocab_cache = get_vocab(train_dataset, country, use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
@@ -48,11 +48,12 @@ def train(X: Series, y: Series, country: str, ):
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
-        "num_epochs": 15,
+        "num_epochs": 30,
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
-        'cache_name': cache_name,
-        'save_model': f'SG_LSTM_128*2_fc_2_shopee_keyword_10_model_seo_{unix_time}',
+        'vocab_cache': vocab_cache,
+        'load_state_dict': f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_10_model_1731598700_final.pth",
+        # 'save_model': f'SG_LSTM_128*2_fc_2_shopee_keyword_10_model_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }
     save_training_json(train_args, f"./config/{country}_params.json")
@@ -60,9 +61,10 @@ def train(X: Series, y: Series, country: str, ):
     # 定义模型
     model = KeywordCategoryModel(
         train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
-    # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
-    # model.load_state_dict(torch.load(
-    #     f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_6.pth", map_location=DEVICE, weights_only=True))
+    if train_args['load_state_dict']:
+        # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
+        model.load_state_dict(torch.load(
+            train_args['load_state_dict'], map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=train_args['learning_rate'])
@@ -113,14 +115,15 @@ def train(X: Series, y: Series, country: str, ):
         write_to_file(train_args['log_file'],
                       time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
-        if (epoch + 1) % 3 == 0:
+        if (epoch + 1) % 3 == 0 and train_args['save_model']:
             # 保存模型
             torch.save(model.state_dict(),
                        f"./models/weights/{train_args['save_model']}_{epoch + 1}.pth")
 
-    # 保存模型
-    torch.save(model.state_dict(
-    ), f"./models/weights/{train_args['save_model']}_final.pth")
+    if train_args['save_model']:
+        # 保存模型
+        torch.save(model.state_dict(
+        ), f"./models/weights/{train_args['save_model']}_final.pth")
 
 
 def evaluate(dataloader: DataLoader, model):
