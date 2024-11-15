@@ -53,7 +53,7 @@ def train(X: Series, y: Series, country: str, ):
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
         'vocab_cache': vocab_cache,
-        'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731664004_12.pth",
+        'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
         'save_model': f'TH_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }
