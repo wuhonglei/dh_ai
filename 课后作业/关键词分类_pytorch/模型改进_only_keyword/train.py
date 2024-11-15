@@ -19,15 +19,15 @@ import time
 unix_time = int(time.time())
 
 
-def train(X: Series, y: Series, country: str, ):
+def train(X: Series, sub_category: Series, y: Series, country: str, ):
     dataset = KeywordCategoriesDataset(
-        X.tolist(), y.tolist(), country, use_cache=True)
+        X.tolist(), sub_category, y.tolist(), country, use_cache=False)
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
     vocab, vocab_cache = get_vocab(
-        train_dataset, country, 100, use_cache=True)
+        train_dataset, country, 10, use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
@@ -53,7 +53,7 @@ def train(X: Series, y: Series, country: str, ):
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
         'vocab_cache': vocab_cache,
-        'tf_idf_dim': len(dataset[0][1]),
+        'sub_category': len(dataset[0][1]),
         # 'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
         'save_model': f'{country}_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
@@ -62,7 +62,7 @@ def train(X: Series, y: Series, country: str, ):
 
     # 定义模型
     model = KeywordCategoryModel(
-        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['tf_idf_dim'], train_args['num_classes'], train_args['padding_idx'])
+        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['sub_category'], train_args['num_classes'], train_args['padding_idx'])
     if train_args.get('load_state_dict'):
         # init_model(
         #     model, f"./models/weights/SG/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
@@ -81,15 +81,15 @@ def train(X: Series, y: Series, country: str, ):
         model.train()
         loss_sum = 0.0
         batch_progress = tqdm(enumerate(train_dataloader), leave=False)
-        for batch_idx, (text, tf_idf, label) in batch_progress:
+        for batch_idx, (text, sub_category, label) in batch_progress:
             batch_progress.set_description(
                 f'batch: {batch_idx + 1}/{len(train_dataloader)}')
 
             text = text.to(DEVICE)
-            tf_idf = tf_idf.to(DEVICE)
+            sub_category = sub_category.to(DEVICE)
             label = label.to(DEVICE)
             optimizer.zero_grad()
-            predict = model(text, tf_idf)
+            predict = model(text, sub_category)
             loss = criterion(predict, label)
             loss_sum += loss
             if (batch_idx + 1) % train_args['batch_size'] == 0:
@@ -138,11 +138,11 @@ def evaluate(dataloader: DataLoader, model):
     y_true = []
     y_pred = []
     with torch.no_grad():
-        for text, tf_idf, label in dataloader:
+        for text, sub_category, label in dataloader:
             text = text.to(DEVICE)
             label = label.to(DEVICE)
-            tf_idf = tf_idf.to(DEVICE)
-            predict = model(text, tf_idf)
+            sub_category = sub_category.to(DEVICE)
+            predict = model(text, sub_category)
             _, predicted = torch.max(predict.data, 1)
             y_true.extend(label.tolist())
             y_pred.extend(predicted.tolist())

@@ -1,5 +1,5 @@
 {
-    "vocab_size": 42,
+    "vocab_size": 44,
     "embed_dim": 25,
     "hidden_size": 128,
     "num_classes": 26,
@@ -7,8 +7,8 @@
     "num_epochs": 15,
     "learning_rate": 0.01,
     "batch_size": 2048,
-    "vocab_cache": "./cache/vocab/SG_vocab_20887_cf772552a09fa5ed08054ba5a92b104b_100.json",
-    "tf_idf_dim": 10662,
-    "save_model": "TH_LSTM_128*2_fc_2_seo_1731688052",
-    "log_file": "./logs/SG_1731688052.txt"
+    "vocab_cache": "./cache/vocab/SG_vocab_17229_54ab2d7562cd0d9179c0f6b266d6b3af_10.json",
+    "sub_category": 49,
+    "save_model": "SG_LSTM_128*2_fc_2_seo_1731690373",
+    "log_file": "./logs/SG_1731690373.txt"
 }

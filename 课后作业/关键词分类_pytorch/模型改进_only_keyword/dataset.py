@@ -1,7 +1,7 @@
 import os
 import json
 
-from pandas import DataFrame
+from pandas import DataFrame, Series
 import torch
 from torch.utils.data import Dataset
 from collections import Counter
@@ -9,7 +9,6 @@ from torch.nn.utils.rnn import pad_sequence
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from collections import Counter
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 from tokennizer.sg import tokenize_sg
 # from tokennizer.my import tokenize_my
@@ -29,11 +28,12 @@ token_dict = {
 
 
 class KeywordCategoriesDataset(Dataset):
-    def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
+    def __init__(self, keywords: list[str], sub_category: Series, labels: list[str], country: str, use_cache=False) -> None:
         unique_labels = get_labels(country, labels, use_cache)
         self.label2index = self.get_label_to_index(unique_labels)
         self.index2label = self.get_index_to_label(unique_labels)
-        self.data = self.process_data(keywords, labels, country, use_cache)
+        self.data = self.process_data(
+            keywords, sub_category, labels, country, use_cache)
 
     def get_label_to_index(self, labels: Sequence[str]) -> dict[str, int]:
         label_to_index = {}
@@ -47,15 +47,12 @@ class KeywordCategoriesDataset(Dataset):
             index_to_label[index] = category
         return index_to_label
 
-    def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
+    def process_data(self, keywords: list[str], sub_category: Series, labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
 
-        # 创建TF-IDF向量化器
-        vectorizer = TfidfVectorizer()
-        # 转换文档为TF-IDF矩阵
-        X = vectorizer.fit_transform(keywords)
-
+        # sub_category 独热编码
+        # 对展开后的数据进行独热编码
+        one_hot_encoded_df = pd.get_dummies(sub_category)
         count = len(keywords)
-
         cache_path = f'./cache/tokennizer/{country}_{count}_{calculate_md5("".join(keywords[0:10]))}.pkl'
         if use_cache and exists_cache(cache_path):
             data = load_cache(cache_path)
@@ -66,13 +63,14 @@ class KeywordCategoriesDataset(Dataset):
         for index, keyword in enumerate(keywords):
             # 通过 index 获取 dataframe 的行
             category = labels[index]
-            tf_idf_vector = X[index].toarray()[0]  # type: ignore
+            sub_category = one_hot_encoded_df.iloc[index].astype(
+                int).tolist()  # type: ignore
             if not isinstance(keyword, str) or not isinstance(category, str):
                 continue
 
             token_list = token_dict.get(country, tokenize_sg)(keyword.lower())
             if token_list:
-                data_list.append((token_list, tf_idf_vector,
+                data_list.append((token_list, sub_category,
                                  self.label2index[category]))
 
         save_cache(cache_path, data_list)
@@ -124,26 +122,26 @@ def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, min_freq: i
 def collate_batch(batch, vocab: dict[str, int]):
     text_list = list()
     labels = list()
-    tf_idf_vector_list = list()
+    sub_cateogry_list = list()
     # 每次读取一组数据
-    for text, tf_idf_vector, label in batch:
+    for text, sub_category, label in batch:
         text_tokens = [vocab.get(token, vocab["<UNK>"])
                        for token in text]
         text_tensor = torch.tensor(text_tokens, dtype=torch.long)
         text_list.append(text_tensor)
         labels.append(torch.tensor(label, dtype=torch.long))
-        tf_idf_vector_list.append(torch.tensor(
-            tf_idf_vector, dtype=torch.float32))
+        sub_cateogry_list.append(torch.tensor(
+            sub_category, dtype=torch.float32))
 
     padding_idx = vocab['<PAD>']
     # 将batch填充为相同长度文本
     text_padded = pad_sequence(
         text_list, batch_first=True, padding_value=padding_idx)
     labels_tensor = torch.stack(labels)
-    tf_idf_vector = torch.stack(tf_idf_vector_list)
+    sub_category = torch.stack(sub_cateogry_list)
 
     # 返回文本和标签的张量形式，用于后续的模型训练
-    return text_padded, tf_idf_vector, labels_tensor
+    return text_padded, sub_category, labels_tensor
 
 
 def get_data(file_path: str, sheet_name: str = ''):

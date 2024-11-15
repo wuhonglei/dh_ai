@@ -4,7 +4,7 @@ from torchinfo import summary
 
 
 class KeywordCategoryModel(nn.Module):
-    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, tf_idf_dim: int, output_size: int, padding_idx: int):
+    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, sub_category: int, output_size: int, padding_idx: int):
         super(KeywordCategoryModel, self).__init__()
         self.embedding = nn.Embedding(
             vocab_size, embed_dim, padding_idx=padding_idx)
@@ -12,7 +12,7 @@ class KeywordCategoryModel(nn.Module):
         self.lstm = nn.LSTM(embed_dim, hidden_size,
                             batch_first=True, bidirectional=True, num_layers=2, dropout=0.25)
         self.dropout2 = nn.Dropout(0.35)
-        self.fc1 = nn.Linear(tf_idf_dim + hidden_size * 6, hidden_size)
+        self.fc1 = nn.Linear(sub_category + hidden_size * 6, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x, tf_idf_vectors):
