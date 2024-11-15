@@ -8,27 +8,28 @@ from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from collections import Counter
 
 from tokennizer.sg import tokenize_sg
-from tokennizer.my import tokenize_my
-from tokennizer.th import tokenize_th
-from tokennizer.tw import tokenize_tw
+# from tokennizer.my import tokenize_my
+# from tokennizer.th import tokenize_th
+# from tokennizer.tw import tokenize_tw
 
-from utils.common import exists_cache, save_cache, load_cache, get_file_state, calculate_md5, save_json, load_json
+from utils.common import exists_cache, save_cache, load_cache, get_file_state, calculate_md5, save_json, load_json, get_labels_from_list
 
 from typing import Sequence, Tuple
 
 token_dict = {
     'SG': tokenize_sg,
-    'MY': tokenize_my,
-    'TH': tokenize_th,
-    'TW': tokenize_tw,
+    # 'MY': tokenize_my,
+    # 'TH': tokenize_th,
+    # 'TW': tokenize_tw,
 }
 
 
 class KeywordCategoriesDataset(Dataset):
     def __init__(self, keywords: list[str], labels: list[str], country: str, use_cache=False) -> None:
-        unique_labels = get_labels(country)
+        unique_labels = get_labels(country, labels, use_cache)
         self.label2index = self.get_label_to_index(unique_labels)
         self.index2label = self.get_index_to_label(unique_labels)
         self.data = self.process_data(keywords, labels, country, use_cache)
@@ -97,15 +98,15 @@ def build_vocab(dataset: KeywordCategoriesDataset, min_freq: int = 10):
     return word_2_index
 
 
-def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, use_cache: bool = True) -> Tuple[dict[str, int], str]:
+def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, min_freq: int, use_cache: bool = True) -> Tuple[dict[str, int], str]:
     seq_list = [''.join(row[0]) for row in train_dataset[0:10]]  # type: ignore
-    # cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}_{calculate_md5(''.join(seq_list))}.json"
-    cache_name = './cache/vocab/SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json'
+    cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}_{calculate_md5(''.join(seq_list))}_{min_freq}.json"
+    # cache_name = './cache/vocab/SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json'
     if use_cache and exists_cache(cache_name):
         vocab = load_json(cache_name)
         return vocab, cache_name
 
-    vocab = build_vocab(train_dataset, 1000)
+    vocab = build_vocab(train_dataset, min_freq)
     save_json(cache_name, vocab)
     return vocab, cache_name
 
@@ -156,10 +157,17 @@ def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
     return df
 
 
-def get_labels(country: str) -> list[str]:
-    with open(f'./config/{country}_label_to_index.json', 'r') as f:
-        label_to_index = json.load(f)
-    return list(label_to_index.keys())
+def get_labels(country: str, all_labels: list[str] = [], use_cache=True) -> list[str]:
+    cache_name = f'./cache/data/{country}_label_to_index.json'
+    if use_cache and exists_cache(cache_name):
+        label_to_index = load_json(cache_name)
+        return list(label_to_index.keys())
+
+    unique_labels = get_labels_from_list(all_labels)
+    label_to_index = {label: index for index,
+                      label in enumerate(unique_labels)}
+    save_json(cache_name, label_to_index)
+    return unique_labels
 
 
 if __name__ == '__main__':

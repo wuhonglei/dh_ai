@@ -1,3 +1,4 @@
+from pandas import DataFrame
 from dataset import get_df_from_csv, get_labels
 from train import train
 import time
@@ -17,19 +18,27 @@ countries_info = [
     {"country": "CO", "stopwords": "spanish"},
 ]
 
+
+def custom_filter(data: DataFrame, category_name: str, country: str) -> DataFrame:
+    if country == 'SG':
+        return data[data[category_name].isin(get_labels(country))]
+
+    return data
+
+
 data_list: list[dict] = []
 start_time = time.time()
 for info in countries_info:
     country = info["country"]
-    if country != "SG":
+    if country != "TH":
         continue
     df = get_df_from_csv(
-        f"./data/csv/sg.csv", use_cache=True)
+        f"./data/csv/th.csv", use_cache=True)
     keyname = 'Keyword'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
-    data = data[data[category_name].isin(get_labels(country))]
+    data = custom_filter(data, category_name, country)
     X = data[keyname]
     y = data[category_name]
     train(X, y, country)

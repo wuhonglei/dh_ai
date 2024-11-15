@@ -34,7 +34,8 @@ for info in countries_info:
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
-    data = data[data[category_name].isin(get_labels(country))]
+    data = data[data[category_name].isin(
+        get_labels(country, data[category_name].tolist()))]
 
     X = data[keyname]
     y = data[category_name]

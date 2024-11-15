@@ -1,9 +1,9 @@
 import re
-import spacy
+# import spacy
 from .utils import get_stop_words, add_space_between_unit, contain_chinese_text, is_one_ascii, is_float, is_number
 from .tw import tokenize_tw
 
-nlp = spacy.load('en_core_web_sm')
+# nlp = spacy.load('en_core_web_sm')
 
 
 def tokenize_sg(text: str) -> list[str]:

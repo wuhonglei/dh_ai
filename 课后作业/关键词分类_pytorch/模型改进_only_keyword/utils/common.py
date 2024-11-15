@@ -2,6 +2,7 @@ import os
 import pickle
 import hashlib
 import json
+from collections import Counter
 
 
 def save_cache(file_path: str, data, mode='wb'):
@@ -53,3 +54,19 @@ def calculate_md5(string):
     md5 = hashlib.md5()
     md5.update(string.encode('utf - 8'))
     return md5.hexdigest()
+
+
+def get_labels_from_list(labels: list[str]) -> list[str]:
+    """
+    根据标签频率降序排列
+    :param labels: 包含字符串标签的列表
+    :return: 按频率降序排列的标签及其频率的列表
+    """
+    # 使用 Counter 统计频率
+    label_counts = Counter(labels)
+
+    # 按频率降序排列
+    sorted_labels = sorted(label_counts.items(),
+                           key=lambda x: x[1], reverse=True)
+
+    return [label for label, _ in sorted_labels]
