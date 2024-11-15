@@ -61,7 +61,7 @@ def train(X: Series, y: Series, country: str, ):
     # 定义模型
     model = KeywordCategoryModel(
         train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
-    if train_args['load_state_dict']:
+    if train_args.get('load_state_dict'):
         # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
         model.load_state_dict(torch.load(
             train_args['load_state_dict'], map_location=DEVICE, weights_only=True))
@@ -115,12 +115,12 @@ def train(X: Series, y: Series, country: str, ):
         write_to_file(train_args['log_file'],
                       time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
-        if (epoch + 1) % 3 == 0 and train_args['save_model']:
+        if (epoch + 1) % 3 == 0 and train_args.get('save_model'):
             # 保存模型
             torch.save(model.state_dict(),
                        f"./models/weights/{train_args['save_model']}_{epoch + 1}.pth")
 
-    if train_args['save_model']:
+    if train_args.get('save_model'):
         # 保存模型
         torch.save(model.state_dict(
         ), f"./models/weights/{train_args['save_model']}_final.pth")

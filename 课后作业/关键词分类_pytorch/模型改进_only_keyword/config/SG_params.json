@@ -4,9 +4,10 @@
     "hidden_size": 128,
     "num_classes": 26,
     "padding_idx": 0,
-    "num_epochs": 15,
+    "num_epochs": 30,
     "learning_rate": 0.01,
     "batch_size": 2048,
-    "save_model": "SG_LSTM_128*2_fc_2_shopee_keyword_10_model_seo_1731598700",
-    "log_file": "./logs/SG_1731598700.txt"
+    "vocab_cache": "./cache/vocab/SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json",
+    "load_state_dict": "./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_10_model_1731598700_final.pth",
+    "log_file": "./logs/SG_1731659994.txt"
 }
