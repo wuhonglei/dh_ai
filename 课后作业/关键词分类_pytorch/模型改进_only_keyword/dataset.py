@@ -100,7 +100,7 @@ def build_vocab(dataset: KeywordCategoriesDataset, min_freq: int = 10):
 def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, use_cache: bool = True):
     seq_list = [''.join(row[0]) for row in train_dataset[0:10]]  # type: ignore
     # cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}_{calculate_md5(''.join(seq_list))}.json"
-    cache_name = './cache/vocab/SG_vocab_827233_cd306371b43b970ea53736ed2589778b.json'
+    cache_name = './cache/vocab/SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json'
     if use_cache and exists_cache(cache_name):
         vocab = load_json(cache_name)
         return vocab

@@ -44,14 +44,14 @@ def train(X: Series, y: Series, country: str, ):
                           else 'cpu')
     train_args = {
         "vocab_size": len(vocab),
-        "embed_dim": 25,
+        "embed_dim": len(vocab) // 2,
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
-        "num_epochs": 20,
+        "num_epochs": 15,
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
-        'save_model': f'SG_LSTM_128*2_fc_2_shopee_keyword_5_model_seo_{unix_time}',
+        'save_model': f'SG_LSTM_128*2_fc_2_shopee_keyword_10_model_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }
     save_training_json(train_args, f"./config/{country}_params.json")
@@ -60,8 +60,8 @@ def train(X: Series, y: Series, country: str, ):
     model = KeywordCategoryModel(
         train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
     # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
-    model.load_state_dict(torch.load(
-        f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_6.pth", map_location=DEVICE, weights_only=True))
+    # model.load_state_dict(torch.load(
+    #     f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_6.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=train_args['learning_rate'])
@@ -112,9 +112,10 @@ def train(X: Series, y: Series, country: str, ):
         write_to_file(train_args['log_file'],
                       time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + '; ' + desc)
         epoch_progress.set_postfix(test_acc=test_acc, train_acc=train_acc)
-        # 保存模型
-        # torch.save(model.state_dict(),
-        #            f"./models/weights/{save_model}_{epoch + 1}.pth")
+        if (epoch + 1) % 3 == 0:
+            # 保存模型
+            torch.save(model.state_dict(),
+                       f"./models/weights/{train_args['save_model']}_{epoch + 1}.pth")
 
     # 保存模型
     torch.save(model.state_dict(

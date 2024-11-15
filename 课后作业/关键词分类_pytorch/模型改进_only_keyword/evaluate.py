@@ -67,8 +67,8 @@ for info in countries_info:
     model = KeywordCategoryModel(
         train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
     model.load_state_dict(torch.load(
-        f"./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_5_model_6.pth", map_location=DEVICE, weights_only=True))
+        f"./models/weights/{train_args['save_model']}_final.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
-    acc = evaluate(test_dataloader, model)
+    acc = evaluate(dataloader, model)
     print(f"Accuracy: {acc}")

@@ -1,6 +1,7 @@
 from dataset import get_df_from_csv, get_labels
 from train import train
 import time
+from shutdown import shutdown
 
 countries_info = [
     {"country": "SG", "stopwords": "english"},
@@ -23,8 +24,8 @@ for info in countries_info:
     if country != "SG":
         continue
     df = get_df_from_csv(
-        f"./data/csv/sg.csv", use_cache=True)
-    keyname = 'Keyword'
+        f"./data/shopee_sg/keyword.csv", use_cache=True)
+    keyname = 'keywords_10'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
@@ -32,3 +33,4 @@ for info in countries_info:
     X = data[keyname]
     y = data[category_name]
     train(X, y, country)
+    # shutdown(10)
