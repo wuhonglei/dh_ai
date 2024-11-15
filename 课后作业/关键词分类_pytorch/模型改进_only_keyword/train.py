@@ -49,11 +49,11 @@ def train(X: Series, y: Series, country: str, ):
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
-        "num_epochs": 25,
+        "num_epochs": 15,
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
         'vocab_cache': vocab_cache,
-        # 'load_state_dict': f"./models/weights/{country}/SG_LSTM_128*2_fc_2_shopee_keyword_10_model_1731598700_final.pth",
+        'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731664004_12.pth",
         'save_model': f'TH_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }

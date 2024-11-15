@@ -14,7 +14,7 @@ seg_list = jieba.cut("我来到北京清华大学")
 参考: https://matpool.com/learn/article/matpool-program-run-nohup
 
 ```bash
-nohup python -u 123.py > /root/run.log 2>&1 &
+nohup python -u main.py > /root/run.log 2>&1 &
 ```
 
 - `-u` 表示无缓冲模式运行（unbuffered mode），输出会实时刷新，不会被缓存。
@@ -25,5 +25,5 @@ nohup python -u 123.py > /root/run.log 2>&1 &
 如果不想要记录任何输出，可以将输出重定向到 /dev/null：
 
 ```bash
-nohup python -u 123.py > /dev/null 2>&1 &
+nohup python -u main.py > /dev/null 2>&1 &
 ```

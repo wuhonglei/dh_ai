@@ -42,4 +42,4 @@ for info in countries_info:
     X = data[keyname]
     y = data[category_name]
     train(X, y, country)
-    # shutdown(10)
+    shutdown(10)
