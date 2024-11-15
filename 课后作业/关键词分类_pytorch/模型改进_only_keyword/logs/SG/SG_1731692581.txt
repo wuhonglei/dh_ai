@@ -1,0 +1,5 @@
+2024-11-15 17:44:15; epcoh: 1; test acc: 29.00%; train acc: 28.92%; loss_avg: 2.5988357067108154
+2024-11-15 17:45:24; epcoh: 2; test acc: 48.95%; train acc: 49.99%; loss_avg: 2.145512580871582
+2024-11-15 17:46:34; epcoh: 3; test acc: 71.11%; train acc: 68.65%; loss_avg: 1.6306943893432617
+2024-11-15 17:47:45; epcoh: 4; test acc: 80.60%; train acc: 79.14%; loss_avg: 1.2003995180130005
+2024-11-15 17:48:55; epcoh: 5; test acc: 81.59%; train acc: 80.27%; loss_avg: 0.9575819373130798

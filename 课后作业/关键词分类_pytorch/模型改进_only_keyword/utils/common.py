@@ -44,6 +44,10 @@ def get_file_state(file_path: str):
 
 
 def write_to_file(path: str, content: str):
+    dir_path = os.path.dirname(path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
     # 追加内容到文件
     with open(path, "a") as f:
         f.write(content)

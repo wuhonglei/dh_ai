@@ -51,7 +51,7 @@ class KeywordCategoriesDataset(Dataset):
 
         # sub_category 独热编码
         # 对展开后的数据进行独热编码
-        one_hot_encoded_df = pd.get_dummies(sub_category)
+        one_hot_encoded_df = pd.get_dummies(sub_category, dummy_na=True)
         count = len(keywords)
         cache_path = f'./cache/tokennizer/{country}_{count}_{calculate_md5("".join(keywords[0:10]))}.pkl'
         if use_cache and exists_cache(cache_path):

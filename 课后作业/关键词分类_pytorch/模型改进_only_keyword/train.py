@@ -21,7 +21,7 @@ unix_time = int(time.time())
 
 def train(X: Series, sub_category: Series, y: Series, country: str, ):
     dataset = KeywordCategoriesDataset(
-        X.tolist(), sub_category, y.tolist(), country, use_cache=False)
+        X.tolist(), sub_category, y.tolist(), country, use_cache=True)
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(

@@ -13,6 +13,7 @@ class KeywordCategoryModel(nn.Module):
                             batch_first=True, bidirectional=True, num_layers=2, dropout=0.25)
         self.dropout2 = nn.Dropout(0.35)
         self.fc1 = nn.Linear(sub_category + hidden_size * 6, hidden_size)
+        self.dropout3 = nn.Dropout(0.35)
         self.fc2 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x, tf_idf_vectors):
@@ -40,6 +41,7 @@ class KeywordCategoryModel(nn.Module):
         concat_hidden = torch.cat(
             (tf_idf_vectors, last_layer_hidden, avg_seq_output, max_seq_output), dim=-1)  # [batch, hidden_size * 6]
         output = self.fc1(concat_hidden)
+        output = self.dropout3(output)
         output = self.fc2(output)
         return output
 
