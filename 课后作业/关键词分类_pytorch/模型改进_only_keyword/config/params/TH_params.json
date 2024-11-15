@@ -1,0 +1,13 @@
+{
+    "vocab_size": 111,
+    "embed_dim": 55,
+    "hidden_size": 128,
+    "num_classes": 32,
+    "padding_idx": 0,
+    "num_epochs": 1,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/TH_vocab_29181_b9a12fec3b453ebef098550f1f8ac166_10.json",
+    "sub_category": 45,
+    "log_file": "./logs/TH/TH_1731693001.txt"
+}

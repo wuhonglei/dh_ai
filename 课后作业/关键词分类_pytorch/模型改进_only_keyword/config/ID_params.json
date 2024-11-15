@@ -1,0 +1,13 @@
+{
+    "vocab_size": 46,
+    "embed_dim": 23,
+    "hidden_size": 128,
+    "num_classes": 42,
+    "padding_idx": 0,
+    "num_epochs": 1,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/ID_vocab_43145_13552b406387f7a100358e5897288cb2_10.json",
+    "sub_category": 44,
+    "log_file": "./logs/ID/ID_1731693001.txt"
+}

@@ -30,7 +30,7 @@ data_list: list[dict] = []
 start_time = time.time()
 for info in countries_info:
     country = info["country"]
-    if country != "SG":
+    if country != "TH":
         continue
     df = get_df_from_csv(
         f"./data/csv/{country.lower()}.csv", use_cache=True)

@@ -1,0 +1,13 @@
+{
+    "vocab_size": 92,
+    "embed_dim": 46,
+    "hidden_size": 128,
+    "num_classes": 26,
+    "padding_idx": 0,
+    "num_epochs": 1,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/MY_vocab_27158_bc4e86dd8104e7dd71f707288cdd58e4_10.json",
+    "sub_category": 45,
+    "log_file": "./logs/MY/MY_1731693001.txt"
+}

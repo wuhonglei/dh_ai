@@ -5,7 +5,14 @@ import json
 from collections import Counter
 
 
+def make_dir(filepath: str):
+    base_dir = os.path.dirname(filepath)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir, exist_ok=True)
+
+
 def save_cache(file_path: str, data, mode='wb'):
+    make_dir(file_path)
     print('saving cache to', file_path)
     with open(file_path, mode) as f:
         if mode == 'w':
@@ -15,6 +22,8 @@ def save_cache(file_path: str, data, mode='wb'):
 
 
 def save_json(file_path: str, data):
+    make_dir(file_path)
+
     print('saving json to', file_path)
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=4)
@@ -44,9 +53,7 @@ def get_file_state(file_path: str):
 
 
 def write_to_file(path: str, content: str):
-    dir_path = os.path.dirname(path)
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
+    make_dir(path)
 
     # 追加内容到文件
     with open(path, "a") as f:

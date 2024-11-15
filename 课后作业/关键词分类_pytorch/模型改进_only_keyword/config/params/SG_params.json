@@ -1,0 +1,13 @@
+{
+    "vocab_size": 44,
+    "embed_dim": 22,
+    "hidden_size": 128,
+    "num_classes": 26,
+    "padding_idx": 0,
+    "num_epochs": 1,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/SG_vocab_17229_54ab2d7562cd0d9179c0f6b266d6b3af_10.json",
+    "sub_category": 50,
+    "log_file": "./logs/SG/SG_1731693001.txt"
+}
