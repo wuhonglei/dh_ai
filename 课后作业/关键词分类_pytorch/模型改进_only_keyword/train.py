@@ -28,7 +28,7 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         dataset, test_size=0.05, random_state=42)
     min_freq = 10
     vocab, vocab_cache = get_vocab(
-        train_dataset, country, min_freq, use_cache=True)
+        train_dataset, country, min_freq, use_cache=False)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
@@ -50,7 +50,7 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
-        "num_epochs": 5,
+        "num_epochs": 20,
         "min_freq": min_freq,
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
@@ -58,10 +58,10 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         'sub_category': len(dataset[0][1]),
         'save_checkpoint': False,
         # 'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
-        # 'save_model': f'{country}_LSTM_128*2_fc_2_seo_{unix_time}',
+        'save_model': f'{country}_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}/{country}_{unix_time}.txt"
     }
-    save_training_json(train_args, f"./config/{country}/{country}_params.json")
+    save_training_json(train_args, f"./config/params/{country}_params.json")
 
     # 定义模型
     model = KeywordCategoryModel(

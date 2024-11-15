@@ -2,12 +2,15 @@
     "vocab_size": 44,
     "embed_dim": 22,
     "hidden_size": 128,
-    "num_classes": 26,
+    "num_classes": 31,
     "padding_idx": 0,
-    "num_epochs": 1,
+    "num_epochs": 20,
+    "min_freq": 10,
     "learning_rate": 0.01,
     "batch_size": 2048,
-    "vocab_cache": "./cache/vocab/SG_vocab_17229_54ab2d7562cd0d9179c0f6b266d6b3af_10.json",
+    "vocab_cache": "./cache/vocab/SG_vocab_17615_20f7facfdb4d73e26336dbfe85ffbe82_10.json",
     "sub_category": 50,
-    "log_file": "./logs/SG/SG_1731693001.txt"
+    "save_checkpoint": false,
+    "save_model": "SG_LSTM_128*2_fc_2_seo_1731694583",
+    "log_file": "./logs/SG/SG_1731694583.txt"
 }

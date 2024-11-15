@@ -30,8 +30,8 @@ data_list: list[dict] = []
 start_time = time.time()
 for info in countries_info:
     country = info["country"]
-    if country != "TH":
-        continue
+    # if country != "TH":
+    #     continue
     df = get_df_from_csv(
         f"./data/csv/{country.lower()}.csv", use_cache=True)
     keyname = 'Keyword'
@@ -39,9 +39,9 @@ for info in countries_info:
     sub_category_name = 'imp_level1_category_1d'
     data = df.dropna(subset=[keyname, category_name, sub_category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
-    data = custom_filter(data, category_name, country)
+    # data = custom_filter(data, category_name, country)
     X = data[keyname]
     y = data[category_name]
     sub_y = data[sub_category_name]
     train(X, sub_y, y, country)
-    # shutdown(10)
+    shutdown(10)

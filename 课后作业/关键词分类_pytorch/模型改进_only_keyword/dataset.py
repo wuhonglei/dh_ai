@@ -170,7 +170,7 @@ def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
 
 
 def get_labels(country: str, all_labels: list[str] = [], use_cache=True) -> list[str]:
-    cache_name = f'./config/{country}/{country}_label_to_index.json'
+    cache_name = f'./config/label/{country}_label_to_index.json'
     if use_cache and exists_cache(cache_name):
         label_to_index = load_json(cache_name)
         return list(label_to_index.keys())
