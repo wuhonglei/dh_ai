@@ -55,7 +55,7 @@ def train(X: Series, y: Series, country: str, ):
         'vocab_cache': vocab_cache,
         'tf_idf_dim': len(dataset[0][1]),
         # 'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
-        'save_model': f'TH_LSTM_128*2_fc_2_seo_{unix_time}',
+        'save_model': f'{country}_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }
     save_training_json(train_args, f"./config/{country}_params.json")
