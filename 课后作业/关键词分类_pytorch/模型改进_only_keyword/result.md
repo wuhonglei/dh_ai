@@ -319,3 +319,61 @@ class KeywordCategoryModel(nn.Module):
 基于以上结果，我们直接使用该模型对 seo `shopee.csv` 关键词进行预训练，然后在 `sg.csv` 测试集进行测试结果如下:
 - 测试集样本的准确率为 **72.91%**
 20/20 [22:55<00:00, 68.76s/it, test_acc=72.91%, train_acc=82.75%]
+
+
+#### 二、字符 RNN 分类结果
+1. 仅仅使用 SEO 搜索关键词进行训练的结果如下（模型结构 1）:
+2024-11-14 23:38:32; epcoh: 20; test acc: 57.73%; train acc: 71.94%
+
+```
+KeywordCategoryModel(
+  (embedding): Embedding(26, 25, padding_idx=0)
+  (dropout1): Dropout(p=0.15, inplace=False)
+  (rnn): RNN(25, 128, num_layers=2, batch_first=True, dropout=0.25, bidirectional=True)
+  (dropout2): Dropout(p=0.35, inplace=False)
+  (fc): Linear(in_features=256, out_features=26, bias=True)
+)
+```
+
+```json
+{
+    "vocab_size": 26,
+    "embed_dim": 25,
+    "hidden_size": 128,
+    "num_classes": 26,
+    "padding_idx": 0,
+    "num_epochs": 20,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "save_model": "SG_LSTM_128*2_fc_2_shopee_keyword_5_model_seo_1731597477",
+    "log_file": "./logs/SG_1731597477.txt"
+}
+```
+
+```python
+class KeywordCategoryModel(nn.Module):
+    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, output_size: int, padding_idx: int, dropout: float = 0):
+        super(KeywordCategoryModel, self).__init__()
+        self.embedding = nn.Embedding(
+            vocab_size, embed_dim, padding_idx=padding_idx)
+        self.dropout1 = nn.Dropout(0.15)
+        self.rnn = nn.RNN(embed_dim,
+                          hidden_size,
+                          num_layers=2,
+                          batch_first=True,
+                          bidirectional=True,
+                          dropout=0.25
+                          )
+        self.dropout2 = nn.Dropout(0.35)
+        self.fc = nn.Linear(hidden_size * 2, output_size)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        # hidden: [num_layers * num_directions, batch, hidden_size]
+        _, hidden = self.rnn(x)
+        last_layer_hidden = torch.cat(
+            (hidden[-2], hidden[-1]), dim=-1)  # [batch, hidden_size * 2]
+        x = self.dropout2(last_layer_hidden)
+        output = self.fc(x)
+        return output
+```
