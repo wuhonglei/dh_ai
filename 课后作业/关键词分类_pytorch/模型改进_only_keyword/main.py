@@ -30,10 +30,10 @@ data_list: list[dict] = []
 start_time = time.time()
 for info in countries_info:
     country = info["country"]
-    if country != "TH":
+    if country != "SG":
         continue
     df = get_df_from_csv(
-        f"./data/csv/th.csv", use_cache=True)
+        f"./data/csv/{country.lower()}.csv", use_cache=True)
     keyname = 'Keyword'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(

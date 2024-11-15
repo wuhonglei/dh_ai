@@ -4,7 +4,7 @@ from torchinfo import summary
 
 
 class KeywordCategoryModel(nn.Module):
-    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, output_size: int, padding_idx: int):
+    def __init__(self, vocab_size: int, embed_dim: int, hidden_size: int, tf_idf_dim: int, output_size: int, padding_idx: int):
         super(KeywordCategoryModel, self).__init__()
         self.embedding = nn.Embedding(
             vocab_size, embed_dim, padding_idx=padding_idx)
@@ -12,10 +12,10 @@ class KeywordCategoryModel(nn.Module):
         self.lstm = nn.LSTM(embed_dim, hidden_size,
                             batch_first=True, bidirectional=True, num_layers=2, dropout=0.25)
         self.dropout2 = nn.Dropout(0.35)
-        self.fc1 = nn.Linear(hidden_size * 6, hidden_size)
+        self.fc1 = nn.Linear(tf_idf_dim + hidden_size * 6, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
 
-    def forward(self, x):
+    def forward(self, x, tf_idf_vectors):
         x = self.embedding(x)
         x = self.dropout1(x)
         """
@@ -38,7 +38,7 @@ class KeywordCategoryModel(nn.Module):
         avg_seq_output = torch.mean(ouput, dim=1)  # [batch, hidden_size * 2]
         max_seq_output, _ = torch.max(ouput, dim=1)  # [batch, hidden_size * 2]
         concat_hidden = torch.cat(
-            (last_layer_hidden, avg_seq_output, max_seq_output), dim=-1)  # [batch, hidden_size * 6]
+            (tf_idf_vectors, last_layer_hidden, avg_seq_output, max_seq_output), dim=-1)  # [batch, hidden_size * 6]
         output = self.fc1(concat_hidden)
         output = self.fc2(output)
         return output
@@ -72,7 +72,8 @@ if __name__ == "__main__":
     hidden_size = 128
     output_size = 26
     padding_idx = 0
+    tf_idf_dim = 10
     model = KeywordCategoryModel(
-        vocab_size, embed_dim, hidden_size, output_size, padding_idx)
+        vocab_size, embed_dim, hidden_size, tf_idf_dim, output_size, padding_idx)
     print(model)
     summary(model, input_size=(1, 10), device='cpu', dtypes=[torch.long])

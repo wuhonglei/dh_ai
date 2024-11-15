@@ -9,6 +9,7 @@ from torch.nn.utils.rnn import pad_sequence
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from tokennizer.sg import tokenize_sg
 # from tokennizer.my import tokenize_my
@@ -47,7 +48,14 @@ class KeywordCategoriesDataset(Dataset):
         return index_to_label
 
     def process_data(self, keywords: list[str], labels: list[str], country: str, use_cache: bool) -> list[tuple[list[str], str]]:
+
+        # 创建TF-IDF向量化器
+        vectorizer = TfidfVectorizer()
+        # 转换文档为TF-IDF矩阵
+        X = vectorizer.fit_transform(keywords)
+
         count = len(keywords)
+
         cache_path = f'./cache/tokennizer/{country}_{count}_{calculate_md5("".join(keywords[0:10]))}.pkl'
         if use_cache and exists_cache(cache_path):
             data = load_cache(cache_path)
@@ -58,12 +66,14 @@ class KeywordCategoriesDataset(Dataset):
         for index, keyword in enumerate(keywords):
             # 通过 index 获取 dataframe 的行
             category = labels[index]
+            tf_idf_vector = X[index].toarray()[0]  # type: ignore
             if not isinstance(keyword, str) or not isinstance(category, str):
                 continue
 
             token_list = token_dict.get(country, tokenize_sg)(keyword.lower())
             if token_list:
-                data_list.append((token_list, self.label2index[category]))
+                data_list.append((token_list, tf_idf_vector,
+                                 self.label2index[category]))
 
         save_cache(cache_path, data_list)
         return data_list
@@ -114,22 +124,26 @@ def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, min_freq: i
 def collate_batch(batch, vocab: dict[str, int]):
     text_list = list()
     labels = list()
+    tf_idf_vector_list = list()
     # 每次读取一组数据
-    for text, label in batch:
+    for text, tf_idf_vector, label in batch:
         text_tokens = [vocab.get(token, vocab["<UNK>"])
                        for token in text]
         text_tensor = torch.tensor(text_tokens, dtype=torch.long)
         text_list.append(text_tensor)
         labels.append(torch.tensor(label, dtype=torch.long))
+        tf_idf_vector_list.append(torch.tensor(
+            tf_idf_vector, dtype=torch.float32))
 
     padding_idx = vocab['<PAD>']
     # 将batch填充为相同长度文本
     text_padded = pad_sequence(
         text_list, batch_first=True, padding_value=padding_idx)
     labels_tensor = torch.stack(labels)
+    tf_idf_vector = torch.stack(tf_idf_vector_list)
 
     # 返回文本和标签的张量形式，用于后续的模型训练
-    return text_padded, labels_tensor
+    return text_padded, tf_idf_vector, labels_tensor
 
 
 def get_data(file_path: str, sheet_name: str = ''):
@@ -158,7 +172,7 @@ def get_df_from_csv(file_path: str, use_cache=True) -> pd.DataFrame:
 
 
 def get_labels(country: str, all_labels: list[str] = [], use_cache=True) -> list[str]:
-    cache_name = f'./cache/data/{country}_label_to_index.json'
+    cache_name = f'./config/{country}_label_to_index.json'
     if use_cache and exists_cache(cache_name):
         label_to_index = load_json(cache_name)
         return list(label_to_index.keys())

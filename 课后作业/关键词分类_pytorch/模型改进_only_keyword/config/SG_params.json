@@ -1,13 +1,14 @@
 {
-    "vocab_size": 81,
-    "embed_dim": 40,
+    "vocab_size": 42,
+    "embed_dim": 25,
     "hidden_size": 128,
     "num_classes": 26,
     "padding_idx": 0,
-    "num_epochs": 30,
+    "num_epochs": 15,
     "learning_rate": 0.01,
     "batch_size": 2048,
-    "vocab_cache": "./cache/vocab/SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json",
-    "load_state_dict": "./models/weights/SG_LSTM_128*2_fc_2_shopee_keyword_10_model_1731598700_final.pth",
-    "log_file": "./logs/SG_1731659994.txt"
+    "vocab_cache": "./cache/vocab/SG_vocab_20887_cf772552a09fa5ed08054ba5a92b104b_100.json",
+    "tf_idf_dim": 10662,
+    "save_model": "TH_LSTM_128*2_fc_2_seo_1731688052",
+    "log_file": "./logs/SG_1731688052.txt"
 }

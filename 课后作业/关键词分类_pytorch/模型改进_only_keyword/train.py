@@ -45,7 +45,7 @@ def train(X: Series, y: Series, country: str, ):
                           else 'cpu')
     train_args = {
         "vocab_size": len(vocab),
-        "embed_dim": len(vocab) // 2,
+        "embed_dim": 25,
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
@@ -53,7 +53,8 @@ def train(X: Series, y: Series, country: str, ):
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
         'vocab_cache': vocab_cache,
-        'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
+        'tf_idf_dim': len(dataset[0][1]),
+        # 'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
         'save_model': f'TH_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }
@@ -61,11 +62,13 @@ def train(X: Series, y: Series, country: str, ):
 
     # 定义模型
     model = KeywordCategoryModel(
-        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
+        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['tf_idf_dim'], train_args['num_classes'], train_args['padding_idx'])
     if train_args.get('load_state_dict'):
-        # init_model(model, f"./models/weights/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
+        # init_model(
+        #     model, f"./models/weights/SG/SG_LSTM_128*2_fc_2_bpv_model.pth", DEVICE)
         model.load_state_dict(torch.load(
             train_args['load_state_dict'], map_location=DEVICE, weights_only=True))
+        pass
     model.to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=train_args['learning_rate'])
@@ -78,14 +81,15 @@ def train(X: Series, y: Series, country: str, ):
         model.train()
         loss_sum = 0.0
         batch_progress = tqdm(enumerate(train_dataloader), leave=False)
-        for batch_idx, (text, label) in batch_progress:
+        for batch_idx, (text, tf_idf, label) in batch_progress:
             batch_progress.set_description(
                 f'batch: {batch_idx + 1}/{len(train_dataloader)}')
 
             text = text.to(DEVICE)
+            tf_idf = tf_idf.to(DEVICE)
             label = label.to(DEVICE)
             optimizer.zero_grad()
-            predict = model(text)
+            predict = model(text, tf_idf)
             loss = criterion(predict, label)
             loss_sum += loss
             if (batch_idx + 1) % train_args['batch_size'] == 0:
@@ -134,10 +138,11 @@ def evaluate(dataloader: DataLoader, model):
     y_true = []
     y_pred = []
     with torch.no_grad():
-        for text, label in dataloader:
+        for text, tf_idf, label in dataloader:
             text = text.to(DEVICE)
             label = label.to(DEVICE)
-            predict = model(text)
+            tf_idf = tf_idf.to(DEVICE)
+            predict = model(text, tf_idf)
             _, predicted = torch.max(predict.data, 1)
             y_true.extend(label.tolist())
             y_pred.extend(predicted.tolist())
