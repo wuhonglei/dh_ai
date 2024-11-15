@@ -45,7 +45,7 @@ for info in countries_info:
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
 
-    vocab = get_vocab(train_dataset, country, use_cache=True)
+    vocab, _ = get_vocab(train_dataset, country, use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)

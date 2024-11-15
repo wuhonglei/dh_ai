@@ -26,7 +26,7 @@ def train(X: Series, y: Series, country: str, ):
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
-    vocab = get_vocab(train_dataset, country, use_cache=True)
+    vocab, cache_name = get_vocab(train_dataset, country, use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
@@ -51,6 +51,7 @@ def train(X: Series, y: Series, country: str, ):
         "num_epochs": 15,
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
+        'cache_name': cache_name,
         'save_model': f'SG_LSTM_128*2_fc_2_shopee_keyword_10_model_seo_{unix_time}',
         'log_file': f"./logs/{country}_{unix_time}.txt"
     }

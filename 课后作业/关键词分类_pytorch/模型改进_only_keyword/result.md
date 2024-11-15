@@ -245,6 +245,8 @@ class KeywordCategoryModel(nn.Module):
 
 6. 使用 shopee keyword_10 进行训练的结果如下（模型结构 3）:
 
+词汇表: `SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json`
+
 ```txt
 2024-11-14 22:22:49; epcoh: 10; test acc: 87.24%; train acc: 88.57%
 2024-11-14 22:54:37; epcoh: 11; test acc: 87.26%; train acc: empty

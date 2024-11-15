@@ -16,7 +16,7 @@ from tokennizer.tw import tokenize_tw
 
 from utils.common import exists_cache, save_cache, load_cache, get_file_state, calculate_md5, save_json, load_json
 
-from typing import Sequence
+from typing import Sequence, Tuple
 
 token_dict = {
     'SG': tokenize_sg,
@@ -97,17 +97,17 @@ def build_vocab(dataset: KeywordCategoriesDataset, min_freq: int = 10):
     return word_2_index
 
 
-def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, use_cache: bool = True):
+def get_vocab(train_dataset: KeywordCategoriesDataset, country: str, use_cache: bool = True) -> Tuple[dict[str, int], str]:
     seq_list = [''.join(row[0]) for row in train_dataset[0:10]]  # type: ignore
     # cache_name = f"./cache/vocab/{country}_vocab_{len(train_dataset)}_{calculate_md5(''.join(seq_list))}.json"
     cache_name = './cache/vocab/SG_vocab_852663_ed7981fe7082fd991eeb420a89f6c9b5.json'
     if use_cache and exists_cache(cache_name):
         vocab = load_json(cache_name)
-        return vocab
+        return vocab, cache_name
 
     vocab = build_vocab(train_dataset, 1000)
     save_json(cache_name, vocab)
-    return vocab
+    return vocab, cache_name
 
 
 def collate_batch(batch, vocab: dict[str, int]):
