@@ -5,8 +5,8 @@ import time
 from shutdown import shutdown
 
 countries_info = [
-    {"country": "SG", "stopwords": "english"},
-    {"country": "MY", "stopwords": "english"},
+    # {"country": "SG", "stopwords": "english"},
+    # {"country": "MY", "stopwords": "english"},
     {"country": "TH", "stopwords": "english"},
     {"country": "TW", "stopwords": "chinese"},
     {"country": "VN", "stopwords": "english"},

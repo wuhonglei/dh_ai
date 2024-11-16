@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 import numpy as np
 import json
+import os
 from sklearn.utils.class_weight import compute_class_weight
+from common import make_dir
 
 
 def get_class_weights(labels: list[str]) -> torch.Tensor:
@@ -54,3 +56,9 @@ class EarlyStopping:
             if self.counter >= self.patience:
                 self.early_stop = True
         return self.early_stop
+
+
+def save_model(model_path: str, model: nn.Module):
+    base_dir = os.path.dirname(model_path)
+    make_dir(base_dir)
+    torch.save(model.state_dict(), model_path)

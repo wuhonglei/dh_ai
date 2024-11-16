@@ -11,7 +11,7 @@ from dataset import KeywordCategoriesDataset
 # from models.rnn_model import KeywordCategoryModel
 # from models.simple_model import KeywordCategoryModel
 from models.lstm_model import KeywordCategoryModel, init_model
-from utils.model import save_training_json, EarlyStopping
+from utils.model import save_training_json, EarlyStopping, save_model
 from utils.common import write_to_file
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -131,18 +131,16 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         epoch_progress.set_postfix(
             test_acc=test_acc, train_acc=train_acc, loss_avg=loss_avg)
         if train_args.get('save_checkpoint') and (epoch + 1) % 3 == 0 and train_args.get('save_model'):
-            # 保存模型
-            torch.save(model.state_dict(),
-                       f"./models/weights/{country}/{train_args['save_model']}_{epoch + 1}.pth")
+            save_model(
+                f"./models/weights/{country}/{train_args['save_model']}_{epoch + 1}.pth", model)
 
         if early_stopping(test_loss_avg):
             print(f'Early stopping at epoch {epoch + 1}')
             break
 
     if train_args.get('save_model'):
-        # 保存模型
-        torch.save(model.state_dict(
-        ), f"./models/weights/{country}/{train_args['save_model']}_final.pth")
+        save_model(
+            f"./models/weights/{country}/{train_args['save_model']}_final.pth", model)
 
 
 def evaluate(dataloader: DataLoader, model):
