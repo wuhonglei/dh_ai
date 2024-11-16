@@ -77,14 +77,14 @@ def pre_process(data: pd.DataFrame, stopwords: str) -> pd.DataFrame:
             [
                 "Category",
                 "imp_level1_category_1d",
-                "pv_level1_category_1d",
-                "order_level1_category_1d",
+                # "pv_level1_category_1d",
+                # "order_level1_category_1d",
             ]
         ],
         columns=[
             "imp_level1_category_1d",
-            "pv_level1_category_1d",
-            "order_level1_category_1d",
+            # "pv_level1_category_1d",
+            # "order_level1_category_1d",
         ],
         dummy_na=True,
     )

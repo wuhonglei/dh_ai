@@ -32,6 +32,9 @@ class KeywordCategories:
         # raw_data = raw_data.drop_duplicates(
         #     subset=['Keyword'], keep='first').reset_index(drop=True)
 
+        raw_data = raw_data.dropna(subset=['Keyword', 'Cateogry']).drop_duplicates(
+            subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+
         # Step2 > Pre-process data
         process_data = pre_process(raw_data, self.stopwords)
 
@@ -63,7 +66,8 @@ if __name__ == "__main__":
         {"country": "CO", "stopwords": "spanish"},
     ]
 
-    path = pathlib.Path().resolve() / "csv" / "predict_result.csv"
+    path = pathlib.Path().resolve() / "csv" / \
+        "predict_result_imp_level1_category_1d.csv"
     data_list: list[dict] = []
     for info in countries_info:
         categories = KeywordCategories(info)
