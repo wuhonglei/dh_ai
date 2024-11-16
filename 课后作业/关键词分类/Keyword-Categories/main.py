@@ -32,7 +32,7 @@ class KeywordCategories:
         # raw_data = raw_data.drop_duplicates(
         #     subset=['Keyword'], keep='first').reset_index(drop=True)
 
-        raw_data = raw_data.dropna(subset=['Keyword', 'Cateogry']).drop_duplicates(
+        raw_data = raw_data.dropna(subset=['Keyword', 'Category']).drop_duplicates(
             subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
 
         # Step2 > Pre-process data
