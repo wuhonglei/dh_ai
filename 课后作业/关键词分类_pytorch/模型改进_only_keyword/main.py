@@ -5,7 +5,7 @@ import time
 from shutdown import shutdown
 
 countries_info = [
-    # {"country": "SG", "stopwords": "english"},
+    {"country": "SG", "stopwords": "english"},
     {"country": "MY", "stopwords": "english"},
     {"country": "TH", "stopwords": "english"},
     {"country": "TW", "stopwords": "chinese"},
@@ -44,4 +44,5 @@ for info in countries_info:
     y = data[category_name]
     sub_y = data[sub_category_name]
     train(X, sub_y, y, country)
-    shutdown(10)
+
+shutdown(10)

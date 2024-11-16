@@ -62,7 +62,7 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         'log_file': f"./logs/{country}/{country}_{unix_time}.txt",
         'early_stopping': {
             'enable': True,
-            'patience': 5,
+            'patience': 3,
             'min_delta': 0.001
         }
     }

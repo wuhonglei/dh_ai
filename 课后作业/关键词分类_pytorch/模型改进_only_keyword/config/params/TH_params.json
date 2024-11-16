@@ -1,13 +1,20 @@
 {
-    "vocab_size": 111,
-    "embed_dim": 55,
+    "vocab_size": 114,
+    "embed_dim": 57,
     "hidden_size": 128,
-    "num_classes": 32,
+    "num_classes": 34,
     "padding_idx": 0,
     "num_epochs": 1,
+    "min_freq": 10,
     "learning_rate": 0.01,
     "batch_size": 2048,
-    "vocab_cache": "./cache/vocab/TH_vocab_29181_b9a12fec3b453ebef098550f1f8ac166_10.json",
+    "vocab_cache": "./cache/vocab/TH_vocab_36603_dc81562acda9a2073d477e9a813bcc6c_10.json",
     "sub_category": 45,
-    "log_file": "./logs/TH/TH_1731693001.txt"
+    "save_checkpoint": false,
+    "log_file": "./logs/TH/TH_1731744664.txt",
+    "early_stopping": {
+        "enable": true,
+        "patience": 5,
+        "min_delta": 0.001
+    }
 }
