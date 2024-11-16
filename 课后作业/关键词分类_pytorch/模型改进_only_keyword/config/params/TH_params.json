@@ -4,17 +4,17 @@
     "hidden_size": 128,
     "num_classes": 34,
     "padding_idx": 0,
-    "num_epochs": 1,
+    "num_epochs": 20,
     "min_freq": 10,
     "learning_rate": 0.01,
     "batch_size": 2048,
     "vocab_cache": "./cache/vocab/TH_vocab_36603_dc81562acda9a2073d477e9a813bcc6c_10.json",
     "sub_category": 45,
     "save_checkpoint": false,
-    "log_file": "./logs/TH/TH_1731744664.txt",
+    "log_file": "./logs/TH/TH_1731745402.txt",
     "early_stopping": {
         "enable": true,
-        "patience": 5,
+        "patience": 3,
         "min_delta": 0.001
     }
 }

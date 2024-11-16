@@ -1,0 +1,20 @@
+{
+    "vocab_size": 47,
+    "embed_dim": 23,
+    "hidden_size": 128,
+    "num_classes": 38,
+    "padding_idx": 0,
+    "num_epochs": 20,
+    "min_freq": 10,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/CL_vocab_13083_e9faddb146274a61bb739a4c55f2b921_10.json",
+    "sub_category": 39,
+    "save_checkpoint": false,
+    "log_file": "./logs/CL/CL_1731745402.txt",
+    "early_stopping": {
+        "enable": true,
+        "patience": 3,
+        "min_delta": 0.001
+    }
+}

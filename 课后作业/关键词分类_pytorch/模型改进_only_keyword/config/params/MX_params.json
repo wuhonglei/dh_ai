@@ -1,0 +1,20 @@
+{
+    "vocab_size": 52,
+    "embed_dim": 26,
+    "hidden_size": 128,
+    "num_classes": 36,
+    "padding_idx": 0,
+    "num_epochs": 20,
+    "min_freq": 10,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/MX_vocab_20458_93ec4fd1df2985a983cf705455b43f5c_10.json",
+    "sub_category": 38,
+    "save_checkpoint": false,
+    "log_file": "./logs/MX/MX_1731745402.txt",
+    "early_stopping": {
+        "enable": true,
+        "patience": 3,
+        "min_delta": 0.001
+    }
+}

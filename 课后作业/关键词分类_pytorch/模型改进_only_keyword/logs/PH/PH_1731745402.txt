@@ -1,0 +1,13 @@
+2024-11-16 11:03:28; epcoh: 1; test acc: 64.02%; train acc: empty; loss_avg: 1.6663908958435059
+2024-11-16 11:07:28; epcoh: 2; test acc: 68.35%; train acc: 67.45%; loss_avg: 1.3414109945297241
+2024-11-16 11:10:34; epcoh: 3; test acc: 72.37%; train acc: empty; loss_avg: 1.1765053272247314
+2024-11-16 11:14:26; epcoh: 4; test acc: 74.31%; train acc: 74.85%; loss_avg: 1.0573761463165283
+2024-11-16 11:17:21; epcoh: 5; test acc: 76.25%; train acc: empty; loss_avg: 0.9458091855049133
+2024-11-16 11:21:12; epcoh: 6; test acc: 76.79%; train acc: 78.96%; loss_avg: 0.9731512665748596
+2024-11-16 11:24:09; epcoh: 7; test acc: 77.35%; train acc: empty; loss_avg: 0.8554604053497314
+2024-11-16 11:27:58; epcoh: 8; test acc: 77.23%; train acc: 81.35%; loss_avg: 0.8529358506202698
+2024-11-16 11:30:54; epcoh: 9; test acc: 77.48%; train acc: empty; loss_avg: 0.8400701284408569
+2024-11-16 11:34:44; epcoh: 10; test acc: 78.32%; train acc: 83.76%; loss_avg: 0.7161938548088074
+2024-11-16 11:37:40; epcoh: 11; test acc: 77.95%; train acc: empty; loss_avg: 0.7392245531082153
+2024-11-16 11:41:32; epcoh: 12; test acc: 78.04%; train acc: 85.37%; loss_avg: 0.6872284412384033
+2024-11-16 11:44:31; epcoh: 13; test acc: 77.73%; train acc: empty; loss_avg: 0.6381741762161255

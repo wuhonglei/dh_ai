@@ -1,0 +1,20 @@
+{
+    "vocab_size": 50,
+    "embed_dim": 25,
+    "hidden_size": 128,
+    "num_classes": 29,
+    "padding_idx": 0,
+    "num_epochs": 20,
+    "min_freq": 10,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/PH_vocab_60558_f79c79e1746de795cc3896da61353be2_10.json",
+    "sub_category": 53,
+    "save_checkpoint": false,
+    "log_file": "./logs/PH/PH_1731745402.txt",
+    "early_stopping": {
+        "enable": true,
+        "patience": 3,
+        "min_delta": 0.001
+    }
+}

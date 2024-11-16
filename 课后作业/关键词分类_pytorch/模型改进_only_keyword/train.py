@@ -58,11 +58,11 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         'sub_category': len(dataset[0][1]),
         'save_checkpoint': False,
         # 'load_state_dict': f"./models/weights/{country}/TH_LSTM_128*2_fc_2_seo_1731669164_final.pth",
-        # 'save_model': f'{country}_LSTM_128*2_fc_2_seo_{unix_time}',
+        'save_model': f'{country}_LSTM_128*2_fc_2_seo_{unix_time}',
         'log_file': f"./logs/{country}/{country}_{unix_time}.txt",
         'early_stopping': {
-            'enable': True,
-            'patience': 3,
+            'enable': False,
+            'patience': 5,
             'min_delta': 0.001
         }
     }

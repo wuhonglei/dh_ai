@@ -1,0 +1,20 @@
+{
+    "vocab_size": 46,
+    "embed_dim": 23,
+    "hidden_size": 128,
+    "num_classes": 34,
+    "padding_idx": 0,
+    "num_epochs": 20,
+    "min_freq": 10,
+    "learning_rate": 0.01,
+    "batch_size": 2048,
+    "vocab_cache": "./cache/vocab/CO_vocab_10832_de8b62f590fe19cef67cdbc1b41aa6a4_10.json",
+    "sub_category": 38,
+    "save_checkpoint": false,
+    "log_file": "./logs/CO/CO_1731745402.txt",
+    "early_stopping": {
+        "enable": true,
+        "patience": 3,
+        "min_delta": 0.001
+    }
+}
