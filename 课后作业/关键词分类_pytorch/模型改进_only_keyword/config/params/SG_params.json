@@ -11,6 +11,6 @@
     "vocab_cache": "./cache/vocab/SG_vocab_17615_20f7facfdb4d73e26336dbfe85ffbe82_10.json",
     "sub_category": 50,
     "save_checkpoint": false,
-    "save_model": "SG_LSTM_128*2_fc_2_seo_1731694583",
-    "log_file": "./logs/SG/SG_1731694583.txt"
+    "save_model": "SG_LSTM_128*2_fc_2_seo_1731694626",
+    "log_file": "./logs/SG/SG_1731694626.txt"
 }

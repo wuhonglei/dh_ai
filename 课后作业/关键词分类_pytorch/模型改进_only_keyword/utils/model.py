@@ -29,3 +29,28 @@ def save_training_json(params: dict[str, int], path: str):
 def load_training_json(path: str) -> dict[str, int]:
     with open(path, "r") as f:
         return json.loads(f.read())
+
+
+class EarlyStopping:
+    def __init__(self, enable=True, patience=5, min_delta=0.001):
+        self.enable = enable
+        self.patience = patience
+        self.delta = min_delta
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+
+    def __call__(self, loss):
+        if not self.enable:
+            return False
+
+        if self.best_loss is None:
+            self.best_loss = loss
+        elif self.best_loss - loss > self.delta:
+            self.best_loss = loss
+            self.counter = 0
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+        return self.early_stop

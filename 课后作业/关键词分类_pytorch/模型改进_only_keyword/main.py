@@ -5,7 +5,7 @@ import time
 from shutdown import shutdown
 
 countries_info = [
-    {"country": "SG", "stopwords": "english"},
+    # {"country": "SG", "stopwords": "english"},
     {"country": "MY", "stopwords": "english"},
     {"country": "TH", "stopwords": "english"},
     {"country": "TW", "stopwords": "chinese"},
@@ -37,7 +37,7 @@ for info in countries_info:
     keyname = 'Keyword'
     category_name = 'Category'
     sub_category_name = 'imp_level1_category_1d'
-    data = df.dropna(subset=[keyname, category_name, sub_category_name]).drop_duplicates(
+    data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
     # data = custom_filter(data, category_name, country)
     X = data[keyname]

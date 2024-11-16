@@ -195,41 +195,41 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(
         X.tolist(), y.tolist(), test_size=0.05, random_state=0)
 
-    train_dataset = KeywordCategoriesDataset(
-        X_train, y_train, country)
-    test_dataset = KeywordCategoriesDataset(
-        X_test, y_test, country)
+    # train_dataset = KeywordCategoriesDataset(
+    #     X_train, y_train, country)
+    # test_dataset = KeywordCategoriesDataset(
+    #     X_test, y_test, country)
 
-    train_vocab = build_vocab(train_dataset)
-    test_vocab = build_vocab(test_dataset)
+    # train_vocab = build_vocab(train_dataset)
+    # test_vocab = build_vocab(test_dataset)
 
-    train_vocab_words = set(train_vocab.keys())
-    test_vocab_words = set(test_vocab.keys())
+    # train_vocab_words = set(train_vocab.keys())
+    # test_vocab_words = set(test_vocab.keys())
 
-    with open(f"./vocab/{country}/train_vocab.txt", "w") as f:
-        f.write('\n'.join(train_vocab_words))
+    # with open(f"./vocab/{country}/train_vocab.txt", "w") as f:
+    #     f.write('\n'.join(train_vocab_words))
 
-    with open(f"./vocab/{country}/test_vocab.txt", "w") as f:
-        f.write('\n'.join(test_vocab_words))
+    # with open(f"./vocab/{country}/test_vocab.txt", "w") as f:
+    #     f.write('\n'.join(test_vocab_words))
 
-    def read_vocab(vocab_path):
-        with open(vocab_path, 'r') as f:
-            return f.readlines()
+    # def read_vocab(vocab_path):
+    #     with open(vocab_path, 'r') as f:
+    #         return f.readlines()
 
-    def write_vocab(vocab_path, words):
-        with open(vocab_path, 'w') as f:
-            f.writelines(words)
+    # def write_vocab(vocab_path, words):
+    #     with open(vocab_path, 'w') as f:
+    #         f.writelines(words)
 
-    # 分析训练集和测试集的分词结果的差异
-    train_vocab_path = f'./vocab/{country}/train_vocab.txt'
-    test_vocab_path = f'./vocab/{country}/test_vocab.txt'
+    # # 分析训练集和测试集的分词结果的差异
+    # train_vocab_path = f'./vocab/{country}/train_vocab.txt'
+    # test_vocab_path = f'./vocab/{country}/test_vocab.txt'
 
-    train_words = read_vocab(train_vocab_path)
-    test_words = read_vocab(test_vocab_path)
-    train_words, test_words = set(train_words), set(test_words)
-    print(f'训练集词汇量: {len(train_words)}')
-    print(f'测试集词汇量: {len(test_words)}')
-    print(f'测试集和训练集词汇量差异: {len(test_words - train_words)}')
-    print(f'测试集和训练集词汇量差异: {(test_words - train_words)}')
-    write_vocab(f'./vocab/{country}/test_train_diff_vocab.txt',
-                test_words - train_words)
+    # train_words = read_vocab(train_vocab_path)
+    # test_words = read_vocab(test_vocab_path)
+    # train_words, test_words = set(train_words), set(test_words)
+    # print(f'训练集词汇量: {len(train_words)}')
+    # print(f'测试集词汇量: {len(test_words)}')
+    # print(f'测试集和训练集词汇量差异: {len(test_words - train_words)}')
+    # print(f'测试集和训练集词汇量差异: {(test_words - train_words)}')
+    # write_vocab(f'./vocab/{country}/test_train_diff_vocab.txt',
+    #             test_words - train_words)

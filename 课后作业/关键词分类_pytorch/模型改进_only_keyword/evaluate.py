@@ -31,6 +31,7 @@ for info in countries_info:
         continue
     df = get_df_from_csv(f"./data/csv/sg.csv", use_cache=True)
     keyname = 'Keyword'
+    sub_category_name = 'imp_level1_category_1d'
     category_name = 'Category'
     data = df.dropna(subset=[keyname, category_name]).drop_duplicates(
         subset=[keyname], keep='first').reset_index(drop=True)  # type: ignore
@@ -39,14 +40,15 @@ for info in countries_info:
 
     X = data[keyname]
     y = data[category_name]
+    sub_y = data[sub_category_name]
 
     dataset = KeywordCategoriesDataset(
-        X.tolist(), y.tolist(), country, use_cache=True)
+        X.tolist(), sub_y, y.tolist(), country, use_cache=True)
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
 
-    vocab, _ = get_vocab(train_dataset, country, use_cache=True)
+    vocab, _ = get_vocab(train_dataset, country, 10, use_cache=True)
 
     # 回调函数，用于不同长度的文本进行填充
     def collate(batch): return collate_batch(batch, vocab)
@@ -66,10 +68,10 @@ for info in countries_info:
 
     # 定义模型
     model = KeywordCategoryModel(
-        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['num_classes'], train_args['padding_idx'])
+        train_args['vocab_size'], train_args['embed_dim'], train_args['hidden_size'], train_args['sub_category'], train_args['num_classes'], train_args['padding_idx'])
     model.load_state_dict(torch.load(
         f"./models/weights/{train_args['save_model']}_final.pth", map_location=DEVICE, weights_only=True))
     model.to(DEVICE)
 
-    acc = evaluate(dataloader, model)
+    acc, _ = evaluate(dataloader, model)
     print(f"Accuracy: {acc}")
