@@ -50,7 +50,7 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
-        "num_epochs": 1,
+        "num_epochs": 20,
         "min_freq": min_freq,
         "learning_rate": 0.01,  # type: ignore
         'batch_size': 2048,
