@@ -4,7 +4,7 @@ import numpy as np
 import json
 import os
 from sklearn.utils.class_weight import compute_class_weight
-from common import make_dir
+from .common import make_dir
 
 
 def get_class_weights(labels: list[str]) -> torch.Tensor:
