@@ -59,6 +59,5 @@ class EarlyStopping:
 
 
 def save_model(model_path: str, model: nn.Module):
-    base_dir = os.path.dirname(model_path)
-    make_dir(base_dir)
+    make_dir(model_path)
     torch.save(model.state_dict(), model_path)

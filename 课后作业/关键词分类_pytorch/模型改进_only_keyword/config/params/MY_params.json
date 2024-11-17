@@ -11,10 +11,11 @@
     "vocab_cache": "./cache/vocab/MY_vocab_31354_f18de9384db8684c5c96b839383adc3d_10.json",
     "sub_category": 45,
     "save_checkpoint": false,
-    "log_file": "./logs/MY/MY_1731745402.txt",
+    "save_model": "MY_LSTM_128*2_fc_2_seo_1731766298",
+    "log_file": "./logs/MY/MY_1731766298.txt",
     "early_stopping": {
-        "enable": true,
-        "patience": 3,
+        "enable": false,
+        "patience": 5,
         "min_delta": 0.001
     }
 }

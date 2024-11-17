@@ -11,10 +11,11 @@
     "vocab_cache": "./cache/vocab/TH_vocab_36603_dc81562acda9a2073d477e9a813bcc6c_10.json",
     "sub_category": 45,
     "save_checkpoint": false,
-    "log_file": "./logs/TH/TH_1731745402.txt",
+    "save_model": "TH_LSTM_128*2_fc_2_seo_1731772898",
+    "log_file": "./logs/TH/TH_1731772898.txt",
     "early_stopping": {
-        "enable": true,
-        "patience": 3,
+        "enable": false,
+        "patience": 5,
         "min_delta": 0.001
     }
 }
