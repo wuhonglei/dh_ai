@@ -27,7 +27,7 @@ class KeywordCategories:
         # Step1 > Get gsheet raw data
         # raw_data = get_gsheet_df("Result-" + self.country)
         raw_data = get_df_from_csv(
-            f'./data/result/{self.country.lower()}.csv')
+            f'./data/csv/{self.country.lower()}.csv')
         # 去重
         # raw_data = raw_data.drop_duplicates(
         #     subset=['Keyword'], keep='first').reset_index(drop=True)
