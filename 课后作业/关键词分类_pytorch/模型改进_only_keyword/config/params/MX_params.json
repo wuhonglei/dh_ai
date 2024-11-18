@@ -11,10 +11,11 @@
     "vocab_cache": "./cache/vocab/MX_vocab_20458_93ec4fd1df2985a983cf705455b43f5c_10.json",
     "sub_category": 38,
     "save_checkpoint": false,
-    "log_file": "./logs/MX/MX_1731745402.txt",
+    "save_model": "MX_LSTM_128*2_fc_2_seo_1731850011",
+    "log_file": "./logs/MX/MX_1731850011.txt",
     "early_stopping": {
-        "enable": true,
-        "patience": 3,
+        "enable": false,
+        "patience": 5,
         "min_delta": 0.001
     }
 }

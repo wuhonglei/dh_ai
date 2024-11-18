@@ -11,10 +11,11 @@
     "vocab_cache": "./cache/vocab/PH_vocab_60558_f79c79e1746de795cc3896da61353be2_10.json",
     "sub_category": 53,
     "save_checkpoint": false,
-    "log_file": "./logs/PH/PH_1731745402.txt",
+    "save_model": "PH_LSTM_128*2_fc_2_seo_1731850011",
+    "log_file": "./logs/PH/PH_1731850011.txt",
     "early_stopping": {
-        "enable": true,
-        "patience": 3,
+        "enable": false,
+        "patience": 5,
         "min_delta": 0.001
     }
 }

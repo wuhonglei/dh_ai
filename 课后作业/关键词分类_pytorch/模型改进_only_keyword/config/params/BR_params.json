@@ -11,10 +11,11 @@
     "vocab_cache": "./cache/vocab/BR_vocab_41036_a6a1adfa7864ff83cfde81fa8962618d_10.json",
     "sub_category": 44,
     "save_checkpoint": false,
-    "log_file": "./logs/BR/BR_1731745402.txt",
+    "save_model": "BR_LSTM_128*2_fc_2_seo_1731850011",
+    "log_file": "./logs/BR/BR_1731850011.txt",
     "early_stopping": {
-        "enable": true,
-        "patience": 3,
+        "enable": false,
+        "patience": 5,
         "min_delta": 0.001
     }
 }
