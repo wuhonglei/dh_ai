@@ -18,7 +18,7 @@ def scaled_dot_product_attention(Q, K, V, mask=None):
     scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
 
     if mask is not None:
-        scores = scores.masked_fill(mask == 0, -1e9)
+        scores = scores.masked_fill(mask == 1, -1e9)
 
     attn = F.softmax(scores, dim=-1)
     output = torch.matmul(attn, V)  # [batch_size, num_heads, seq_len, d_k]
