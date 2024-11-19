@@ -12,16 +12,16 @@ from evaluate import translate_sentence
 from utils.model import save_model
 from shutdown import shutdown
 
-train_dataset = TranslateDataset('./csv/train.csv', use_cache=True)
-valid_dataset = TranslateDataset('./csv/validation.csv', use_cache=True)
-test_dataset = TranslateDataset('./csv/test.csv', use_cache=True)
+train_dataset = TranslateDataset('./csv/train.csv', use_cache=False)
+valid_dataset = TranslateDataset('./csv/validation.csv', use_cache=False)
+test_dataset = TranslateDataset('./csv/test.csv', use_cache=False)
 
 
 def collate(batch): return collate_fn(batch, src_vocab, target_vocab)
 
 
 batch_size = 32
-src_vocab, target_vocab = build_vocab(train_dataset)
+src_vocab, target_vocab = build_vocab(train_dataset, use_cache=False)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                           collate_fn=collate)
 valid_loader = DataLoader(valid_dataset, batch_size=batch_size,
@@ -41,7 +41,7 @@ num_layers = 6
 num_heads = 8
 d_ff = 2048
 dropout = 0.1
-num_epochs = 5
+num_epochs = 3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 创建模型

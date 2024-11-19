@@ -44,8 +44,7 @@ class TranslateDataset(Dataset):
             return
 
         df = pd.read_csv(csv_path, sep="\t")
-        self.src = df['en'].apply(
-            lambda x: ['<sos>'] + split_token(x) + ['<eos>'])
+        self.src = df['en'].apply(lambda x: split_token(x))
         self.target = df['zh'].apply(
             lambda x: ['<sos>'] + split_token(x) + ['<eos>'])
 
