@@ -20,7 +20,7 @@ def collate(batch): return collate_fn(batch, src_vocab, target_vocab)
 
 
 src_vocab, target_vocab = build_vocab(train_dataset)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True,
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True,
                           collate_fn=collate)
 valid_loader = DataLoader(valid_dataset, batch_size=32,
                           shuffle=False, collate_fn=collate)  # 验证集和测试集不需要shuffle
@@ -39,7 +39,6 @@ num_layers = 6
 num_heads = 8
 d_ff = 2048
 dropout = 0.1
-teacher_force_ratio = 0.5
 num_epochs = 1
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -79,5 +78,7 @@ for epoch in epoch_progress:
         batch_progress.set_postfix(loss=loss.item())
 
     test_translate(model, src_vocab, target_vocab)
+    if num_epochs > 1:
+        save_model(model, f'./models/transformer_{epoch + 1}.pth')
 
 save_model(model, './models/transformer.pth')
