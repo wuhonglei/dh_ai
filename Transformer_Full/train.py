@@ -19,12 +19,13 @@ test_dataset = TranslateDataset('./csv/test.csv', use_cache=True)
 def collate(batch): return collate_fn(batch, src_vocab, target_vocab)
 
 
+batch_size = 16
 src_vocab, target_vocab = build_vocab(train_dataset)
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True,
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                           collate_fn=collate)
-valid_loader = DataLoader(valid_dataset, batch_size=32,
+valid_loader = DataLoader(valid_dataset, batch_size=batch_size,
                           shuffle=False, collate_fn=collate)  # 验证集和测试集不需要shuffle
-test_loader = DataLoader(test_dataset, batch_size=32,
+test_loader = DataLoader(test_dataset, batch_size=batch_size,
                          shuffle=False, collate_fn=collate)
 
 
