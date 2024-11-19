@@ -22,7 +22,7 @@ class MultiHeadAttention(nn.Module):
     def forward(self, Q, K, V, mask=None):
         batch_size = Q.size(0)
 
-        # 线性变换并拆分为多头
+        # 线性变换并拆分为多头 [batch_size, num_heads, seq_len, d_k]
         Q = self.W_Q(Q).view(batch_size, -1, self.num_heads,
                              self.d_k).transpose(1, 2)
         K = self.W_K(K).view(batch_size, -1, self.num_heads,
@@ -30,14 +30,14 @@ class MultiHeadAttention(nn.Module):
         V = self.W_V(V).view(batch_size, -1, self.num_heads,
                              self.d_k).transpose(1, 2)
 
-        # 计算注意力
+        # 计算注意力 [batch_size, num_heads, seq_len, d_k]
         attn_output, attn = scaled_dot_product_attention(Q, K, V, mask=mask)
 
-        # 拼接多头
+        # 拼接多头 [batch_size, seq_len, d_model]
         attn_output = attn_output.transpose(
             1, 2).contiguous().view(batch_size, -1, self.d_model)
 
-        # 通过最终的线性层
+        # 通过最终的线性层 [batch_size, seq_len, d_model]
         output = self.W_O(attn_output)
         output = self.dropout(output)
         return output
