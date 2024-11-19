@@ -16,9 +16,11 @@ class Transformer(nn.Module):
                                num_layers, num_heads, d_ff, dropout)
 
     def forward(self, src, tgt, src_mask=None, tgt_mask=None):
-        memory = self.encoder(src, src_mask)  # 编码器输出
-        output = self.decoder(tgt, memory, tgt_mask, src_mask)  # 解码器输出
-        return output  # [batch_size, tgt_seq_len, tgt_vocab_size]
+        # 编码器输出 [batch_size, src_seq_len, d_model]
+        memory = self.encoder(src, src_mask)
+        # 解码器输出 [batch_size, tgt_seq_len, tgt_vocab_size]
+        output = self.decoder(tgt, memory, tgt_mask, src_mask)
+        return output
 
 
 if __name__ == "__main__":
