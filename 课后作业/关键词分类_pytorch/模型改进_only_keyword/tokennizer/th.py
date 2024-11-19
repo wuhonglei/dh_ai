@@ -1,10 +1,12 @@
-from pythainlp.corpus.common import thai_stopwords
-from pythainlp.tokenize import word_tokenize as th_word_tokenize  # 泰文分词
+# from pythainlp.corpus.common import thai_stopwords
+# from pythainlp.tokenize import word_tokenize as th_word_tokenize  # 泰文分词
 import re
-from .utils import get_stop_words
+from .utils import get_stop_words, split_graphemes
 
 
 def tokenize_th(text: str) -> list[str]:
+    return split_graphemes(text)
+
     stop_word_list = set(list(thai_stopwords()) +
                          get_stop_words('./stopwords/common.txt'))
 

@@ -5,11 +5,11 @@ import time
 from shutdown import shutdown
 
 countries_info = [
-    # {"country": "SG", "stopwords": "english"},
-    # {"country": "MY", "stopwords": "english"},
-    # {"country": "TH", "stopwords": "english"},
-    # {"country": "TW", "stopwords": "chinese"},
-    # {"country": "VN", "stopwords": "english"},
+    {"country": "SG", "stopwords": "english"},
+    {"country": "MY", "stopwords": "english"},
+    {"country": "TH", "stopwords": "english"},
+    {"country": "TW", "stopwords": "chinese"},
+    {"country": "VN", "stopwords": "english"},
     {"country": "ID", "stopwords": "english"},
     {"country": "PH", "stopwords": "english"},
     {"country": "BR", "stopwords": "spanish"},
@@ -30,8 +30,8 @@ data_list: list[dict] = []
 start_time = time.time()
 for info in countries_info:
     country = info["country"]
-    # if country != "TH":
-    #     continue
+    if country != "TH":
+        continue
     df = get_df_from_csv(
         f"./data/csv/{country.lower()}.csv", use_cache=True)
     keyname = 'Keyword'
@@ -45,4 +45,4 @@ for info in countries_info:
     sub_y = data[sub_category_name]
     train(X, sub_y, y, country)
 
-shutdown(10)
+# shutdown(10)

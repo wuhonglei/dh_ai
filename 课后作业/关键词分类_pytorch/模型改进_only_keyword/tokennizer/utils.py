@@ -1,5 +1,6 @@
 import os
 import re
+import regex
 
 
 def get_current_dir() -> str:
@@ -69,3 +70,8 @@ def is_float(text: str) -> bool:
     判断 text 是否为浮点数
     """
     return bool(re.match(r'^\d+\.\d+$', text))
+
+
+def split_graphemes(text: str) -> list[str]:
+    """ Split text into graphemes """
+    return regex.findall(r'\X', text)  # \X 表示完整的 Unicode Grapheme Cluster

@@ -12,7 +12,7 @@ from collections import Counter
 
 from tokennizer.sg import tokenize_sg
 # from tokennizer.my import tokenize_my
-# from tokennizer.th import tokenize_th
+from tokennizer.th import tokenize_th
 # from tokennizer.tw import tokenize_tw
 
 from utils.common import exists_cache, save_cache, load_cache, get_file_state, calculate_md5, save_json, load_json, get_labels_from_list
@@ -22,7 +22,7 @@ from typing import Sequence, Tuple
 token_dict = {
     'SG': tokenize_sg,
     # 'MY': tokenize_my,
-    # 'TH': tokenize_th,
+    'TH': tokenize_th,
     # 'TW': tokenize_tw,
 }
 

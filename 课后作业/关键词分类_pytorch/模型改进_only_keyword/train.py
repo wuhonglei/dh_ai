@@ -21,12 +21,12 @@ unix_time = int(time.time())
 
 def train(X: Series, sub_category: Series, y: Series, country: str, ):
     dataset = KeywordCategoriesDataset(
-        X.tolist(), sub_category, y.tolist(), country, use_cache=False)
+        X.tolist(), sub_category, y.tolist(), country, use_cache=True)
 
     # 使用 train_test_split 将数据划分为训练集和测试集
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.05, random_state=42)
-    min_freq = 10
+    min_freq = 100
     vocab, vocab_cache = get_vocab(
         train_dataset, country, min_freq, use_cache=False)
 
@@ -46,7 +46,7 @@ def train(X: Series, sub_category: Series, y: Series, country: str, ):
                           else 'cpu')
     train_args = {
         "vocab_size": len(vocab),
-        "embed_dim": len(vocab) // 2,
+        "embed_dim": 60,
         "hidden_size": 128,
         "num_classes": len(dataset.label2index),
         "padding_idx": vocab['<PAD>'],
