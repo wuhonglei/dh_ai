@@ -17,7 +17,7 @@ class Seq2Seq(nn.Module):
         src: [batch_size, seq_len]
         trg: [batch_size, seq_len]
         """
-        batch_size = src.shape[0]
+        batch_size = trg.shape[0]
         trg_len = trg.shape[1]
         trg_vocab_size = self.decoder.output_size
 

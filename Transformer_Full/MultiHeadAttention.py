@@ -1,5 +1,5 @@
 import torch.nn as nn
-from util import scaled_dot_product_attention
+from utils.model import scaled_dot_product_attention
 
 
 class MultiHeadAttention(nn.Module):

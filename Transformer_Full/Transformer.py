@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from Encoder import Encoder
 from Decoder import Decoder
-from util import create_pad_mask, create_subsequent_mask
+from utils.model import create_pad_mask, create_subsequent_mask
 
 
 class Transformer(nn.Module):
