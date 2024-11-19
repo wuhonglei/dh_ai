@@ -10,6 +10,7 @@ from tqdm import tqdm
 from dataset import TranslateDataset, build_vocab, collate_fn
 from evaluate import test_translate
 from utils.model import save_model
+from shutdown import shutdown
 
 train_dataset = TranslateDataset('./csv/train.csv', use_cache=True)
 valid_dataset = TranslateDataset('./csv/validation.csv', use_cache=True)
@@ -40,7 +41,7 @@ num_layers = 6
 num_heads = 8
 d_ff = 2048
 dropout = 0.1
-num_epochs = 1
+num_epochs = 5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 创建模型
@@ -83,3 +84,4 @@ for epoch in epoch_progress:
         save_model(model, f'./models/transformer_{epoch + 1}.pth')
 
 save_model(model, './models/transformer.pth')
+shutdown(10)
