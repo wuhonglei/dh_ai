@@ -82,7 +82,7 @@ def collate_fn(batch, src_vocab, target_vocab):
     src = list()
     target = list()
     for src_sample, target_sample in batch:
-        src_tokens = [src_vocab[token]for token in src_sample]
+        src_tokens = [src_vocab[token] for token in src_sample]
         target_tokens = [target_vocab[token] for token in target_sample]
 
         src.append(torch.LongTensor(src_tokens))
