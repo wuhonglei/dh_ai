@@ -3,11 +3,10 @@ import torch.nn as nn
 from dataset import split_token
 
 
-def test_translate(model, src_vocab, trg_vocab):
+def test_translate(model, src_vocab, trg_vocab, device):
     # 函数传入模型model和src_vocab与trg_vocab两个词表
 
     model.eval()
-    device = model.device
     sample = "<sos> I like math . <eos>"  # 定义一个测试样本
     src_tokens = split_token(sample)  # 分词结果
     src_index = [src_vocab[token] for token in src_tokens]  # 通过词表转为词语的索引
@@ -20,7 +19,7 @@ def test_translate(model, src_vocab, trg_vocab):
     trg_tensor = torch.LongTensor(trg_index).view(1, -1).to(device)
 
     # 使用model预测翻译结果
-    predict = model(src_tensor, trg_tensor, 0.0)
+    predict = model(src_tensor, trg_tensor)
     predict = torch.argmax(predict.squeeze(0), dim=1).cpu()
     predict = predict[1:]
     # 将预测结果转为词语序列

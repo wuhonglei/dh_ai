@@ -79,7 +79,7 @@ for epoch in epoch_progress:
 
         batch_progress.set_postfix(loss=loss.item())
 
-    test_translate(model, src_vocab, target_vocab)
+    test_translate(model, src_vocab, target_vocab, device)
     if num_epochs > 1:
         save_model(model, f'./models/transformer_{epoch + 1}.pth')
 
