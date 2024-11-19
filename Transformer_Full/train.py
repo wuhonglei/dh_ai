@@ -9,6 +9,7 @@ import torch.optim as optim
 from tqdm import tqdm
 from dataset import TranslateDataset, build_vocab, collate_fn
 from evaluate import test_translate
+from utils.model import save_model
 
 train_dataset = TranslateDataset('./csv/train.csv', use_cache=True)
 valid_dataset = TranslateDataset('./csv/validation.csv', use_cache=True)
@@ -45,6 +46,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # 创建模型
 model = Transformer(src_vocab_size, tgt_vocab_size,
                     d_model, num_layers, num_heads, d_ff, dropout)
+model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss(ignore_index=pad_idx)
 epoch_progress = tqdm(range(num_epochs), leave=True)
@@ -58,9 +60,12 @@ for epoch in epoch_progress:
 
         b_src = b_src.to(device)
         b_target = b_target.to(device)
+        src_mask = src_mask.to(device)
+        tgt_mask = tgt_mask.to(device)
 
         # 前向传播
-        output = model(b_src, b_target[:, :-1], src_mask, tgt_mask)
+        output = model(b_src, b_target[:, :-1],
+                       src_mask, tgt_mask[:, :, :-1, :-1])
         output_dim = output.shape[-1]
         output = output.contiguous().view(-1, output_dim)
         b_target = b_target[:, 1:].contiguous().view(-1)
@@ -75,4 +80,4 @@ for epoch in epoch_progress:
 
     test_translate(model, src_vocab, target_vocab)
 
-torch.save(model.state_dict(), './models/transformer.pth')
+save_model(model, './models/transformer.pth')

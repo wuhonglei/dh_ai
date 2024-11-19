@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 import json
-import os
 from sklearn.utils.class_weight import compute_class_weight
 from .common import make_dir
+import torch.nn.functional as F
+import math
 
 
 def get_class_weights(labels: list[str]) -> torch.Tensor:
@@ -58,7 +59,7 @@ class EarlyStopping:
         return self.early_stop
 
 
-def save_model(model_path: str, model: nn.Module):
+def save_model(model: nn.Module, model_path: str):
     make_dir(model_path)
     torch.save(model.state_dict(), model_path)
 

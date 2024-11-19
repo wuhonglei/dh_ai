@@ -41,6 +41,7 @@ class TranslateDataset(Dataset):
         cache_name = f'./cache/csv/{get_file_name(csv_path)}.pkl'
         if use_cache and exists_cache(cache_name):
             self.src, self.target = load_cache(cache_name)
+            return
 
         df = pd.read_csv(csv_path, sep="\t")
         self.src = df['en'].apply(
@@ -72,6 +73,9 @@ def build_vocab_from_list(word_list: list[str]):
 
 
 def build_vocab(dataset: TranslateDataset, use_cache=True):
+    cache_name = f'./cache/vocab/{len(dataset)}.pkl'
+    if use_cache and exists_cache(cache_name):
+        return load_cache(cache_name)
 
     src_word_list = []
     target_word_list = []
@@ -81,6 +85,7 @@ def build_vocab(dataset: TranslateDataset, use_cache=True):
 
     src_vocab = build_vocab_from_list(src_word_list)
     target_vocab = build_vocab_from_list(target_word_list)
+    save_cache(cache_name, (src_vocab, target_vocab))
 
     return src_vocab, target_vocab
 
@@ -107,8 +112,8 @@ def collate_fn(batch, src_vocab, target_vocab):
 
     # 创建掩码
     # [batch_size, 1, 1, src_seq_len]
-    src_mask = create_pad_mask(src_batch, src_pad_index)
-    tgt_pad_mask = create_pad_mask(target, tgt_pad_index)
+    src_mask = create_pad_mask(src_batch, src_pad_index).to(device)
+    tgt_pad_mask = create_pad_mask(target_batch, tgt_pad_index).to(device)
     tgt_sub_mask = create_subsequent_mask(target_batch.size(1)).to(
         device)  # [tgt_seq_len, tgt_seq_len]
     tgt_mask = tgt_pad_mask & tgt_sub_mask.unsqueeze(0)  # 合并掩码
