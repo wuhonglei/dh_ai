@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from tqdm import tqdm
 from dataset import TranslateDataset, build_vocab, collate_fn
-from evaluate import test_translate
+from evaluate import translate_sentence
 from utils.model import save_model
 from shutdown import shutdown
 
@@ -20,7 +20,7 @@ test_dataset = TranslateDataset('./csv/test.csv', use_cache=True)
 def collate(batch): return collate_fn(batch, src_vocab, target_vocab)
 
 
-batch_size = 16
+batch_size = 32
 src_vocab, target_vocab = build_vocab(train_dataset)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                           collate_fn=collate)
@@ -79,7 +79,10 @@ for epoch in epoch_progress:
 
         batch_progress.set_postfix(loss=loss.item())
 
-    test_translate(model, src_vocab, target_vocab, device)
+    src_sentence = 'i like math .'
+    translated = translate_sentence(
+        model, src_sentence, src_vocab, target_vocab, device)
+    print(f'src: {src_sentence}, tgt: {translated}')
     if num_epochs > 1:
         save_model(model, f'./models/transformer_{epoch + 1}.pth')
 
