@@ -1,6 +1,7 @@
 data/test
 data/train
 data/多位验证码
+data/固定 2 位/
 data/train-3363-stable-new
 mnist/
 models/

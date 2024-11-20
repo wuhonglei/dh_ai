@@ -42,8 +42,8 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, in
         with torch.no_grad():
             output = model(imgs)
 
-        predict = output.argmax(dim=2, keepdim=True)
-        correct += (predict == labels.view_as(predict)).all(dim=1).sum().item()
+        predict = output.argmax(dim=-1)
+        correct += (predict == labels).all(dim=-1).sum().item()
         total += labels.size(0)
 
         # output: (batch_size, captcha_length, class_num)

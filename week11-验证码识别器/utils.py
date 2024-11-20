@@ -23,7 +23,7 @@ def load_config(config_file='./config.yaml'):
     :param config_file: 配置文件路径
     :return: 配置
     """
-    with open('config.yaml', 'r') as file:
+    with open(config_file, 'r') as file:
         config = yaml.safe_load(file)
     return config
 
@@ -31,7 +31,7 @@ def load_config(config_file='./config.yaml'):
 def get_wandb_config(captcha_length: int):
     config = load_config()
     wandb_init_args = {
-        'project': f'{config["name"]}-字符长度 {captcha_length}',
+        'project': f'{config["name"]}-字符长度 {captcha_length}_{config["dataset"]["characters"]}',
         'config': {
             "learning_rate": config['training']['learning_rate'],
             "architecture": f"{config['model']['type']}-{config['model']['layers']}",
@@ -89,7 +89,7 @@ def get_len_range(captcha_length) -> tuple[int, int]:
     :return: 长度范围
 
     >>> get_len_range('1-5') == [1, 5]
-    >>> get_len_range(4) == [4, 4]
+    >>> get_len_range(4) == [4, 4 + 1]
     """
 
     captcha_length = str(captcha_length)
@@ -97,4 +97,31 @@ def get_len_range(captcha_length) -> tuple[int, int]:
         return (int(captcha_length), 1 + int(captcha_length))
     else:
         start, end = captcha_length.split('-')
-        return (int(start), 1 + int(end))
+        return (int(start), int(end) + 1)
+
+
+class EarlyStopping:
+    """ 早停策略 """
+
+    def __init__(self, enable=True, patience=5, min_delta=0.0001):
+        self.enable = enable
+        self.patience = patience
+        self.delta = min_delta
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+
+    def __call__(self, loss):
+        if not self.enable:
+            return False
+
+        if self.best_loss is None:
+            self.best_loss = loss
+        elif self.best_loss - loss > self.delta:
+            self.best_loss = loss
+            self.counter = 0
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+        return self.early_stop
