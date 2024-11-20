@@ -17,7 +17,7 @@ model:
   type: "CNN"
   layers: 5
   activation: "relu"
-  width: 200
+  width: 96
   height: 96
 
 training:
