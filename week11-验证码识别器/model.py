@@ -4,36 +4,37 @@ import torch.nn as nn
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from utils import load_config
 
 
 class CNNModel(nn.Module):
-    def __init__(self, input_size, captcha_length, class_num):
+    def __init__(self, width, height, captcha_length, class_num):
         super(CNNModel, self).__init__()
-        if isinstance(input_size, int):
-            self.height = input_size
-            self.width = input_size
-        else:
-            self.height, self.width = input_size
+        self.width = width
+        self.height = height
         self.captcha_length = captcha_length
         self.class_num = class_num
 
+        assert self.height % 8 == 0, 'height must be a multiple of 8'
+        assert self.width % 8 == 0, 'width must be a multiple of 8'
+
         """
-        Conv2d: 1 * 96 * 96 -> 32 * 96 * 96 -> 32 * 48 * 48
+        Conv2d: 1 * height * width -> 32 * height * width -> 32 * height/2 * width/2
         """
         self.conv1 = nn.Sequential(
             nn.Conv2d(
                 in_channels=1,
                 out_channels=32,
-                kernel_size=3,
-                padding='same',
+                kernel_size=(5, 3),
                 stride=1,
+                padding='same',
             ),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
         )
 
         """
-        Conv2d: 32 * 48 * 48 -> 64 * 48 * 48 -> 64 * 24 * 24
+        Conv2d: 32 * height/2 * width/2 -> 64 * height/2 * width/2 -> 64 * height/4 * width/4
         """
         self.conv2 = nn.Sequential(
             nn.Conv2d(
@@ -48,7 +49,7 @@ class CNNModel(nn.Module):
         )
 
         """
-        Conv2d: 64 * 24 * 24 -> 64 * 24 * 24 -> 64 * 12 * 12
+        Conv2d: 64 * height/4 * width/4 -> 64 * height/4 * width/4 -> 64 * height/8 * width/8
         """
         self.conv3 = nn.Sequential(
             nn.Conv2d(
@@ -64,12 +65,10 @@ class CNNModel(nn.Module):
         )
 
         """
-        Linear: 64 * 12 * 12 -> 1024
+        Linear: 64 * height/8 * width/8 -> 1024
         """
-        width = self.width // 8
-        height = self.height // 8
         self.fc1 = nn.Sequential(
-            nn.Linear(64 * width * height, 1024),
+            nn.Linear(64 * (height // 8) * (width // 8), 1024),
             nn.ReLU(),
             nn.Dropout(0.5),
         )
@@ -83,6 +82,10 @@ class CNNModel(nn.Module):
 
     def forward(self, x):
         x = x.view(-1, 1, self.height, self.width)
+        input_height = x.size(2)
+        input_width = x.size(3)
+        # 1 * height * width
+        assert input_height == self.height and input_width == self.width, f'input size error: {x.size()}'
 
         x = self.conv1(x)
         x = self.conv2(x)
@@ -108,8 +111,11 @@ if __name__ == '__main__':
     from PIL import Image
     import matplotlib.pyplot as plt
     import torchvision.transforms.functional as F
+    config = load_config()
+    model_config = config['model']
 
-    model = CNNModel(input_size=96, captcha_length=2, class_num=10)
+    model = CNNModel(
+        width=model_config['width'], height=model_config['height'], captcha_length=2, class_num=10)
     # model.load_state_dict(torch.load(
     #     './models/1-model-stn.pth', weights_only=True, map_location='cpu'))
 
@@ -122,7 +128,7 @@ if __name__ == '__main__':
 
     def print_forward(model):
         import torch
-        x = torch.randn(1, 1, 96, 96)
+        x = torch.randn(1, 1, model_config['height'], model_config['width'])
         for name, module in model.named_children():
             if name == 'fc1':
                 x = nn.Flatten()(x)
@@ -211,7 +217,7 @@ if __name__ == '__main__':
             # visualize_layer_output(activation, ['conv1', 'conv2', 'conv3'])
             break
 
-    print(model)
-    print_parameters(model)
+    # print(model)
+    # print_parameters(model)
     print_forward(model)
     # display_feature_maps(model)

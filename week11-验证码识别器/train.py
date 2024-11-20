@@ -10,17 +10,17 @@ from tqdm import tqdm
 
 from model import CNNModel
 from dataset import CaptchaDataset
-from utils import get_wandb_config, EarlyStopping
+from utils import get_wandb_config, EarlyStopping, load_config
 from evaluate import evaluate_model
 
 
-def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, input_size: int, log: bool, early_stopping={}):
+def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, early_stopping={}):
     if log:
         wandb.init(**get_wandb_config(captcha_length), job_type='train')
 
     transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((input_size, input_size)),
+        transforms.Resize((width, height)),
         transforms.RandomRotation(10),
         transforms.ToTensor()
     ])
@@ -33,12 +33,13 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
-    model = CNNModel(input_size, captcha_length, class_num)
+    model = CNNModel(width, height, captcha_length, class_num)
     if pretrained and os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(  # type: ignore
+        model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(**early_stopping)
 
     epoch_progress = tqdm(range(epochs), desc='Epoch')
@@ -68,7 +69,7 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
             batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length, class_num, padding_index, input_size, characters)
+            test_dir, model, captcha_length, class_num, padding_index, width, height, characters)
         train_loss, train_accuracy = loss_sum / \
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))
@@ -99,5 +100,10 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
 
 
 if __name__ == '__main__':
-    train(train_dir='./data/train-3363-stable-new/train', test_dir='./data/train-3363-stable-new/test', characters='0123456789abcdefghijklmnopqrstuvwxyz', batch_size=64, pretrained=False,
-          epochs=10, captcha_length=4, class_num=37, padding_index="36",  model_path='./model/model-test.pth', learning_rate=0.001, input_size=96, log=False, early_stopping={})
+    config = load_config()
+    training_config = config['training']
+    testing_config = config['testing']
+    dataset_config = config['dataset']
+    model_config = config['model']
+    train(train_dir=training_config['train_dir'], test_dir=testing_config['test_dir'], characters=dataset_config['characters'], batch_size=64, pretrained=False,
+          epochs=10, captcha_length=dataset_config['captcha_length'], class_num=37, padding_index="36",  model_path='./model/model-test.pth', learning_rate=0.001, width=model_config['width'], height=model_config['height'], log=False, early_stopping={})

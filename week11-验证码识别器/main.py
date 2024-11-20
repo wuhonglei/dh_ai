@@ -3,6 +3,7 @@ from utils import load_config, get_max_length
 from generate import generate_captcha
 from train import train
 from evaluate import evaluate
+from shutdown import shutdown
 
 
 def main():
@@ -37,7 +38,8 @@ def main():
           characters=dataset_config['characters'],
           pretrained=training_config['pretrained'],
           learning_rate=training_config['learning_rate'],
-          input_size=model_config['input_size'],
+          width=model_config['width'],
+          height=model_config['height'],
           model_path=model_path,
           log=training_config['log'],
           early_stopping=config['early_stopping'],
@@ -45,7 +47,8 @@ def main():
 
     evaluate(data_dir=testing_config['test_dir'],
              model_path=model_path,
-             input_size=model_config['input_size'],
+             width=model_config['width'],
+             height=model_config['height'],
              captcha_length=captcha_length,
              class_num=class_num,
              padding_index=padding_index,
@@ -55,3 +58,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # shutdown(10)

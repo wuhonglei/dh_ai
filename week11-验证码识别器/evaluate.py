@@ -8,18 +8,18 @@ from model import CNNModel
 from dataset import CaptchaDataset
 
 
-def evaluate(data_dir, model_path, captcha_length: int, class_num, padding_index, input_size, characters):
-    model = CNNModel(input_size, captcha_length, class_num)
+def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str):
+    model = CNNModel(width, height, captcha_length, class_num)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     model.to(device)
-    return evaluate_model(data_dir, model, captcha_length, class_num, padding_index, input_size, characters)
+    return evaluate_model(data_dir, model, captcha_length, class_num, padding_index, width, height, characters)
 
 
-def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, input_size, characters):
+def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, width, height, characters):
     transform = transforms.Compose([
-        transforms.Resize((input_size, input_size)),
+        transforms.Resize((width, height)),
         transforms.Grayscale(num_output_channels=1),
         transforms.ToTensor()
     ])
@@ -63,6 +63,6 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, in
 if __name__ == '__main__':
     test_loss, test_accuracy = evaluate(data_dir='./data/train-3363-stable-new/test', model_path='./models/model.pth',
                                         characters='0123456789abcdefghijklmnopqrstuvwxyz',
-                                        captcha_length=6, class_num=37, padding_index='36', input_size=96)
+                                        captcha_length=6, class_num=37, padding_index='36', width=96, height=32)
 
     print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}')

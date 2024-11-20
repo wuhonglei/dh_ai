@@ -1,7 +1,7 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: True # 是否生成新的图片
+  generate: False # 是否生成新的图片
   remove: True # 是否删除原有数据
   train_total: 5000
   test_total: 500
@@ -17,14 +17,15 @@ model:
   type: "CNN"
   layers: 5
   activation: "relu"
-  input_size: 96 # 输入图片 Resize 后的大小(宽度, 高度)
+  width: 200
+  height: 96
 
 training:
   train_dir: "data/固定 2 位/数字 0-9a-z/train"
   batch_size: 1024
   learning_rate: 0.001
   epochs: 500
-  log: False # 是否记录训练日志
+  log: True # 是否记录训练日志
   pretrained: False # 是否加载预训练模型
   model_path: "./models/model.pth"
 
@@ -33,6 +34,6 @@ testing:
   model_path: "./models/model.pth"
 
 early_stopping:
-  enable: False
+  enable: True
   patience: 50
   min_delta: 0.0001
