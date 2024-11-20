@@ -1,17 +1,17 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: False # 是否生成新的图片
+  generate: True # 是否生成新的图片
   remove: True # 是否删除原有数据
   train_total: 5000
   test_total: 500
   captcha_length: 2
   width: 200
   height: 100
-  train_dir: "data/train"
-  test_dir: "data/test"
-  characters: "0123456789"
-  padding_index: "10" # 验证码长度不足时填充的数字索引, 需使用 characters 后一位
+  train_dir: "data/固定 2 位/数字 0-9a-z/train"
+  test_dir: "data/固定 2 位/数字 0-9a-z/test"
+  characters: "0123456789abcdefghijklmnopqrstuvwxyz"
+  padding_index: "36" # 验证码长度不足时填充的数字索引, 需使用 characters 的长度作为索引
 
 model:
   type: "CNN"
@@ -20,7 +20,7 @@ model:
   input_size: 96 # 输入图片 Resize 后的大小(宽度, 高度)
 
 training:
-  train_dir: "data/固定 2 位/数字 0-9/train"
+  train_dir: "data/固定 2 位/数字 0-9a-z/train"
   batch_size: 1024
   learning_rate: 0.001
   epochs: 500
@@ -29,7 +29,7 @@ training:
   model_path: "./models/model.pth"
 
 testing:
-  test_dir: "data/固定 2 位/数字 0-9/test"
+  test_dir: "data/固定 2 位/数字 0-9a-z/test"
   model_path: "./models/model.pth"
 
 early_stopping:

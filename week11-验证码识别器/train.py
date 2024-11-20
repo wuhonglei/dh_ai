@@ -6,13 +6,12 @@ import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import wandb
+from tqdm import tqdm
 
 from model import CNNModel
 from dataset import CaptchaDataset
 from utils import get_wandb_config, EarlyStopping
 from evaluate import evaluate_model
-
-wandb.require("core")
 
 
 def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, input_size: int, log: bool, early_stopping={}):
@@ -42,12 +41,15 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(**early_stopping)
 
-    for epoch in range(epochs):
+    epoch_progress = tqdm(range(epochs), desc='Epoch')
+    for epoch in epoch_progress:
         loss_sum = 0.0
         acc_sum = 0.0
         start_time = time.time()
         model.train()
-        for batch_ids, (imgs, labels) in enumerate(train_loader):
+        batch_progress = tqdm(enumerate(train_loader),
+                              desc='Batch', leave=False)
+        for batch_ids, (imgs, labels) in batch_progress:
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad()
             output = model(imgs)
@@ -63,9 +65,7 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
             loss_sum += loss.item() * imgs.size(0)
             loss.backward()
             optimizer.step()
-            if batch_ids % 10 == 0:
-                print(
-                    f'Epoch: {epoch+1}/{epochs} | Batch: {batch_ids}/{len(train_loader)} | Loss: {loss.item()}')
+            batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
             test_dir, model, captcha_length, class_num, padding_index, input_size, characters)
@@ -82,12 +82,9 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
                 'epoch_time': int(time.time() - start_time)
             })
 
-        # print(f'Test Loss: {test_loss:.4f}')
-        print(f'Test Accuracy: {100 * test_accuracy:.4f}%')
-        # print(f'Train Loss: {train_loss:.4f}')
-        print(f'Train Accuracy: {100 * train_accuracy:.4f}%')
-
         early_stopping(test_loss)
+        epoch_progress.set_postfix(
+            loss=f'{train_loss:.4f}', accuracy=f'{100 * train_accuracy:.4f}%')
 
         if epoch % 100 == 0:
             torch.save(model.state_dict(), model_path.replace(

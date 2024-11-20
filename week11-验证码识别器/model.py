@@ -9,7 +9,11 @@ import torch.nn.functional as F
 class CNNModel(nn.Module):
     def __init__(self, input_size, captcha_length, class_num):
         super(CNNModel, self).__init__()
-        self.input_size = input_size
+        if isinstance(input_size, int):
+            self.height = input_size
+            self.width = input_size
+        else:
+            self.height, self.width = input_size
         self.captcha_length = captcha_length
         self.class_num = class_num
 
@@ -62,8 +66,8 @@ class CNNModel(nn.Module):
         """
         Linear: 64 * 12 * 12 -> 1024
         """
-        width = input_size // 8
-        height = input_size // 8
+        width = self.width // 8
+        height = self.height // 8
         self.fc1 = nn.Sequential(
             nn.Linear(64 * width * height, 1024),
             nn.ReLU(),
@@ -78,7 +82,7 @@ class CNNModel(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(-1, 1, self.input_size, self.input_size)
+        x = x.view(-1, 1, self.height, self.width)
 
         x = self.conv1(x)
         x = self.conv2(x)
@@ -105,7 +109,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import torchvision.transforms.functional as F
 
-    model = CNNModel(input_size=96, captcha_length=4, class_num=36)
+    model = CNNModel(input_size=96, captcha_length=2, class_num=10)
     # model.load_state_dict(torch.load(
     #     './models/1-model-stn.pth', weights_only=True, map_location='cpu'))
 

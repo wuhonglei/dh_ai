@@ -34,7 +34,6 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
         captcha = ImageCaptcha(width=width, height=height)
         img = captcha.generate_image(chars)
         img.save(os.path.join(dist_dir, f'{chars}_{i}.png'))
-        print(f'generate captcha {i}')
 
 
 if __name__ == '__main__':
