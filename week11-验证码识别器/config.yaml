@@ -17,8 +17,8 @@ model:
   type: "CNN"
   layers: 5
   activation: "relu"
-  width: 96
-  height: 96
+  width: 128
+  height: 64
 
 training:
   train_dir: "data/动态 3 位/数字 0-9/train"

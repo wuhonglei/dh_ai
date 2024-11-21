@@ -5,10 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from utils import load_config
+from torchinfo import summary
 
 
 class CNNModel(nn.Module):
-    def __init__(self, width, height, captcha_length, class_num):
+    def __init__(self, width: int, height: int, captcha_length: int, class_num: int):
         super(CNNModel, self).__init__()
         self.width = width
         self.height = height
@@ -19,89 +20,55 @@ class CNNModel(nn.Module):
         assert self.width % 8 == 0, 'width must be a multiple of 8'
 
         """
-        Conv2d: 1 * height * width -> 32 * height * width -> 32 * height/2 * width/2
+        CNN 模型结构
+        input: [batch_size, 1, height, width]
+        output: [batch_size, 512, 1, width//8]
         """
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=1,
-                out_channels=32,
-                kernel_size=3,
-                stride=1,
-                padding='same',
-            ),
+        self.cnn = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=3, padding=1),  # 输入为灰度图像，通道数为 1
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-        )
+            nn.MaxPool2d(kernel_size=(2, 2)),  # 高度和宽度均减半
 
-        """
-        Conv2d: 32 * height/2 * width/2 -> 64 * height/2 * width/2 -> 64 * height/4 * width/4
-        """
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=32,
-                out_channels=64,
-                kernel_size=3,
-                padding='same',
-                stride=1,
-            ),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-        )
+            nn.MaxPool2d(kernel_size=(2, 2)),
 
-        """
-        Conv2d: 64 * height/4 * width/4 -> 64 * height/4 * width/4 -> 64 * height/8 * width/8
-        """
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=64,
-                kernel_size=3,
-                padding='same',
-                stride=1,
-            ),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Dropout(0.25),
-        )
-
-        """
-        Linear: 64 * height/8 * width/8 -> 1024
-        """
-        self.fc1 = nn.Sequential(
-            nn.Linear(64 * (height // 8) * (width // 8), 1024),
+            nn.BatchNorm2d(256),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Dropout(0.5),
-        )
+            nn.MaxPool2d(kernel_size=(2, 1)),  # 只在高度方向池化
 
-        """
-        Linear: 1024 -> output_size
-        """
-        self.fc2 = nn.Sequential(
-            nn.Linear(1024, self.captcha_length * self.class_num),
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(512),
+            nn.MaxPool2d(kernel_size=(2, 1)),  # 只在高度方向池化
+
+            nn.Conv2d(512, 512, kernel_size=2, padding=0),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d((1, None))  # 自适应平均池化
         )
+        self.fc = nn.Linear(512 * (width // 4 - 1),
+                            class_num * captcha_length)  # 将特征映射到类别数
 
     def forward(self, x):
         x = x.view(-1, 1, self.height, self.width)
-        input_height = x.size(2)
-        input_width = x.size(3)
+        batch_size, channels, height, width = x.size()
         # 1 * height * width
-        assert input_height == self.height and input_width == self.width, f'input size error: {x.size()}'
+        assert height == self.height and width == self.width, f'input size error: {x.size()}'
 
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
-
+        x = self.cnn(x)
         x = nn.Flatten()(x)
-        x = self.fc1(x)
-        logits = self.fc2(x)
+        logits = self.fc(x)
         return logits.view(-1, self.captcha_length, self.class_num)
 
     def predict(self, x):
         self.eval()
         with torch.no_grad():
             logits = self.forward(x)
-        _, pred = logits.max(dim=2)
-        return pred, torch.softmax(logits, dim=2)
+        _, pred = logits.max(dim=-1)
+        return pred, torch.softmax(logits, dim=-1)
 
 
 if __name__ == '__main__':
@@ -127,15 +94,8 @@ if __name__ == '__main__':
         print(f'param_count: {param_count}')
 
     def print_forward(model):
-        import torch
-        x = torch.randn(1, 1, model_config['height'], model_config['width'])
-        for name, module in model.named_children():
-            if name == 'fc1':
-                x = nn.Flatten()(x)
-            print(f'name: {name}, input: {x.size()}')
-            x = module(x)
-            print(f'name: {name}, output: {x.size()}')
-            print()
+        summary(model, input_size=(
+            1, 1, model_config['height'], model_config['width']))
 
     def display_feature_maps(model):
         # 钩子函数，用于保存每个卷积层的输出
