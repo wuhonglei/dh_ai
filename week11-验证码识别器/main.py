@@ -13,7 +13,7 @@ def main():
     testing_config = config['testing']
     model_config = config['model']
 
-    padding_index = dataset_config['padding_index']
+    padding_index = int(dataset_config['padding_index'])
     captcha_length = get_max_length(dataset_config['captcha_length'])
     model_name = os.path.basename(training_config["model_path"])
     model_path = training_config["model_path"].replace(

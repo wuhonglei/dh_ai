@@ -6,6 +6,26 @@ from torch.utils.data import DataLoader
 
 from model import CNNModel
 from dataset import CaptchaDataset
+from typing import Dict
+
+
+def decode_predictions(preds, padding_index: int):
+    # preds 的形状为 (seq_len, batch_size, num_classes)
+    preds = preds.permute(1, 0, 2)  # 转为 (batch_size, seq_len, num_classes)
+    preds = torch.argmax(preds, dim=-1)  # 在类别维度取最大值，得到索引
+    preds = preds.cpu().numpy()
+    decoded_results: list[list[int]] = []
+    for pred in preds:
+        # 去除连续重复的索引和空白符（索引 0）
+        chars: list[int] = []
+        prev_idx = None
+        for idx in pred:
+            idx = int(idx)
+            if idx != prev_idx and idx != padding_index:
+                chars.append(idx)
+            prev_idx = idx
+        decoded_results.append(chars)
+    return decoded_results
 
 
 def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str):
@@ -19,7 +39,7 @@ def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int
 
 def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, width, height, characters):
     transform = transforms.Compose([
-        transforms.Resize((width, height)),
+        transforms.Resize((height, width)),
         transforms.Grayscale(num_output_channels=1),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -30,32 +50,45 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, wi
     loader_config = {'num_workers': 3, 'pin_memory': True} if is_cuda else {}
     eval_dataset = CaptchaDataset(
         data_dir, captcha_length=captcha_length, characters=characters, padding_index=padding_index, transform=transform)
-    eval_loader = DataLoader(eval_dataset, batch_size=1, **loader_config)
+    eval_loader = DataLoader(eval_dataset, batch_size=2,
+                             collate_fn=lambda x: x, **loader_config)
 
     loss_sum = 0.0
     correct = 0
     total = 0
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CTCLoss(blank=padding_index)
 
     model.eval()
-    for imgs, labels in eval_loader:
-        imgs, labels = imgs.to(device), labels.to(device)
-        with torch.no_grad():
-            output = model(imgs)
+    for batch in eval_loader:
+        # 数据预处理
+        images, labels, label_lengths = zip(*batch)
+        # (batch_size, channels, height, width)
+        b_images = torch.stack(images).to(device)
+        batch_size = b_images.size(0)
 
-        predict = output.argmax(dim=-1)
-        correct += (predict == labels).all(dim=-1).sum().item()
-        total += labels.size(0)
+        # 将标签拼接成一维向量
+        b_labels = torch.cat(labels).to(device)
 
-        # output: (batch_size, captcha_length, class_num)
-        output = output.view(-1, class_num)
-        # (batch_size * captcha_length)
-        labels = labels.view(-1)
+        # 输入序列长度，假设所有序列长度相同
+        input_lengths = torch.full(
+            size=(batch_size,), fill_value=(b_images.size(-1) // 4 - 1), dtype=torch.long)
+        label_lengths = torch.tensor(
+            label_lengths, dtype=torch.long).to(device)
 
-        loss = criterion(output, labels)
-        loss_sum += loss.item() * imgs.size(0)
+        # 前向传播
+        preds = model(b_images)
 
-    test_loss = loss_sum / total
+        # 计算 CTC 损失
+        loss = criterion(preds, b_labels, input_lengths, label_lengths)
+        loss_sum += loss.item()
+
+        decoded_results = decode_predictions(preds, padding_index)
+        for decoded, label in zip(decoded_results, labels):
+            total += 1
+            if decoded == label.tolist():
+                correct += 1
+
+    test_loss = loss_sum / len(eval_loader)
     test_accuracy = 1.0 * correct / (total)
 
     return test_loss, test_accuracy

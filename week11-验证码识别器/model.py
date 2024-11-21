@@ -16,14 +16,9 @@ class CNNModel(nn.Module):
         self.captcha_length = captcha_length
         self.class_num = class_num
 
-        assert self.height % 8 == 0, 'height must be a multiple of 8'
-        assert self.width % 8 == 0, 'width must be a multiple of 8'
+        # assert self.height % 8 == 0, 'height must be a multiple of 8'
+        # assert self.width % 8 == 0, 'width must be a multiple of 8'
 
-        """
-        CNN 模型结构
-        input: [batch_size, 1, height, width]
-        output: [batch_size, 512, 1, width//8]
-        """
         self.cnn = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=3, padding=1),  # 输入为灰度图像，通道数为 1
             nn.ReLU(),
@@ -45,20 +40,24 @@ class CNNModel(nn.Module):
             nn.ReLU(),
             nn.BatchNorm2d(512),
             nn.MaxPool2d(kernel_size=(2, 1)),  # 只在高度方向池化
+
+            nn.Conv2d(512, 512, kernel_size=2, padding=0),
+            nn.ReLU(),
         )
-        self.fc = nn.Linear(512 * (height // 16) * (width // 4),
-                            class_num * captcha_length)  # 将特征映射到类别数
+        self.fc = nn.Linear(512, class_num)  # 将特征映射到类别数
 
     def forward(self, x):
         x = x.view(-1, 1, self.height, self.width)
+        x = self.cnn(x)  # x 的形状为 (batch_size, channels, height, width)
         batch_size, channels, height, width = x.size()
-        # 1 * height * width
-        assert height == self.height and width == self.width, f'input size error: {x.size()}'
 
-        x = self.cnn(x)
-        x = nn.Flatten()(x)
-        logits = self.fc(x)
-        return logits.view(-1, self.captcha_length, self.class_num)
+        # 调整形状以匹配 CTC 的输入要求
+        x = x.permute(3, 0, 2, 1)  # 形状变为 (width, batch_size, height, channels)
+        # 展平成 (width, batch_size, feature_size)
+        x = x.view(width, batch_size, -1)
+        x = self.fc(x)  # 计算每个时间步的输出，形状为 (width, batch_size, num_classes)
+        x = nn.functional.log_softmax(x, dim=-1)  # 计算 log_softmax，用于 CTC 损失
+        return x
 
     def predict(self, x):
         self.eval()

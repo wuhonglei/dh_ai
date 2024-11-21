@@ -14,13 +14,13 @@ from utils import get_wandb_config, EarlyStopping, load_config
 from evaluate import evaluate_model
 
 
-def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, early_stopping={}):
+def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index: int, model_path: str, width: int, height: int, log: bool, early_stopping={}):
     if log:
         wandb.init(**get_wandb_config(), job_type='train')
 
     transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((width, height)),
+        transforms.Resize((height, width)),
         transforms.RandomRotation(10),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -32,13 +32,17 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
     train_dataset = CaptchaDataset(
         train_dir, captcha_length=captcha_length, characters=characters, padding_index=padding_index, transform=transform)
     train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
+        train_dataset, batch_size=batch_size, shuffle=True, collate_fn=lambda x: x, **loader_config)
 
     model = CNNModel(width, height, captcha_length, class_num)
     if pretrained and os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
-    criterion = nn.CrossEntropyLoss()
+
+    # 定义 CTC 损失函数
+    # 我们在 characters 中将 '-' 作为 blank，对应索引 0
+    criterion = nn.CTCLoss(blank=padding_index)
+
     optimizer = optim.Adam(  # type: ignore
         model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(**early_stopping)
@@ -51,28 +55,36 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
         model.train()
         batch_progress = tqdm(enumerate(train_loader), total=len(
             train_loader), desc='Batch', leave=False)
-        for batch_ids, (imgs, labels) in batch_progress:
-            imgs, labels = imgs.to(device), labels.to(device)
+        for batch_ids, batch in batch_progress:
+            # 数据预处理
+            images, labels, label_lengths = zip(*batch)
+            # (batch_size, channels, height, width)
+            images = torch.stack(images).to(device)
+            batch_size = images.size(0)
+
+            # 将标签拼接成一维向量
+            labels = torch.cat(labels).to(device)
+
+            # 输入序列长度，假设所有序列长度相同
+            input_lengths = torch.full(
+                size=(batch_size,), fill_value=(images.size(-1) // 4 - 1), dtype=torch.long).to(device)
+            label_lengths = torch.tensor(
+                label_lengths, dtype=torch.long).to(device)
+
+            # 前向传播
+            preds = model(images)
+            # 计算 CTC 损失
+            loss = criterion(preds, labels, input_lengths, label_lengths)
+            loss_sum += loss.item()
+            # 反向传播和优化
             optimizer.zero_grad()
-            output = model(imgs)
-            predict = output.detach().argmax(dim=-1)
-            acc_sum += (predict == labels).all(dim=-1).sum().item()
-
-            # (batch_size * captcha_length, class_num)
-            output = output.view(-1, class_num)
-            # (batch_size * captcha_length)
-            labels = labels.view(-1)
-            loss = criterion(output, labels)
-
-            loss_sum += loss.item() * imgs.size(0)
             loss.backward()
             optimizer.step()
             batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
             test_dir, model, captcha_length, class_num, padding_index, width, height, characters)
-        train_loss, train_accuracy = loss_sum / \
-            (len(train_dataset)), acc_sum / \
+        train_loss, train_accuracy = loss_sum / len(train_loader), acc_sum / \
             (len(train_dataset))
 
         if log:

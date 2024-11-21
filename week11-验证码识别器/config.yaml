@@ -3,13 +3,13 @@ dataset:
   name: "captcha"
   generate: False # 是否生成新的图片
   remove: True # 是否删除原有数据
-  train_total: 20000
-  test_total: 1000
-  captcha_length: '4-6'
+  train_total: 5000
+  test_total: 100
+  captcha_length: '1-2'
   width: 200
   height: 100
-  train_dir: "data/动态 3 位/数字 0-9/train"
-  test_dir: "data/动态 3 位/数字 0-9/test"
+  train_dir: "data/动态 1-2 位/数字 0-9/train"
+  test_dir: "data/动态 1-2 位/数字 0-9/test"
   characters: "0123456789"
   padding_index: "10" # 验证码长度不足时填充的数字索引, 需使用 characters 的长度作为索引
 
@@ -17,20 +17,20 @@ model:
   type: "CNN"
   layers: 5
   activation: "relu"
-  width: 128
-  height: 64
+  width: 50
+  height: 32
 
 training:
-  train_dir: "data/动态 3 位/数字 0-9/train"
-  batch_size: 512
+  train_dir: "data/动态 1-2 位/数字 0-9/train"
+  batch_size: 128
   learning_rate: 0.001
   epochs: 350
-  log: True # 是否记录训练日志
+  log: False # 是否记录训练日志
   pretrained: False # 是否加载预训练模型
   model_path: "./models/model.pth"
 
 testing:
-  test_dir: "data/动态 3 位/数字 0-9/test"
+  test_dir: "data/动态 1-2 位/数字 0-9/test"
   model_path: "./models/model.pth"
 
 early_stopping:

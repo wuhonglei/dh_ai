@@ -24,7 +24,7 @@ class CaptchaDataset(Dataset):
     def __len__(self):
         return len(self.imgs)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, int]:
         img_path = os.path.join(self.data_dir, self.imgs[idx])
         str_label = self.imgs[idx].split("_")[0]
         img = Image.open(img_path)
@@ -36,12 +36,11 @@ class CaptchaDataset(Dataset):
 
         label_list = list(map(lambda char: char_to_index(
             char, self.characters), str_label.lower()))
-        if len(label_list) < self.captcha_length:
-            label_list += [int(self.padding_index)] * \
-                (self.captcha_length - len(label_list))
+        # if len(label_list) < self.captcha_length:
+        #     label_list += [int(self.padding_index)] * \
+        #         (self.captcha_length - len(label_list))
 
-        label = torch.tensor(label_list, dtype=torch.long)
-        return (img, label)
+        return (img, torch.LongTensor(label_list), len(label_list))
 
 
 if __name__ == '__main__':
