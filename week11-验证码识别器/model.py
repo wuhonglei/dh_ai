@@ -36,6 +36,7 @@ class CNNModel(nn.Module):
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(256),
+
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 1)),  # 只在高度方向池化
@@ -45,11 +46,10 @@ class CNNModel(nn.Module):
             nn.BatchNorm2d(512),
             nn.MaxPool2d(kernel_size=(2, 1)),  # 只在高度方向池化
 
-            nn.Conv2d(512, 512, kernel_size=2, padding=0),
+            nn.Conv2d(512, 512, kernel_size=3),
             nn.ReLU(),
-            nn.AdaptiveAvgPool2d((1, None))  # 自适应平均池化
         )
-        self.fc = nn.Linear(512 * (width // 4 - 1),
+        self.fc = nn.Linear(512 * (height // 32) * (width // 4 - 2),
                             class_num * captcha_length)  # 将特征映射到类别数
 
     def forward(self, x):
