@@ -16,7 +16,7 @@ from evaluate import evaluate_model
 
 def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, early_stopping={}):
     if log:
-        wandb.init(**get_wandb_config(captcha_length), job_type='train')
+        wandb.init(**get_wandb_config(), job_type='train')
 
     transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
@@ -48,8 +48,8 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
         acc_sum = 0.0
         start_time = time.time()
         model.train()
-        batch_progress = tqdm(enumerate(train_loader),
-                              desc='Batch', leave=False)
+        batch_progress = tqdm(enumerate(train_loader), total=len(
+            train_loader), desc='Batch', leave=False)
         for batch_ids, (imgs, labels) in batch_progress:
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad()

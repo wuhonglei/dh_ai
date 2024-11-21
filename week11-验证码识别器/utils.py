@@ -25,10 +25,11 @@ def load_config(config_file='./config.yaml'):
     return config
 
 
-def get_wandb_config(captcha_length: int):
+def get_wandb_config():
     config = load_config()
+    dataset_config = config['dataset']
     wandb_init_args = {
-        'project': f'{config["name"]}-字符长度 {captcha_length}_{config["dataset"]["characters"]}',
+        'project': f'{config["name"]}-字符长度 {dataset_config["captcha_length"]}_{dataset_config["characters"]}',
         'config': config,
         'reinit': True
     }

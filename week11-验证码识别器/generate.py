@@ -24,7 +24,7 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
 
     generating_progress = tqdm(range(total))
     for i in generating_progress:
-        generating_progress.set_description(f'generate captcha {i}/{total}')
+        generating_progress.set_description(f'generating captcha')
         # 生成验证码
         start, end = get_len_range(captcha_length)
         # k 表示验证码位数
