@@ -21,7 +21,8 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, wi
     transform = transforms.Compose([
         transforms.Resize((width, height)),
         transforms.Grayscale(num_output_channels=1),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
     ])
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

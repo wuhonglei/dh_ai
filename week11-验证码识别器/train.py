@@ -22,7 +22,8 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
         transforms.Grayscale(num_output_channels=1),
         transforms.Resize((width, height)),
         transforms.RandomRotation(10),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
     ])
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

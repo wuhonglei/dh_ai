@@ -1,11 +1,11 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: True # 是否生成新的图片
+  generate: False # 是否生成新的图片
   remove: True # 是否删除原有数据
-  train_total: 10000
+  train_total: 20000
   test_total: 1000
-  captcha_length: '2-4'
+  captcha_length: '4-6'
   width: 200
   height: 100
   train_dir: "data/动态 3 位/数字 0-9/train"
