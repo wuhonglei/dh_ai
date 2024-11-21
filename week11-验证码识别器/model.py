@@ -45,11 +45,8 @@ class CNNModel(nn.Module):
             nn.ReLU(),
             nn.BatchNorm2d(512),
             nn.MaxPool2d(kernel_size=(2, 1)),  # 只在高度方向池化
-
-            nn.Conv2d(512, 512, kernel_size=3),
-            nn.ReLU(),
         )
-        self.fc = nn.Linear(512 * (height // 32) * (width // 4 - 2),
+        self.fc = nn.Linear(512 * (height // 16) * (width // 4),
                             class_num * captcha_length)  # 将特征映射到类别数
 
     def forward(self, x):
