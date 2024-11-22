@@ -93,11 +93,11 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
 
         early_stopping(test_loss)
         epoch_progress.set_postfix(
-            loss=f'{train_loss:.4f}', accuracy=f'{100 * train_accuracy:.4f}%')
+            loss=f'{train_loss:.4f}', test_accuracy=f'{100 * test_accuracy:.4f}%', train_accuracy=f'{100 * train_accuracy:.4f}%')
 
         if epoch % 100 == 0:
             torch.save(model.state_dict(), model_path.replace(
-                'model.pth', f'model_{epoch}.pth'))
+                '.pth', f'_{epoch}.pth'))
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
             break

@@ -33,7 +33,7 @@ class CRNN(nn.Module):
             nn.ReLU(),
             nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),  # Conv6
             nn.ReLU(),
-            nn.AdaptiveAvgPool2d((1, None))  # AdaptiveAvgPool
+            nn.AdaptiveAvgPool2d(output_size=(1, 12))  # AdaptiveAvgPool
         )
         self.rnn = nn.Sequential(
             nn.LSTM(input_size=512, hidden_size=hidden_size,
@@ -60,12 +60,13 @@ class CRNN(nn.Module):
 
 
 if __name__ == '__main__':
-    img_height = 96
+    img_height = 32
     img_width = 96
     n_channels = 1
-    n_classes = 10
+    n_classes = 37
     n_hidden = 256
     batch_size = 1
 
     crnn = CRNN(n_classes, n_hidden)
+    print(crnn)
     summary(crnn, input_size=(batch_size, n_channels, img_height, img_width))
