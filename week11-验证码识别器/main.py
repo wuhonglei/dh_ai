@@ -13,13 +13,13 @@ def main():
     testing_config = config['testing']
     model_config = config['model']
 
-    padding_index = dataset_config['padding_index']
+    padding_index = dataset_config['padding_index'] if 'padding_index' in dataset_config else ''
     captcha_length = get_max_length(dataset_config['captcha_length'])
     model_name = os.path.basename(training_config["model_path"])
     model_path = training_config["model_path"].replace(
         model_name, f'{captcha_length}-{model_name}')
-    padding_len = 1 if len(str(padding_index)) else 0
-    class_num = len(dataset_config['characters']) + padding_len  # 1 表示空白字符
+    padding = 1 if len(str(padding_index)) else 0
+    class_num = len(dataset_config['characters']) + padding  # 1 表示空白字符
 
     if dataset_config['generate']:
         origin_captcha_length = dataset_config['captcha_length']
@@ -42,6 +42,7 @@ def main():
           height=model_config['height'],
           model_path=model_path,
           log=training_config['log'],
+          hidden_size=model_config['hidden_size'],
           early_stopping=config['early_stopping'],
           )
 

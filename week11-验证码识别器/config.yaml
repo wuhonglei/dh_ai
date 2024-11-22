@@ -8,29 +8,30 @@ dataset:
   captcha_length: '4-6'
   width: 200
   height: 100
-  train_dir: "data/动态 3 位/数字 0-9/train"
-  test_dir: "data/动态 3 位/数字 0-9/test"
+  train_dir: "data/动态 4-6 位/数字 0-9/train"
+  test_dir: "data/动态 4-6 位/数字 0-9/test"
   characters: "0123456789"
-  padding_index: "10" # 验证码长度不足时填充的数字索引, 需使用 characters 的长度作为索引
+  padding_index: 0 # 验证码长度不足时填充的数字索引, 需使用 characters 的长度作为索引
 
 model:
-  type: "CNN"
-  layers: 5
+  type: "CRNN"
+  layers: 6
   activation: "relu"
-  width: 128
-  height: 64
+  width: 96
+  height: 96
+  hidden_size: 256
 
 training:
-  train_dir: "data/动态 3 位/数字 0-9/train"
+  train_dir: "data/动态 4-6 位/数字 0-9/train"
   batch_size: 512
   learning_rate: 0.001
   epochs: 350
-  log: False # 是否记录训练日志
+  log: True # 是否记录训练日志
   pretrained: False # 是否加载预训练模型
   model_path: "./saved_models/model.pth"
 
 testing:
-  test_dir: "data/动态 3 位/数字 0-9/test"
+  test_dir: "data/动态 4-6 位/数字 0-9/test"
   model_path: "./saved_models/model.pth"
 
 early_stopping:

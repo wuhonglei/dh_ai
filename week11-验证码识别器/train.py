@@ -8,19 +8,19 @@ from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
 
-from models.simple_cnn import CNNModel
-from dataset import CaptchaDataset
-from utils import get_wandb_config, EarlyStopping, load_config
+from models.crnn import CRNN
+from dataset import CaptchaDataset, encode_labels
+from utils import get_wandb_config, EarlyStopping, load_config, correct_predictions
 from evaluate import evaluate_model
 
 
-def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, early_stopping={}):
+def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, early_stopping={},):
     if log:
         wandb.init(**get_wandb_config(), job_type='train')
 
     transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((width, height)),
+        transforms.Resize((height, width)),
         transforms.RandomRotation(10),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -34,11 +34,11 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
-    model = CNNModel(width, height, captcha_length, class_num)
+    model = CRNN(class_num, hidden_size)
     if pretrained and os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
-    criterion = nn.CrossEntropyLoss()
+    ctc_loss = nn.CTCLoss(blank=padding_index)  # 假设 0 为空白字符
     optimizer = optim.Adam(  # type: ignore
         model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(**early_stopping)
@@ -52,21 +52,28 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
         batch_progress = tqdm(enumerate(train_loader), total=len(
             train_loader), desc='Batch', leave=False)
         for batch_ids, (imgs, labels) in batch_progress:
-            imgs, labels = imgs.to(device), labels.to(device)
+            imgs = imgs.to(device)
+            # Convert labels to tensor for CTC
+            targets, target_lengths = encode_labels(
+                labels, characters, padding_index)
+            targets = targets.to(device)
+            target_lengths = target_lengths.to(device)
+
+            inputs = model(imgs)  # (seq_length, batch_size, n_classes)
+            # Define input lengths for CTC
+            input_lengths = torch.full(
+                (inputs.size(1),), inputs.size(0), dtype=torch.int32).to(device)
+
+            # Compute loss
+            loss = ctc_loss(inputs.log_softmax(2), targets,
+                            input_lengths, target_lengths)
+
+            loss_sum += (loss.item() * target_lengths).sum().item()
             optimizer.zero_grad()
-            output = model(imgs)
-            predict = output.detach().argmax(dim=-1)
-            acc_sum += (predict == labels).all(dim=-1).sum().item()
-
-            # (batch_size * captcha_length, class_num)
-            output = output.view(-1, class_num)
-            # (batch_size * captcha_length)
-            labels = labels.view(-1)
-            loss = criterion(output, labels)
-
-            loss_sum += loss.item() * imgs.size(0)
             loss.backward()
             optimizer.step()
+            acc_sum += correct_predictions(inputs,
+                                           labels, characters, padding_index)
             batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
@@ -98,13 +105,3 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
     torch.save(model.state_dict(), model_path)
     if log:
         wandb.finish()
-
-
-if __name__ == '__main__':
-    config = load_config()
-    training_config = config['training']
-    testing_config = config['testing']
-    dataset_config = config['dataset']
-    model_config = config['model']
-    train(train_dir=training_config['train_dir'], test_dir=testing_config['test_dir'], characters=dataset_config['characters'], batch_size=64, pretrained=False,
-          epochs=10, captcha_length=dataset_config['captcha_length'], class_num=37, padding_index="36",  model_path='./model/model-test.pth', learning_rate=0.001, width=model_config['width'], height=model_config['height'], log=False, early_stopping={})

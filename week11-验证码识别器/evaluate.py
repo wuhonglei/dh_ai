@@ -5,7 +5,8 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 from models.simple_cnn import CNNModel
-from dataset import CaptchaDataset
+from dataset import CaptchaDataset, encode_labels
+from utils import correct_predictions
 
 
 def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str):
@@ -19,7 +20,7 @@ def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int
 
 def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, width, height, characters):
     transform = transforms.Compose([
-        transforms.Resize((width, height)),
+        transforms.Resize((height, width)),
         transforms.Grayscale(num_output_channels=1),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -35,25 +36,31 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, wi
     loss_sum = 0.0
     correct = 0
     total = 0
-    criterion = nn.CrossEntropyLoss()
+    ctc_loss = nn.CTCLoss(blank=padding_index)  # 假设 0 为空白字符
 
     model.eval()
     for imgs, labels in eval_loader:
-        imgs, labels = imgs.to(device), labels.to(device)
+        imgs = imgs.to(device)
+        # Convert labels to tensor for CTC
+        targets, target_lengths = encode_labels(
+            labels, characters, padding_index)
+        targets = targets.to(device)
+        target_lengths = target_lengths.to(device)
+
         with torch.no_grad():
-            output = model(imgs)
+            inputs = model(imgs)  # (seq_length, batch_size, n_classes)
 
-        predict = output.argmax(dim=-1)
-        correct += (predict == labels).all(dim=-1).sum().item()
-        total += labels.size(0)
+        # Define input lengths for CTC
+        input_lengths = torch.full(
+            (inputs.size(1),), inputs.size(0), dtype=torch.int32).to(device)
 
-        # output: (batch_size, captcha_length, class_num)
-        output = output.view(-1, class_num)
-        # (batch_size * captcha_length)
-        labels = labels.view(-1)
-
-        loss = criterion(output, labels)
-        loss_sum += loss.item() * imgs.size(0)
+        # Compute loss
+        loss = ctc_loss(inputs.log_softmax(2), targets,
+                        input_lengths, target_lengths)
+        loss_sum += (loss.item() * target_lengths).sum().item()
+        total += len(labels)
+        correct += correct_predictions(inputs,
+                                       labels, characters, padding_index)
 
     test_loss = loss_sum / total
     test_accuracy = 1.0 * correct / (total)

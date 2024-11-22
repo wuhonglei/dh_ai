@@ -1,0 +1,71 @@
+import torch.nn as nn
+from torchinfo import summary
+
+
+class CRNN(nn.Module):
+    def __init__(self, n_classes: int, hidden_size: int):
+        """
+        Args:
+            n_classes: 验证码字符类别数。
+            hidden_size: Hidden size of LSTM.
+        """
+        super(CRNN, self).__init__()
+        self.cnn = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=3,
+                      stride=1, padding=1),  # Conv1
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Pool1
+
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),  # Conv2
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Pool2
+
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),  # Conv3
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),  # Conv4
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(
+                2, 1), padding=(0, 1)),  # Pool3
+
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),  # Conv5
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),  # Conv6
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d((1, None))  # AdaptiveAvgPool
+        )
+        self.rnn = nn.Sequential(
+            nn.LSTM(input_size=512, hidden_size=hidden_size,
+                    num_layers=2, bidirectional=True, batch_first=False)
+        )
+        self.fc = nn.Linear(hidden_size * 2, n_classes)
+
+    def forward(self, x):
+        # CNN
+        x = self.cnn(x)
+        b, c, h, w = x.size()  # (batch_size, channels, height, width)
+        assert h == 1, "Height must be 1 after CNN layers."
+        x = x.squeeze(2)  # (batch_size, channels, width)
+
+        # Transpose for RNN
+        x = x.permute(2, 0, 1)  # (width, batch_size, channels)
+
+        # RNN
+        x, _ = self.rnn(x)
+
+        # Fully connected
+        x = self.fc(x)  # (width, batch_size, n_classes)
+        return x
+
+
+if __name__ == '__main__':
+    img_height = 96
+    img_width = 96
+    n_channels = 1
+    n_classes = 10
+    n_hidden = 256
+    batch_size = 1
+
+    crnn = CRNN(n_classes, n_hidden)
+    summary(crnn, input_size=(batch_size, n_channels, img_height, img_width))
