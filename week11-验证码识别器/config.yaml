@@ -1,16 +1,16 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: False # 是否生成新的图片
+  generate: True # 是否生成新的图片
   remove: True # 是否删除原有数据
-  train_total: 20000
-  test_total: 1000
+  train_total: 60000
+  test_total: 4000
   captcha_length: '4-6'
-  width: 200
-  height: 100
-  train_dir: "data/动态 4-6 位/数字 0-9/train"
-  test_dir: "data/动态 4-6 位/数字 0-9/test"
-  characters: "0123456789"
+  width: 163
+  height: 58
+  train_dir: "data/动态 4-6 位/数字 0-9a-z/train"
+  test_dir: "data/动态 4-6 位/数字 0-9a-z/test"
+  characters: "0123456789abcdefghijklmnopqrstuvwxyz"
   padding_index: 0 # 验证码长度不足时填充的数字索引, 需使用 characters 的长度作为索引
 
 model:
@@ -18,20 +18,20 @@ model:
   layers: 6
   activation: "relu"
   width: 96
-  height: 96
+  height: 32
   hidden_size: 256
 
 training:
-  train_dir: "data/动态 4-6 位/数字 0-9/train"
+  train_dir: "data/动态 4-6 位/数字 0-9a-z/train"
   batch_size: 512
   learning_rate: 0.001
-  epochs: 350
+  epochs: 200
   log: True # 是否记录训练日志
   pretrained: False # 是否加载预训练模型
   model_path: "./saved_models/model.pth"
 
 testing:
-  test_dir: "data/动态 4-6 位/数字 0-9/test"
+  test_dir: "data/动态 4-6 位/数字 0-9a-z/test"
   model_path: "./saved_models/model.pth"
 
 early_stopping:
