@@ -20,6 +20,7 @@ class VGG16(nn.Module):
     def __init__(self):
         super(VGG16, self).__init__()
         vgg = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
+        print(vgg)
         self.feature = vgg.features.requires_grad_(False)
         self.classifier = vgg.classifier.requires_grad_(False)
         self.classifier[-1] = nn.Linear(in_features=4096,
@@ -42,8 +43,8 @@ transform = transforms.Compose([
 
 if __name__ == '__main__':
     model = VGG16()
-    # summary(model, input_size=(1, 3, 224, 224), col_names=(
-    #     "input_size", "output_size", "num_params"))
+    summary(model, input_size=(1, 3, 224, 224), col_names=(
+        "input_size", "output_size", "num_params"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.load_state_dict(torch.load("./models/model_10.pth",
