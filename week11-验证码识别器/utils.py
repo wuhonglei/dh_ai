@@ -3,6 +3,7 @@ import shutil
 import yaml
 import torch
 from typing import List
+from torch import nn
 
 
 def init_dir(dir_path, remove=False):
@@ -162,3 +163,19 @@ class EarlyStopping:
             if self.counter >= self.patience:
                 self.early_stop = True
         return self.early_stop
+
+
+def make_dir(filepath: str):
+    base_dir = os.path.dirname(filepath)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir, exist_ok=True)
+
+
+def save_model(model_path: str, model: nn.Module):
+    make_dir(model_path)
+    torch.save(model.state_dict(), model_path)
+
+
+def clean_up(model_path, model):
+    print('Cleaning up...')
+    save_model(model_path, model)

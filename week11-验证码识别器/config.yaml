@@ -25,14 +25,14 @@ training:
   train_dir: "data/train-3363-stable-new/train"
   batch_size: 1024
   learning_rate: 0.001
-  epochs: 200
+  epochs: 1
   log: True # 是否记录训练日志
   pretrained: False # 是否加载预训练模型
   model_path: "./saved_models/model_4-6_37.pth"
 
 testing:
   test_dir: "data/train-3363-stable-new/test"
-  model_path: "./saved_models/model.pth"
+  model_path: "./saved_models/model_4-6_37.pth"
 
 early_stopping:
   enable: True

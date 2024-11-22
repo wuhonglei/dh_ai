@@ -17,7 +17,7 @@ def main():
     captcha_length = get_max_length(dataset_config['captcha_length'])
     model_name = os.path.basename(training_config["model_path"])
     model_path = training_config["model_path"].replace(
-        model_name, f'{captcha_length}-{model_name}')
+        model_name, f'{dataset_config["captcha_length"]}-{model_name}')
     padding = 1 if len(str(padding_index)) else 0
     class_num = len(dataset_config['characters']) + padding  # 1 表示空白字符
 
@@ -53,6 +53,7 @@ def main():
              captcha_length=captcha_length,
              class_num=class_num,
              padding_index=padding_index,
+             hidden_size=model_config['hidden_size'],
              characters=dataset_config['characters']
              )
 

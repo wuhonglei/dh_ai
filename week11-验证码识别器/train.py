@@ -7,10 +7,11 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
+import atexit
 
 from models.crnn import CRNN
 from dataset import CaptchaDataset, encode_labels
-from utils import get_wandb_config, EarlyStopping, load_config, correct_predictions
+from utils import get_wandb_config, EarlyStopping, save_model, correct_predictions
 from evaluate import evaluate_model
 
 
@@ -42,6 +43,11 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
     optimizer = optim.Adam(  # type: ignore
         model.parameters(), lr=learning_rate)
     early_stopping = EarlyStopping(**early_stopping)
+
+    def clean_up():
+        print('Cleaning up...')
+        save_model(model_path, model)
+    atexit.register(clean_up)
 
     epoch_progress = tqdm(range(epochs), desc='Epoch')
     for epoch in epoch_progress:
@@ -77,7 +83,7 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
             batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length, class_num, padding_index, width, height, characters)
+            test_dir, model, captcha_length, padding_index, width, height, characters)
         train_loss, train_accuracy = loss_sum / \
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))
@@ -102,6 +108,5 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
             print('Early stopping in epoch:', epoch)
             break
 
-    torch.save(model.state_dict(), model_path)
     if log:
         wandb.finish()

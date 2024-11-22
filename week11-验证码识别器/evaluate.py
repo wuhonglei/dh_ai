@@ -4,21 +4,21 @@ import torch.nn as nn
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
-from models.simple_cnn import CNNModel
+from models.crnn import CRNN
 from dataset import CaptchaDataset, encode_labels
-from utils import correct_predictions
+from utils import correct_predictions, load_config
 
 
-def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str):
-    model = CNNModel(width, height, captcha_length, class_num)
+def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int):
+    model = CRNN(class_num, hidden_size)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     model.to(device)
-    return evaluate_model(data_dir, model, captcha_length, class_num, padding_index, width, height, characters)
+    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters)
 
 
-def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, width, height, characters):
+def evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters):
     transform = transforms.Compose([
         transforms.Resize((height, width)),
         transforms.Grayscale(num_output_channels=1),
@@ -69,8 +69,20 @@ def evaluate_model(data_dir, model, captcha_length, class_num, padding_index, wi
 
 
 if __name__ == '__main__':
-    test_loss, test_accuracy = evaluate(data_dir='./data/train-3363-stable-new/test', model_path='./models/model.pth',
-                                        characters='0123456789abcdefghijklmnopqrstuvwxyz',
-                                        captcha_length=6, class_num=37, padding_index='36', width=96, height=32)
+    config = load_config('./config.yaml')
+    model_config = config['model']
+    dataset_config = config['dataset']
+    testing_config = config['testing']
+    class_num = len(dataset_config['characters']) + 1  # 1 表示空白字符
+    test_loss, test_accuracy = evaluate(data_dir=testing_config['test_dir'],
+                                        model_path=testing_config['model_path'],
+                                        characters=dataset_config['characters'],
+                                        hidden_size=model_config['hidden_size'],
+                                        captcha_length=6,
+                                        class_num=class_num,
+                                        padding_index=dataset_config['padding_index'],
+                                        width=model_config['width'],
+                                        height=model_config['height']
+                                        )
 
     print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}')
