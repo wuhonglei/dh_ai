@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
 
-from model import CNNModel
+from models.simple_cnn import CNNModel
 from dataset import CaptchaDataset
 from utils import get_wandb_config, EarlyStopping, load_config
 from evaluate import evaluate_model

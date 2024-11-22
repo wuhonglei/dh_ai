@@ -25,13 +25,13 @@ training:
   batch_size: 512
   learning_rate: 0.001
   epochs: 350
-  log: True # 是否记录训练日志
+  log: False # 是否记录训练日志
   pretrained: False # 是否加载预训练模型
-  model_path: "./models/model.pth"
+  model_path: "./saved_models/model.pth"
 
 testing:
   test_dir: "data/动态 3 位/数字 0-9/test"
-  model_path: "./models/model.pth"
+  model_path: "./saved_models/model.pth"
 
 early_stopping:
   enable: True

@@ -4,7 +4,7 @@ import torch.nn as nn
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
-from model import CNNModel
+from models.simple_cnn import CNNModel
 from dataset import CaptchaDataset
 
 
