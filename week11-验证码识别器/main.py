@@ -46,17 +46,6 @@ def main():
           early_stopping=config['early_stopping'],
           )
 
-    evaluate(data_dir=testing_config['test_dir'],
-             model_path=model_path,
-             width=model_config['width'],
-             height=model_config['height'],
-             captcha_length=captcha_length,
-             class_num=class_num,
-             padding_index=padding_index,
-             hidden_size=model_config['hidden_size'],
-             characters=dataset_config['characters']
-             )
-
 
 if __name__ == '__main__':
     main()
