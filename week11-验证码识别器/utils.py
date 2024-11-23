@@ -174,6 +174,7 @@ def make_dir(filepath: str):
 def save_model(model_path: str, model: nn.Module):
     make_dir(model_path)
     torch.save(model.state_dict(), model_path)
+    print(f'Model saved to {model_path}')
 
 
 def clean_up(model_path, model):

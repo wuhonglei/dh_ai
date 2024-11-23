@@ -49,4 +49,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # shutdown(10)
+    shutdown(10)
