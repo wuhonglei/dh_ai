@@ -10,6 +10,9 @@ class CRNN(nn.Module):
             hidden_size: Hidden size of LSTM.
         """
         super(CRNN, self).__init__()
+        self.dropout_cnn_rnn = nn.Dropout(0.15)
+        self.dropout_fc = nn.Dropout(0.35)
+
         self.cnn = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=3,
                       stride=1, padding=1),  # Conv1
@@ -37,7 +40,7 @@ class CRNN(nn.Module):
         )
         self.rnn = nn.Sequential(
             nn.LSTM(input_size=512, hidden_size=hidden_size,
-                    num_layers=2, bidirectional=True, batch_first=False)
+                    num_layers=2, bidirectional=True, batch_first=False, dropout=0.25),
         )
         self.fc = nn.Linear(hidden_size * 2, n_classes)
 
@@ -51,8 +54,12 @@ class CRNN(nn.Module):
         # Transpose for RNN
         x = x.permute(2, 0, 1)  # (width, batch_size, channels)
 
+        x = self.dropout_cnn_rnn(x)
+
         # RNN
         x, _ = self.rnn(x)
+
+        x = self.dropout_fc(x)
 
         # Fully connected
         x = self.fc(x)  # (width, batch_size, n_classes)

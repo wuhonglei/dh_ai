@@ -15,7 +15,7 @@ from utils import get_wandb_config, EarlyStopping, save_model, correct_predictio
 from evaluate import evaluate_model
 
 
-def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, early_stopping={},):
+def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path: str, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, early_stopping={},):
     if log:
         wandb.init(**get_wandb_config(), job_type='train')
 
@@ -36,8 +36,10 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
     model = CRNN(class_num, hidden_size)
-    if pretrained and os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path, map_location=device))
+    if os.path.exists(pretrained_model_path):
+        model.load_state_dict(torch.load(
+            pretrained_model_path, map_location=device))
+        print('Pretrained model loaded.', pretrained_model_path)
     model.to(device)
     ctc_loss = nn.CTCLoss(blank=padding_index)  # 假设 0 为空白字符
     optimizer = optim.Adam(  # type: ignore
@@ -101,9 +103,6 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained: bool, epoc
         epoch_progress.set_postfix(
             loss=f'{train_loss:.4f}', test_accuracy=f'{100 * test_accuracy:.4f}%', train_accuracy=f'{100 * train_accuracy:.4f}%')
 
-        if epoch % 100 == 0:
-            save_model(model_path.replace(
-                '.pth', f'_{epoch}.pth'), model)
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
             break

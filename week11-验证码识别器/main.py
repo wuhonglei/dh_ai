@@ -15,9 +15,9 @@ def main():
 
     padding_index = dataset_config['padding_index'] if 'padding_index' in dataset_config else ''
     captcha_length = get_max_length(dataset_config['captcha_length'])
-    model_name = os.path.basename(training_config["model_path"])
-    model_path = training_config["model_path"].replace(
-        model_name, f'{dataset_config["captcha_length"]}-{model_name}')
+    model_path = training_config["model_path"]
+    pretrained_model_path: str = training_config[
+        "pretrained_model_path"] if 'pretrained_model_path' in training_config else ''
     padding = 1 if len(str(padding_index)) else 0
     class_num = len(dataset_config['characters']) + padding  # 1 表示空白字符
 
@@ -36,7 +36,7 @@ def main():
           class_num=class_num,
           padding_index=padding_index,
           characters=dataset_config['characters'],
-          pretrained=training_config['pretrained'],
+          pretrained_model_path=pretrained_model_path,
           learning_rate=training_config['learning_rate'],
           width=model_config['width'],
           height=model_config['height'],
@@ -49,4 +49,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    shutdown(10)
+    # shutdown(10)
