@@ -18,7 +18,9 @@ class CaptchaDataset(Dataset):
         self.data_dir = data_dir
         self.transform = transform
         self.characters = characters
-        self.imgs = os.listdir(data_dir)
+        self.imgs = [
+            img for img in os.listdir(data_dir) if img.endswith('.png') or img.endswith('.jpeg') or img.endswith('.jpg')
+        ]
         self.captcha_length = captcha_length
         self.padding_index = padding_index  # 标签长度不足时的填充字符
 

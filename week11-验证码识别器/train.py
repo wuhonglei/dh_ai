@@ -80,12 +80,13 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            acc_sum += correct_predictions(inputs,
-                                           labels, characters, padding_index)
+            current_correct, _ = correct_predictions(inputs,
+                                                     labels, characters, padding_index)
+            acc_sum += current_correct
             batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length, padding_index, width, height, characters)
+            test_dir, model, captcha_length, padding_index, width, height, characters, log=False)
         train_loss, train_accuracy = loss_sum / \
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))

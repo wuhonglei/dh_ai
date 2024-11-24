@@ -91,7 +91,7 @@ def decode_predictions(preds: torch.Tensor, characters: str, padding_index: int)
     return decoded_results
 
 
-def correct_predictions(preds: torch.Tensor, labels: List[str], characters: str, padding_index: int) -> int:
+def correct_predictions(preds: torch.Tensor, labels: List[str], characters: str, padding_index: int):
     """
     计算正确预测的数量
     :param preds: 预测结果
@@ -105,7 +105,7 @@ def correct_predictions(preds: torch.Tensor, labels: List[str], characters: str,
         if pred == label:
             correct += 1
 
-    return correct
+    return correct, decoded_preds
 
 
 def get_max_length(captcha_length: str) -> int:

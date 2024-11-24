@@ -5,7 +5,7 @@ dataset:
   remove: True # 是否删除原有数据
   train_total: 60000
   test_total: 4000
-  captcha_length: '4-6'
+  captcha_length: "4-6"
   width: 163
   height: 58
   train_dir: "data/动态 4-6 位/数字 0-9a-z/train"
@@ -31,8 +31,11 @@ training:
   model_path: "./saved_models/model_4-6_37_12w.pth"
 
 testing:
-  test_dir: "data/动态 4-6 位/数字 0-9a-z/test"
-  model_path: "./saved_models/model_4-6_37.pth"
+  test_dir: "data/train-3363-stable-new/test"
+  model_path: "./saved_models/model_4-6_37_3k_base12w.pth"
+
+evaluate:
+  log: True # 单独执行 evaluate.py 时是否记录评估日志
 
 early_stopping:
   enable: False

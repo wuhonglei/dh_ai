@@ -4,7 +4,6 @@
 
 import random
 import string
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from captcha.image import ImageCaptcha
 import os
 from utils import init_dir, get_len_range
