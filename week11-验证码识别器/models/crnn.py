@@ -66,6 +66,28 @@ class CRNN(nn.Module):
         return x
 
 
+# 创建一个字典来存储激活值
+activations = {}
+
+
+def get_activation(name):
+    # 定义钩子函数
+    def hook(model, input, output):
+        activations[name] = output.detach()
+    return hook
+
+
+def register_hook(model):
+    cnn_layers = model.cnn
+    cnn_names = []
+    for i, layer in enumerate(cnn_layers):
+        if isinstance(layer, nn.Conv2d):
+            name = f'conv_{i}'
+            cnn_names.append(name)
+            layer.register_forward_hook(get_activation(name))
+    return cnn_names
+
+
 if __name__ == '__main__':
     img_height = 32
     img_width = 96

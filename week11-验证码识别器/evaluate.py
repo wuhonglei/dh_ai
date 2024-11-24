@@ -7,27 +7,32 @@ from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
 
-from models.crnn import CRNN
+from models.crnn import CRNN, activations, register_hook
+from torch.utils.tensorboard import SummaryWriter  # type: ignore
 from dataset import CaptchaDataset, encode_labels
 from utils import correct_predictions, load_config, get_wandb_config
 
 
-def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool):
+def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool):
     model = CRNN(class_num, hidden_size)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     model.to(device)
-    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters, log)
+    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters, log, visualize)
 
 
-def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool):
+def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool):
     if log:
         wandb_config = get_wandb_config()
         wandb.init(**wandb_config, job_type='evaluate')
         # 定义表格的列
         table = wandb.Table(
             columns=["Origin_Image", "Transformed_Image", "Prediction", "Ground Truth"])
+
+    if visualize:
+        cnn_names = register_hook(model)
+        print('cnn_names', cnn_names)
 
     transform = transforms.Compose([
         transforms.Resize((height, width)),
@@ -94,6 +99,20 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
                 table.add_data(wandb_origin_image,
                                wandb_transformed_image, pred_label, true_label)
 
+        if visualize:
+            img_name = origin_eval_dataset.imgs[batch_index]
+            writer = SummaryWriter(log_dir=f'logs/{img_name}')
+            for cnn_name in cnn_names:
+                conv_output = activations[cnn_name]
+                channel_num = conv_output.shape[1]
+                for idx in range(channel_num):
+                    feature_map = conv_output[0, idx, :, :].unsqueeze(0)
+                    writer.add_image(
+                        f'{cnn_name}/total_{channel_num}/Channel_{idx}', feature_map, global_step=0)
+            # writer.add_graph(model, imgs)
+            writer.close()
+            break
+
     test_loss = loss_sum / total
     test_accuracy = 1.0 * correct / (total)
     if log:
@@ -123,7 +142,8 @@ if __name__ == '__main__':
                                         padding_index=dataset_config['padding_index'],
                                         width=model_config['width'],
                                         height=model_config['height'],
-                                        log=evaluate_config['log']
+                                        log=evaluate_config['log'],
+                                        visualize=evaluate_config['visualize']
                                         )
 
     print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}')

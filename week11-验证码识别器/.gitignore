@@ -9,3 +9,4 @@ data/动态 4-6 位/
 data/train-3363-stable-new
 mnist/
 saved_models/
+logs/
