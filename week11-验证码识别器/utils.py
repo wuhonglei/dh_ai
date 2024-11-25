@@ -220,14 +220,19 @@ def wandb_image(origin_eval_dataset, eval_dataset, batch_index: int, pred_label:
                        wandb_transformed_image, pred_label, true_label)
 
 
-def visualize_activations(origin_eval_dataset, eval_dataset, activations: Dict[str, torch.Tensor], cnn_names: List[str], rnn_name: str, batch_index: int):
+def visualize_activations(origin_eval_dataset, eval_dataset, activations: Dict[str, torch.Tensor], cnn_names: List[str], rnn_name: str, batch_index: int, pred_label: str, true_label: str, visualize_all: bool) -> int:
+    correct = pred_label == true_label
+    if not visualize_all and correct:
+        return 0
+
     img_name = origin_eval_dataset.imgs[batch_index]
     log_dir = f'logs/{img_name}'
+    tag = f'({pred_label})'
     rm_dir(log_dir)
     writer = SummaryWriter(log_dir=log_dir)
     writer.add_image(
-        'Image/Origin', origin_eval_dataset[batch_index][0], global_step=0)
-    writer.add_image('Image/Transformed',
+        'Image/Origin' + tag, origin_eval_dataset[batch_index][0], global_step=0)
+    writer.add_image('Image/Transformed' + tag,
                      eval_dataset[batch_index][0], global_step=0)
 
     for cnn_name in cnn_names:
@@ -258,7 +263,7 @@ def visualize_activations(origin_eval_dataset, eval_dataset, activations: Dict[s
     ax.set_ylabel('Hidden Units')
     ax.set_title('LSTM Output Heatmap')
     # 保存到 TensorBoard
-    writer.add_figure('RNN/Heatmap', fig)
+    writer.add_figure('RNN/Heatmap' + tag, fig)
     plt.close(fig)
 
     # 累加每个时间步的 hidden_size, 并绘制柱状图
@@ -272,16 +277,7 @@ def visualize_activations(origin_eval_dataset, eval_dataset, activations: Dict[s
     writer.add_figure('RNN/Sum of Hidden Units', fig)
     plt.close(fig)
 
-    # 取每个时间步 hidden_size 的平均值, 并绘制柱状图
-    fig, ax = plt.subplots(figsize=(12, 6))
-    mean_output = rnn_output_sample.mean(axis=1)
-    ax.bar(range(len(mean_output)), mean_output)
-    ax.set_xlabel('Time Steps')
-    ax.set_ylabel('mean of Hidden Units')
-    ax.set_title('mean of Hidden Units over Time')
-    # 保存到 TensorBoard
-    writer.add_figure('RNN/mean of Hidden Units', fig)
-    plt.close(fig)
-
     # writer.add_graph(model, imgs)
     writer.close()
+
+    return 1

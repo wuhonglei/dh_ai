@@ -37,6 +37,8 @@ testing:
 evaluate:
   log: False # 单独执行 evaluate.py 时是否记录评估日志
   visualize: True # 是否使用 tensorboard 可视化评估结果
+  visualize_all: False # 是否可视化所有结果, 否则只可视化错误结果
+  visualize_limit: 4 # 可视化结果数量
 
 early_stopping:
   enable: False

@@ -12,16 +12,16 @@ from dataset import CaptchaDataset, encode_labels
 from utils import correct_predictions, load_config, get_wandb_config, wandb_image, visualize_activations
 
 
-def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool):
+def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool, visualize_all, visualize_limit):
     model = CRNN(class_num, hidden_size)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     model.to(device)
-    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters, log, visualize)
+    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters, log, visualize, visualize_all, visualize_limit)
 
 
-def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool):
+def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool, visualize_all: bool, visualize_limit: int):
     if log:
         wandb_config = get_wandb_config()
         wandb.init(**wandb_config, job_type='evaluate')
@@ -53,6 +53,7 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
     loss_sum = 0.0
     correct = 0
     total = 0
+    visualize_count = 0
     ctc_loss = nn.CTCLoss(blank=padding_index)  # 假设 0 为空白字符
 
     model.eval()
@@ -87,9 +88,9 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
                         batch_index, preds[0], labels[0], wandb, table)
 
         if visualize:
-            visualize_activations(
-                origin_eval_dataset, eval_dataset, activations, cnn_names, rnn_name, batch_index,)
-            if total >= 4:
+            visualize_count += visualize_activations(
+                origin_eval_dataset, eval_dataset, activations, cnn_names, rnn_name, batch_index, preds[0], labels[0], visualize_all)
+            if visualize_count >= visualize_limit:
                 break
 
     test_loss = loss_sum / total
@@ -121,7 +122,9 @@ if __name__ == '__main__':
                                         width=model_config['width'],
                                         height=model_config['height'],
                                         log=evaluate_config['log'],
-                                        visualize=evaluate_config['visualize']
+                                        visualize=evaluate_config['visualize'],
+                                        visualize_all=evaluate_config['visualize_all'],
+                                        visualize_limit=evaluate_config['visualize_limit']
                                         )
 
     print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}')
