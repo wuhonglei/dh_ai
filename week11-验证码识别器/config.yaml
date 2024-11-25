@@ -31,8 +31,8 @@ training:
   model_path: "./saved_models/model_4-6_37_12w.pth"
 
 testing:
-  test_dir: "data/train-3363-stable-new/test"
-  model_path: "./saved_models/model_4-6_37_3k_base12w.pth"
+  test_dir: "data/动态 4-6 位/数字 0-9a-z/test"
+  model_path: "./saved_models/4-6-model_4-6_37_max_new.pth"
 
 evaluate:
   log: False # 单独执行 evaluate.py 时是否记录评估日志

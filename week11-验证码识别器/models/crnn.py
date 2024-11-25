@@ -73,7 +73,7 @@ activations = {}
 def get_activation(name):
     # 定义钩子函数
     def hook(model, input, output):
-        activations[name] = output.detach()
+        activations[name] = output
     return hook
 
 
@@ -85,7 +85,10 @@ def register_hook(model):
             name = f'conv_{i}'
             cnn_names.append(name)
             layer.register_forward_hook(get_activation(name))
-    return cnn_names
+
+    rnn_name = 'rnn'
+    model.rnn[0].register_forward_hook(get_activation(rnn_name))
+    return cnn_names, rnn_name
 
 
 if __name__ == '__main__':

@@ -7,10 +7,9 @@ from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
 
-from models.crnn import CRNN, activations, register_hook
-from torch.utils.tensorboard import SummaryWriter  # type: ignore
+from models.crnn import CRNN, register_hook, activations
 from dataset import CaptchaDataset, encode_labels
-from utils import correct_predictions, load_config, get_wandb_config
+from utils import correct_predictions, load_config, get_wandb_config, wandb_image, visualize_activations
 
 
 def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool):
@@ -31,8 +30,8 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
             columns=["Origin_Image", "Transformed_Image", "Prediction", "Ground Truth"])
 
     if visualize:
-        cnn_names = register_hook(model)
-        print('cnn_names', cnn_names)
+        cnn_names, rnn_name = register_hook(model)
+        print('cnn_names', cnn_names, rnn_name)
 
     transform = transforms.Compose([
         transforms.Resize((height, width)),
@@ -84,34 +83,14 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
         correct += current_correct
 
         if log:
-            origin_image = origin_eval_dataset[batch_index][0].cpu(
-            ).numpy().transpose(1, 2, 0)
-            transformed_image = eval_dataset[batch_index][0].cpu(
-            ).numpy().transpose(1, 2, 0)
-            pred_label = preds[0]
-            true_label = labels[0]
-            if pred_label != true_label:
-                # 创建 wandb.Image 对象
-                wandb_origin_image = wandb.Image(origin_image, mode='RGB')
-                wandb_transformed_image = wandb.Image(
-                    transformed_image, mode='L')
-                # 添加数据到表格
-                table.add_data(wandb_origin_image,
-                               wandb_transformed_image, pred_label, true_label)
+            wandb_image(origin_eval_dataset, eval_dataset,
+                        batch_index, preds[0], labels[0], wandb, table)
 
         if visualize:
-            img_name = origin_eval_dataset.imgs[batch_index]
-            writer = SummaryWriter(log_dir=f'logs/{img_name}')
-            for cnn_name in cnn_names:
-                conv_output = activations[cnn_name]
-                channel_num = conv_output.shape[1]
-                for idx in range(channel_num):
-                    feature_map = conv_output[0, idx, :, :].unsqueeze(0)
-                    writer.add_image(
-                        f'{cnn_name}/total_{channel_num}/Channel_{idx}', feature_map, global_step=0)
-            # writer.add_graph(model, imgs)
-            writer.close()
-            break
+            visualize_activations(
+                origin_eval_dataset, eval_dataset, activations, cnn_names, rnn_name, batch_index,)
+            if total >= 5:
+                break
 
     test_loss = loss_sum / total
     test_accuracy = 1.0 * correct / (total)
@@ -119,7 +98,6 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
         # 记录表格到 wandb
         wandb.log({"captcha_results": table, 'test_loss': test_loss,
                   'test_accuracy': test_accuracy})
-
         # 完成 wandb 运行
         wandb.finish()
 
