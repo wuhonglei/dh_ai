@@ -89,7 +89,7 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
         if visualize:
             visualize_activations(
                 origin_eval_dataset, eval_dataset, activations, cnn_names, rnn_name, batch_index,)
-            if total >= 5:
+            if total >= 4:
                 break
 
     test_loss = loss_sum / total
