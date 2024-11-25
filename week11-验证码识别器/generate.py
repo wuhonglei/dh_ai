@@ -30,7 +30,8 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
         chars = ''.join(map(str, random.choices(
             characters, k=random.choice(range(start, end)))))
         # 生成验证码图片
-        captcha = ImageCaptcha(width=width, height=height)
+        captcha = ImageCaptcha(width=width, height=height,
+                               font_sizes=(20, 22, 24))
         img = captcha.generate_image(chars)
         img.save(os.path.join(dist_dir, f'{chars}_{i}.png'))
 

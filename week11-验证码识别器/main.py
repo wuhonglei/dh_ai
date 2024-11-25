@@ -28,6 +28,7 @@ def main():
         generate_captcha(total=dataset_config['test_total'], captcha_length=origin_captcha_length, width=dataset_config['width'], height=dataset_config['height'], dist_dir=dataset_config['test_dir'],
                          characters=dataset_config['characters'], remove=dataset_config['remove'])
 
+    return
     train(train_dir=training_config['train_dir'],
           test_dir=testing_config['test_dir'],
           batch_size=training_config['batch_size'],
