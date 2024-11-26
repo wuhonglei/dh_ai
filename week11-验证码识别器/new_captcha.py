@@ -2,7 +2,7 @@ import random
 from captcha.image import random_color,  ImageCaptcha
 from PIL.Image import new as createImage, Image, Resampling
 from PIL.ImageDraw import Draw, ImageDraw
-from PIL.ImageFilter import SMOOTH
+from PIL.ImageFilter import SMOOTH, SMOOTH_MORE, SHARPEN, FIND_EDGES, EMBOSS, EDGE_ENHANCE, DETAIL, BLUR
 from typing import Union, Tuple
 import numpy as np
 from PIL import Image as PILImage
@@ -91,7 +91,7 @@ class NewImageCaptcha(ImageCaptcha):
         self.character_warp_dy = (0.01, 0.02)
         self.word_space_probability = 0
         self.word_offset_dx = 0.15
-        self.character_rotate = (-10, 10)
+        self.character_rotate = (-5, 5)
         self.lookup_table: list[int] = [int(i * 10.97) for i in range(256)]
 
     def create_bezier_curve(self, image: Image, width: int = 2, number: int = 3):
@@ -212,13 +212,20 @@ class NewImageCaptcha(ImageCaptcha):
             c: str,
             draw: ImageDraw,
             color: ColorTuple) -> Image:
-        font = random.choice(self.truefonts)
-        _, _, w, h = draw.multiline_textbbox((1, 1), c, font=font)
+        font_index_list = random.choices(range(len(self.truefonts)), k=2)
+        # 升序排列
+        font_index_list.sort()
+        small_index, big_index = font_index_list
+        small_font, big_font = self.truefonts[small_index], self.truefonts[big_index]
+        _, _, w, h = draw.multiline_textbbox((1, 1), c, font=big_font)
 
         dx1 = random.randint(*self.character_offset_dx)
         dy1 = random.randint(*self.character_offset_dy)
-        im = createImage('RGBA', (w + dx1, h + dy1))
-        Draw(im).text((dx1, dy1), c, font=font, fill=color)
+        im = createImage('RGBA', (int(w + dx1), int(h + dy1)))
+        Draw(im).text((dx1, dy1), c, font=big_font, fill=color)
+        if c not in [" ", "c", 'i', 'j', 'a', '1', 'e', 'l'] and random.random() <= 0.2:
+            Draw(im).text((dx1, dy1), c,
+                          font=small_font, fill=(250, 250, 250, 100))
 
         # rotate
         im = im.crop(im.getbbox())
@@ -261,7 +268,7 @@ class NewImageCaptcha(ImageCaptcha):
         images: list[Image] = []
         for c in chars:
             if random.random() > self.word_space_probability:
-                images.append(self._draw_character(" ", draw, (0, 0, 0)))
+                images.append(self._draw_character(" ", draw, (0, 0, 0, 0)))
             color = random_color(10, 255, random.randint(150, 250))
             images.append(self._draw_character(c, draw, color))
 

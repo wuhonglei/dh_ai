@@ -23,9 +23,17 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
     init_dir(dist_dir, remove=remove)
 
     generating_progress = tqdm(range(total))
-    captcha = NewImageCaptcha(width=width, height=height, fonts=[
-        './fonts/Open_Sans/static/OpenSans-Light.ttf'],
-        font_sizes=(22, 24))
+    captcha = NewImageCaptcha(
+        width=width,
+        height=height,
+        fonts=[
+            './fonts/Roboto/Roboto-Thin.ttf',
+            './fonts/Roboto/Roboto-Light.ttf',
+            './fonts/Roboto/Roboto-Italic.ttf',
+            # './fonts/Roboto/Roboto-Medium.ttf',
+        ],
+        font_sizes=(22, 24)
+    )
     for i in generating_progress:
         generating_progress.set_description(f'generating captcha')
         # 生成验证码
