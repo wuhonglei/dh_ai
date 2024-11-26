@@ -8,6 +8,7 @@ from captcha.image import ImageCaptcha
 import os
 from utils import init_dir, get_len_range
 from tqdm import tqdm
+from new_captcha import NewImageCaptcha
 
 
 def generate_captcha(total, captcha_length, width, height, characters, dist_dir, remove: bool):
@@ -22,6 +23,9 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
     init_dir(dist_dir, remove=remove)
 
     generating_progress = tqdm(range(total))
+    captcha = NewImageCaptcha(width=width, height=height, fonts=[
+        './fonts/Open_Sans/static/OpenSans-Light.ttf'],
+        font_sizes=(22, 24))
     for i in generating_progress:
         generating_progress.set_description(f'generating captcha')
         # 生成验证码
@@ -30,8 +34,6 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
         chars = ''.join(map(str, random.choices(
             characters, k=random.choice(range(start, end)))))
         # 生成验证码图片
-        captcha = ImageCaptcha(width=width, height=height,
-                               font_sizes=(20, 22, 24))
         img = captcha.generate_image(chars)
         img.save(os.path.join(dist_dir, f'{chars}_{i}.png'))
 

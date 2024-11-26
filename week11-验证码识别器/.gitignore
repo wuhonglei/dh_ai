@@ -1,12 +1,5 @@
-data/test
-data/train
-data/多位验证码
-data/固定 2 位/
-data/动态 2 位/
-data/动态 3 位/
-data/动态 1-2 位/
-data/动态 4-6 位/
-data/train-3363-stable-new
+data/
+!data/demo/
 mnist/
 saved_models/
 logs/
