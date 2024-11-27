@@ -10,7 +10,6 @@ def main():
     config = load_config()
     dataset_config = config['dataset']
     training_config = config['training']
-    testing_config = config['testing']
     model_config = config['model']
 
     padding_index = dataset_config['padding_index'] if 'padding_index' in dataset_config else ''
@@ -29,7 +28,7 @@ def main():
                          characters=dataset_config['characters'], remove=dataset_config['remove'])
 
     train(train_dir=training_config['train_dir'],
-          test_dir=testing_config['test_dir'],
+          test_dir=training_config['test_dir'],
           batch_size=training_config['batch_size'],
           epochs=training_config['epochs'],
           captcha_length=captcha_length,

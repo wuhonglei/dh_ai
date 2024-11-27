@@ -109,11 +109,11 @@ if __name__ == '__main__':
     config = load_config('./config.yaml')
     model_config = config['model']
     dataset_config = config['dataset']
-    testing_config = config['testing']
+    evaluate_config = config['evaluate']
     evaluate_config = config['evaluate']
     class_num = len(dataset_config['characters']) + 1  # 1 表示空白字符
-    test_loss, test_accuracy = evaluate(data_dir=testing_config['test_dir'],
-                                        model_path=testing_config['model_path'],
+    test_loss, test_accuracy = evaluate(data_dir=evaluate_config['evaluate_dir'],
+                                        model_path=evaluate_config['model_path'],
                                         characters=dataset_config['characters'],
                                         hidden_size=model_config['hidden_size'],
                                         captcha_length=6,
