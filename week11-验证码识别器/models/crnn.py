@@ -35,10 +35,10 @@ class CRNN(nn.Module):
             nn.ReLU(),
             nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),  # Conv6
             nn.ReLU(),
-            # nn.AdaptiveMaxPool2d(output_size=(1, 12))  # Adaptive Max Pool
+            nn.AdaptiveMaxPool2d(output_size=(1, 12))  # Adaptive Max Pool
         )
         self.rnn = nn.Sequential(
-            nn.LSTM(input_size=512 * 4, hidden_size=hidden_size,
+            nn.LSTM(input_size=512, hidden_size=hidden_size,
                     num_layers=2, bidirectional=True, batch_first=False, dropout=0.25),
         )
         self.fc = nn.Linear(hidden_size * 2, n_classes)
