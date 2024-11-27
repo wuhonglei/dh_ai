@@ -47,8 +47,8 @@ class CRNN(nn.Module):
         # CNN
         x = self.cnn(x)
         b, c, h, w = x.size()  # (batch_size, channels, height, width)
-        x = x.permute(0, 3, 1, 2)  # (batch_size, width, channels, height)
-        x = x.view(b, w, c * h)  # (batch_size, width, channels * height)
+        x = x.permute(3, 0, 1, 2)  # (batch_size, width, channels, height)
+        x = x.view(w, b, c * h)  # (batch_size, width, channels * height)
 
         x = self.dropout_cnn_rnn(x)
 

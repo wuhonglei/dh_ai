@@ -1,7 +1,7 @@
 name: "验证码识别"
 dataset:
   name: "captcha"
-  generate: True # 是否生成新的图片
+  generate: False # 是否生成新的图片
   remove: True # 是否删除原有数据
   train_total: 60000
   test_total: 5000
@@ -25,10 +25,10 @@ training:
   train_dir: "data/动态 4-6 位_mock/数字 0-9a-z/train"
   batch_size: 1024
   learning_rate: 0.001
-  epochs: 70
+  epochs: 100
   log: True # 是否记录训练日志
   # pretrained_model_path: "./saved_models/4-6-model_4-6_37_max_new.pth" # 预训练模型路径
-  model_path: "./saved_models/model_4-6_37_mock.pth"
+  model_path: "./saved_models/model_4-6_37_mock_new_model.pth"
 
 testing:
   test_dir: "data/动态 4-6 位_mock/数字 0-9a-z/test"
