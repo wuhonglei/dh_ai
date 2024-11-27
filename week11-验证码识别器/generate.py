@@ -27,10 +27,10 @@ def generate_captcha(total, captcha_length, width, height, characters, dist_dir,
         width=width,
         height=height,
         fonts=[
-            './fonts/Roboto/Roboto-Thin.ttf',
-            './fonts/Roboto/Roboto-Light.ttf',
-            './fonts/Roboto/Roboto-Italic.ttf',
-            # './fonts/Roboto/Roboto-Medium.ttf',
+            './fonts/Verdana/verdana-Regular.ttf',
+            #   './fonts/Verdana/verdana-Bold.ttf',
+            './fonts/Verdana/verdana-Italic.ttf',
+            #   './fonts/Verdana/verdanaz-BoldItalic.ttf',
         ],
         font_sizes=(22, 24)
     )
