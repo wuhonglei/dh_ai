@@ -28,17 +28,18 @@ class CRNN(nn.Module):
             nn.ReLU(),
             nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),  # Conv4
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # Pool3
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(
+                2, 1), padding=(0, 1)),  # Pool3
 
             nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),  # Conv5
             nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),  # Conv6
             nn.ReLU(),
-            # nn.AdaptiveMaxPool2d(output_size=(1, 12))  # Adaptive Max Pool
+            nn.AdaptiveMaxPool2d(output_size=(1, 12))  # Adaptive Max Pool
         )
         self.rnn = nn.Sequential(
-            nn.LSTM(input_size=512 * 4, hidden_size=hidden_size,
+            nn.LSTM(input_size=512, hidden_size=hidden_size,
                     num_layers=2, bidirectional=True, batch_first=False, dropout=0.25),
         )
         self.fc = nn.Linear(hidden_size * 2, n_classes)
@@ -47,8 +48,11 @@ class CRNN(nn.Module):
         # CNN
         x = self.cnn(x)
         b, c, h, w = x.size()  # (batch_size, channels, height, width)
-        x = x.permute(0, 3, 1, 2)  # (batch_size, width, channels, height)
-        x = x.view(b, w, c * h)  # (batch_size, width, channels * height)
+        assert h == 1, "Height must be 1 after CNN layers."
+        x = x.squeeze(2)  # (batch_size, channels, width)
+
+        # Transpose for RNN
+        x = x.permute(2, 0, 1)  # (width, batch_size, channels)
 
         x = self.dropout_cnn_rnn(x)
 
