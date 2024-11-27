@@ -100,8 +100,8 @@ class NewImageCaptcha(ImageCaptcha):
             x1 = random.randint(0, w-20)
             y1 = random.randint(0, h-10)
 
-            x2 = random.randint(x1, x1 + random.randint(20, w // 5))
-            y2 = random.randint(y1, y1 + random.randint(20, h // 2))
+            x2 = random.randint(x1, x1 + random.randint(30, max(w // 5, 30)))
+            y2 = random.randint(y1, y1 + random.randint(30, max(h // 2, 30)))
 
             offset = 10
             control_x = random.randint(x1 - offset, x2 + offset)
@@ -212,28 +212,22 @@ class NewImageCaptcha(ImageCaptcha):
             c: str,
             draw: ImageDraw,
             color: ColorTuple) -> Image:
-        font_index_list = random.choices(range(len(self.truefonts)), k=2)
-        # 升序排列
-        font_index_list.sort()
-        small_index, big_index = font_index_list
-        small_font, big_font = self.truefonts[small_index], self.truefonts[big_index]
-        _, _, w, h = draw.multiline_textbbox((1, 1), c, font=big_font)
+
+        font = random.choice(self.truefonts)
+        _, _, w, h = draw.multiline_textbbox((1, 1), c, font=font)
 
         dx1 = random.randint(*self.character_offset_dx)
         dy1 = random.randint(*self.character_offset_dy)
         im = createImage('RGBA', (int(w + dx1), int(h + dy1)))
-        Draw(im).text((dx1, dy1), c, font=big_font, fill=color)
-        if c not in [" ", "c", 'i', 'j', 'a', '1', 'e', 'l'] and random.random() <= 0.2:
-            Draw(im).text((dx1, dy1), c,
-                          font=small_font, fill=(250, 250, 250, 100))
+        Draw(im).text((dx1, dy1), c, font=font, fill=color)
 
         # rotate
         im = im.crop(im.getbbox())
-        im = im.rotate(
-            random.uniform(*self.character_rotate),
-            Resampling.BILINEAR,
-            expand=True,
-        )
+        # im = im.rotate(
+        #     random.uniform(*self.character_rotate),
+        #     Resampling.BILINEAR,
+        #     expand=True,
+        # )
 
         # warp
         dx2 = w * random.uniform(*self.character_warp_dx)
@@ -308,7 +302,7 @@ class NewImageCaptcha(ImageCaptcha):
             self._width, self._height, background_start_color, background_end_color, background_gradient_angle)
         return image
 
-    def generate_image(self, chars: str, noise_ration=0.5):
+    def generate_image(self, chars: str, noise_ration=0.4):
         """Generate the image of the given characters.
 
         :param chars: text to be generated.
@@ -317,6 +311,7 @@ class NewImageCaptcha(ImageCaptcha):
         if random.random() < noise_ration:
             im = self.create_bezier_curve(
                 im, width=3, number=random.randint(0, 2))
+        im = im.filter(SMOOTH)
         im = self.create_captcha_image(im, chars)
         if random.random() < noise_ration:
             im = self.create_noise_dots(
@@ -325,5 +320,6 @@ class NewImageCaptcha(ImageCaptcha):
         #     0, 255),  width=3, number=random.randint(1, 1))
         if random.random() < (noise_ration / 2):
             im = self.create_black_white_noise(im, 0.1, 0.2)
+            pass
         im = im.filter(SMOOTH)
         return im
