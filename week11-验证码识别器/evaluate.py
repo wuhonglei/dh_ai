@@ -24,7 +24,7 @@ def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int
 def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool, visualize_all: bool, visualize_limit: int):
     if log:
         wandb_config = get_wandb_config()
-        wandb.init(**wandb_config, job_type='evaluate')
+        wandb.init(**wandb_config, job_type='evaluate', tags=[data_dir])
         # 定义表格的列
         table = wandb.Table(
             columns=["Origin_Image", "Transformed_Image", "Prediction", "Ground Truth"])
