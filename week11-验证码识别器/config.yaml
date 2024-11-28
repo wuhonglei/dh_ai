@@ -30,7 +30,7 @@ training:
   epochs: 100
   log: True # 是否记录训练日志
   # pretrained_model_path: "./saved_models/model_4-6_37_mock_font_new_model.pth" # 预训练模型路径
-  model_path: "./saved_models/model_4-6_37_mock_3k_base_mock_font_new_model.pth"
+  model_path: "./saved_models/model_4-6_37_mock_font_3_channels.pth"
 
 evaluate:
   evaluate_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/test"
