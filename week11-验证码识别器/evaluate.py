@@ -1,27 +1,26 @@
-import os
 import torch
 import torch.nn as nn
-from torchvision import transforms
 from torch.utils.data import DataLoader
 
 import wandb
 from tqdm import tqdm
 
-from models.crnn import CRNN, register_hook, activations
+from models.crnn import CRNN
+from models.util import register_hook, activations, get_transfrom_fn
 from dataset import CaptchaDataset, encode_labels
 from utils import correct_predictions, load_config, get_wandb_config, wandb_image, visualize_activations
 
 
-def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool, visualize_all, visualize_limit):
-    model = CRNN(class_num, hidden_size)
+def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool, visualize_all, visualize_limit, in_channels: int):
+    model = CRNN(in_channels, hidden_size, class_num)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(torch.load(
         model_path, map_location=device, weights_only=True))
     model.to(device)
-    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters, log, visualize, visualize_all, visualize_limit)
+    return evaluate_model(data_dir, model, captcha_length, padding_index, width, height, characters, log, visualize, visualize_all, visualize_limit, in_channels)
 
 
-def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool, visualize_all: bool, visualize_limit: int):
+def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool, visualize_all: bool, visualize_limit: int, in_channels: int):
     if log:
         wandb_config = get_wandb_config()
         wandb.init(**wandb_config, job_type='evaluate', tags=[data_dir])
@@ -33,12 +32,7 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
         cnn_names, rnn_name = register_hook(model)
         print('cnn_names', cnn_names, rnn_name)
 
-    transform = transforms.Compose([
-        transforms.Resize((height, width)),
-        transforms.Grayscale(num_output_channels=1),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
-    ])
+    transform = get_transfrom_fn(in_channels, height, width)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'
@@ -115,6 +109,7 @@ if __name__ == '__main__':
     test_loss, test_accuracy = evaluate(data_dir=evaluate_config['evaluate_dir'],
                                         model_path=evaluate_config['model_path'],
                                         characters=dataset_config['characters'],
+                                        in_channels=model_config['in_channels'],
                                         hidden_size=model_config['hidden_size'],
                                         captcha_length=6,
                                         class_num=class_num,

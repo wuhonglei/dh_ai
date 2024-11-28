@@ -41,6 +41,7 @@ def main():
           height=model_config['height'],
           model_path=model_path,
           log=training_config['log'],
+          in_channels=model_config['in_channels'],
           hidden_size=model_config['hidden_size'],
           early_stopping=config['early_stopping'],
           )

@@ -3,30 +3,24 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import transforms
 from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
 import atexit
 
 from models.crnn import CRNN
+from models.util import get_transfrom_fn
 from dataset import CaptchaDataset, encode_labels
 from utils import get_wandb_config, EarlyStopping, save_model, correct_predictions
 from evaluate import evaluate_model
 
 
-def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path: str, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, early_stopping={},):
+def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path: str, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, in_channels: int, early_stopping={},):
     if log:
         wandb.init(**get_wandb_config(), job_type='train',
                    tags=[train_dir, test_dir])
 
-    transform = transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((height, width)),
-        transforms.RandomRotation(10),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
-    ])
+    transform = get_transfrom_fn(in_channels, height, width)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'
@@ -36,7 +30,7 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path:
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, **loader_config)
 
-    model = CRNN(class_num, hidden_size)
+    model = CRNN(in_channels, hidden_size, class_num)
     if os.path.exists(pretrained_model_path):
         model.load_state_dict(torch.load(
             pretrained_model_path, map_location=device))
@@ -87,7 +81,7 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path:
             batch_progress.set_postfix(loss=f'{loss.item():.4f}')
 
         test_loss, test_accuracy = evaluate_model(
-            test_dir, model, captcha_length, padding_index, width, height, characters, log=False, visualize=False, visualize_all=False, visualize_limit=0)
+            test_dir, model, captcha_length, padding_index, width, height, characters, log=False, visualize=False, visualize_all=False, visualize_limit=0, in_channels=in_channels)
         train_loss, train_accuracy = loss_sum / \
             (len(train_dataset)), acc_sum / \
             (len(train_dataset))

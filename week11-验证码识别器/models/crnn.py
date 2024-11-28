@@ -3,7 +3,7 @@ from torchinfo import summary
 
 
 class CRNN(nn.Module):
-    def __init__(self, n_classes: int, hidden_size: int):
+    def __init__(self, in_channels: int, hidden_size: int, n_classes: int):
         """
         Args:
             n_classes: 验证码字符类别数。
@@ -14,7 +14,7 @@ class CRNN(nn.Module):
         self.dropout_fc = nn.Dropout(0.35)
 
         self.cnn = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=3,
+            nn.Conv2d(in_channels=in_channels, out_channels=64, kernel_size=3,
                       stride=1, padding=1),  # Conv1
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),  # Pool1
@@ -62,31 +62,6 @@ class CRNN(nn.Module):
         return x
 
 
-# 创建一个字典来存储激活值
-activations = {}
-
-
-def get_activation(name):
-    # 定义钩子函数
-    def hook(model, input, output):
-        activations[name] = output
-    return hook
-
-
-def register_hook(model):
-    cnn_layers = model.cnn
-    cnn_names = []
-    for i, layer in enumerate(cnn_layers):
-        if isinstance(layer, nn.Conv2d):
-            name = f'conv_{i}'
-            cnn_names.append(name)
-            layer.register_forward_hook(get_activation(name))
-
-    rnn_name = 'rnn'
-    model.rnn[0].register_forward_hook(get_activation(rnn_name))
-    return cnn_names, rnn_name
-
-
 if __name__ == '__main__':
     import sys
     from pathlib import Path
@@ -101,9 +76,9 @@ if __name__ == '__main__':
     img_width = model_config['width']
     n_classes = len(dataset_config['characters']) + 1
     n_hidden = model_config['hidden_size']
-    n_channels = 1
+    in_channels = model_config['in_channels']
     batch_size = 1
 
-    crnn = CRNN(n_classes, n_hidden)
-    print(crnn)
-    summary(crnn, input_size=(batch_size, n_channels, img_height, img_width))
+    crnn = CRNN(in_channels, n_hidden, n_classes)
+    summary(crnn, input_size=(batch_size, in_channels, img_height, img_width), col_names=(
+        "input_size", "output_size", "num_params"))
