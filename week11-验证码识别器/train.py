@@ -97,7 +97,11 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path:
 
         early_stopping(test_loss)
         epoch_progress.set_postfix(
-            loss=f'{train_loss:.4f}', test_accuracy=f'{100 * test_accuracy:.4f}%', train_accuracy=f'{100 * train_accuracy:.4f}%')
+            test_loss=f'{test_loss:.4f}',
+            train_loss=f'{train_loss:.4f}',
+            test_accuracy=f'{100 * test_accuracy:.4f}%',
+            train_accuracy=f'{100 * train_accuracy:.4f}%'
+        )
 
         if early_stopping.early_stop:
             print('Early stopping in epoch:', epoch)
