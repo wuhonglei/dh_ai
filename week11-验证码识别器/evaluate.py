@@ -78,7 +78,7 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
                                                      labels, characters, padding_index)
         correct += current_correct
 
-        if log and current_correct < 1:
+        if log:
             wandb_image(origin_eval_dataset, eval_dataset,
                         batch_index, preds[0], labels[0], wandb, table)
 
