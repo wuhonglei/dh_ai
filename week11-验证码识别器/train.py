@@ -18,7 +18,7 @@ from evaluate import evaluate_model
 def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path: str, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, in_channels: int, early_stopping={},):
     if log:
         wandb.init(**get_wandb_config(), job_type='train',
-                   tags=get_tags_from_dir([train_dir, test_dir]))
+                   tags=get_tags_from_dir([train_dir]))
 
     transform = get_transfrom_fn(in_channels, height, width, 'training')
 
