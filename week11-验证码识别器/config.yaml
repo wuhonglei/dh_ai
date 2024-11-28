@@ -15,7 +15,7 @@ dataset:
 
 model:
   type: "CRNN"
-  in_channels: 3
+  in_channels: 1
   layers: 6
   activation: "relu"
   width: 96
@@ -23,19 +23,19 @@ model:
   hidden_size: 256
 
 training:
-  train_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/train"
-  test_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/test"
+  train_dir: "data/train-3363-stable-new/train"
+  test_dir: "data/train-3363-stable-new/test"
   batch_size: 1024
   learning_rate: 0.001
   epochs: 100
   log: True # 是否记录训练日志
-  # pretrained_model_path: "./saved_models/model_4-6_37_mock_font_new_model.pth" # 预训练模型路径
-  model_path: "./saved_models/model_4-6_37_mock_font_3_channels.pth"
+  pretrained_model_path: "./saved_models/model_4-6_37_mock_font_3_channels.pth" # 预训练模型路径
+  model_path: "./saved_models/model_4-6_37_mock_3k_base_mock_font_3_channels_model.pth"
 
 evaluate:
-  evaluate_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/test"
-  model_path: "./saved_models/model_4-6_37_mock_font_new_model.pth"
-  log: True # 单独执行 evaluate.py 时是否记录评估日志
+  evaluate_dir: "data/train-3363-stable-new/train"
+  model_path: "./saved_models/model_4-6_37_mock_font_3_channels.pth"
+  log: False # 单独执行 evaluate.py 时是否记录评估日志
   visualize: False # 是否使用 tensorboard 可视化评估结果
   visualize_all: False # 是否可视化所有结果, 否则只可视化错误结果
   visualize_limit: 4 # 可视化结果数量

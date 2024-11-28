@@ -33,7 +33,7 @@ def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, wid
         cnn_names, rnn_name = register_hook(model)
         print('cnn_names', cnn_names, rnn_name)
 
-    transform = get_transfrom_fn(in_channels, height, width)
+    transform = get_transfrom_fn(in_channels, height, width, 'evaluate')
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'

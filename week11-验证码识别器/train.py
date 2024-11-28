@@ -20,7 +20,7 @@ def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path:
         wandb.init(**get_wandb_config(), job_type='train',
                    tags=get_tags_from_dir([train_dir, test_dir]))
 
-    transform = get_transfrom_fn(in_channels, height, width)
+    transform = get_transfrom_fn(in_channels, height, width, 'training')
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     is_cuda = device.type == 'cuda'

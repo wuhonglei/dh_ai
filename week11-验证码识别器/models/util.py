@@ -1,5 +1,6 @@
 import torch.nn as nn
 from torchvision import transforms
+from typing import Literal
 
 # 创建一个字典来存储激活值
 activations = {}
@@ -26,7 +27,7 @@ def register_hook(model):
     return cnn_names, rnn_name
 
 
-def get_transfrom_fn(in_channels: int, height: int, width: int):
+def get_transfrom_fn(in_channels: int, height: int, width: int, mode: Literal['training', 'evaluate']):
     transforms_list = []
     if in_channels == 1:
         transforms_list.append(transforms.Grayscale(num_output_channels=1))
@@ -35,5 +36,8 @@ def get_transfrom_fn(in_channels: int, height: int, width: int):
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
     ])
+
+    if mode == 'training':
+        transforms_list.insert(-2, transforms.RandomRotation(10))
 
     return transforms.Compose(transforms_list)

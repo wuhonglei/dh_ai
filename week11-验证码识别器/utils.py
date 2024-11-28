@@ -80,7 +80,7 @@ def decode_predictions(preds: torch.Tensor, characters: str, padding_index: int)
     # preds 的形状为 (seq_len, batch_size, num_classes)
     preds = preds.permute(1, 0, 2)  # 转为 (batch_size, seq_len, num_classes)
     preds = torch.argmax(preds, dim=-1)  # 在类别维度取最大值，得到索引
-    preds = preds.cpu().numpy()
+    preds = preds.cpu().numpy()  # type: ignore
     decoded_results: list[str] = []
     for pred in preds:
         # 去除连续重复的索引和空白符（索引 0）
