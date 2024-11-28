@@ -8,7 +8,7 @@ import wandb
 from tqdm import tqdm
 import atexit
 
-from models.crnn import CRNN
+from models.vgg_crnn import CRNN
 from models.util import get_transfrom_fn
 from dataset import CaptchaDataset, encode_labels
 from utils import get_wandb_config, EarlyStopping, save_model, correct_predictions, get_tags_from_dir

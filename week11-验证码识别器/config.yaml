@@ -16,22 +16,22 @@ dataset:
 
 model:
   type: "CRNN"
-  in_channels: 1
+  in_channels: 3
   layers: 6
   activation: "relu"
-  width: 96
-  height: 32
+  width: 224
+  height: 224
   hidden_size: 256
 
 training:
-  train_dir: "data/train-3363-stable-new/train"
-  test_dir: "data/train-3363-stable-new/test"
+  train_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/train"
+  test_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/test"
   batch_size: 1024
   learning_rate: 0.001
   epochs: 100
-  log: True # 是否记录训练日志
-  pretrained_model_path: "./saved_models/model_4-6_37_mock_font_error_new_model.pth" # 预训练模型路径
-  model_path: "./saved_models/model_4-6_37_mock_3k_base_mock_font_error_model.pth"
+  log: False # 是否记录训练日志
+  # pretrained_model_path: "./saved_models/model_4-6_37_mock_font_error_new_model.pth" # 预训练模型路径
+  model_path: "./saved_models/model_4-6_37_mock_font_vgg16_model.pth"
 
 evaluate:
   evaluate_dir: "data/train-3363-stable-new/test"

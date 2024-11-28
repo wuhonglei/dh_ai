@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import wandb
 from tqdm import tqdm
 
-from models.crnn import CRNN
+from models.vgg_crnn import CRNN
 from models.util import register_hook, activations, get_transfrom_fn
 from dataset import CaptchaDataset, encode_labels
 from utils import correct_predictions, load_config, get_wandb_config, wandb_image, visualize_activations, get_tags_from_dir

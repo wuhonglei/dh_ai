@@ -25,7 +25,7 @@ def normalize_batch(batch):
 
 
 def train(transformer, vgg, train_loader, style_image, device, epochs=2, style_weight=1e5, content_weight=1e0):
-    optimizer = optim.Adam(transformer.parameters(), lr=0.001)
+    optimizer = optim.Adam(transformer.parameters(), lr=0.001)  # type: ignore
     vgg.to(device)
     transformer.to(device)
 
