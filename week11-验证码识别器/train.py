@@ -11,14 +11,14 @@ import atexit
 from models.crnn import CRNN
 from models.util import get_transfrom_fn
 from dataset import CaptchaDataset, encode_labels
-from utils import get_wandb_config, EarlyStopping, save_model, correct_predictions
+from utils import get_wandb_config, EarlyStopping, save_model, correct_predictions, get_tags_from_dir
 from evaluate import evaluate_model
 
 
 def train(train_dir: str, test_dir: str, batch_size: int, pretrained_model_path: str, epochs: int, learning_rate: float, captcha_length: int, class_num: int, characters: str, padding_index, model_path: str, width: int, height: int, log: bool, hidden_size: int, in_channels: int, early_stopping={},):
     if log:
         wandb.init(**get_wandb_config(), job_type='train',
-                   tags=[train_dir, test_dir])
+                   tags=get_tags_from_dir([train_dir, test_dir]))
 
     transform = get_transfrom_fn(in_channels, height, width)
 

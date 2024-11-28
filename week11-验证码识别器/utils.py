@@ -281,3 +281,9 @@ def visualize_activations(origin_eval_dataset, eval_dataset, activations: Dict[s
     writer.close()
 
     return 1
+
+
+def get_tags_from_dir(dir_path_list: List[str]) -> List[str]:
+    return [
+        dir_path.replace('data/', '') for dir_path in dir_path_list
+    ]

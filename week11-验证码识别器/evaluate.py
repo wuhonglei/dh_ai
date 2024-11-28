@@ -8,7 +8,7 @@ from tqdm import tqdm
 from models.crnn import CRNN
 from models.util import register_hook, activations, get_transfrom_fn
 from dataset import CaptchaDataset, encode_labels
-from utils import correct_predictions, load_config, get_wandb_config, wandb_image, visualize_activations
+from utils import correct_predictions, load_config, get_wandb_config, wandb_image, visualize_activations, get_tags_from_dir
 
 
 def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int, padding_index, width: int, height: int, characters: str, hidden_size: int, log: bool, visualize: bool, visualize_all, visualize_limit, in_channels: int):
@@ -23,7 +23,8 @@ def evaluate(data_dir: str, model_path: str, captcha_length: int, class_num: int
 def evaluate_model(data_dir: str, model, captcha_length: int, padding_index, width: int, height: int, characters: str, log: bool, visualize: bool, visualize_all: bool, visualize_limit: int, in_channels: int):
     if log:
         wandb_config = get_wandb_config()
-        wandb.init(**wandb_config, job_type='evaluate', tags=[data_dir])
+        wandb.init(**wandb_config, job_type='evaluate',
+                   tags=get_tags_from_dir([data_dir]))
         # 定义表格的列
         table = wandb.Table(
             columns=["Origin_Image", "Transformed_Image", "Prediction", "Ground Truth"])
