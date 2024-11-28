@@ -4,6 +4,7 @@ import yaml
 import torch
 from typing import List, Dict
 from torch import nn
+import json
 from torch.utils.tensorboard import SummaryWriter  # type: ignore
 import matplotlib.pyplot as plt
 
@@ -287,3 +288,9 @@ def get_tags_from_dir(dir_path_list: List[str]) -> List[str]:
     return [
         dir_path.replace('data/', '') for dir_path in dir_path_list
     ]
+
+
+def load_json(file_path: str):
+    print('loading json from', file_path)
+    with open(file_path, 'r') as f:
+        return json.load(f)

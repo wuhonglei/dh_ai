@@ -1,8 +1,7 @@
 import os
-from utils import load_config, get_max_length
+from utils import load_config, get_max_length, load_json
 from generate import generate_captcha
 from train import train
-from evaluate import evaluate
 from shutdown import shutdown
 
 
@@ -22,10 +21,15 @@ def main():
 
     if dataset_config['generate']:
         origin_captcha_length = dataset_config['captcha_length']
+        characters_json = load_json(
+            dataset_config['characters_json']) if 'characters_json' in dataset_config else {}
+        new_characters = characters_json.get(
+            'characters', dataset_config['characters'])
+        new_weight = characters_json.get('freqency', None)
         generate_captcha(total=dataset_config['train_total'], captcha_length=origin_captcha_length,
-                         width=dataset_config['width'], height=dataset_config['height'], characters=dataset_config['characters'], dist_dir=dataset_config['train_dir'], remove=dataset_config['remove'])
+                         width=dataset_config['width'], height=dataset_config['height'], characters=new_characters, dist_dir=dataset_config['train_dir'], remove=dataset_config['remove'], weight=new_weight)
         generate_captcha(total=dataset_config['test_total'], captcha_length=origin_captcha_length, width=dataset_config['width'], height=dataset_config['height'], dist_dir=dataset_config['test_dir'],
-                         characters=dataset_config['characters'], remove=dataset_config['remove'])
+                         characters=new_characters, remove=dataset_config['remove'], weight=new_weight)
 
     train(train_dir=training_config['train_dir'],
           test_dir=training_config['test_dir'],
@@ -49,4 +53,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    shutdown(10)
+    # shutdown(10)
