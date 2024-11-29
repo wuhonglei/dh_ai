@@ -3,24 +3,24 @@ dataset:
   name: "captcha"
   generate: False # 是否生成新的图片
   remove: True # 是否删除原有数据
-  train_total: 10000
+  train_total: 60000
   test_total: 1000
   captcha_length: "4-6"
   width: 163
   height: 58
-  train_dir: "data/动态 4-6 位_mock_font_error/数字 0-9a-z/train"
-  test_dir: "data/动态 4-6 位_mock_font_error/数字 0-9a-z/test"
+  train_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/train"
+  test_dir: "data/动态 4-6 位_mock_font/数字 0-9a-z/test"
   characters: "0123456789abcdefghijklmnopqrstuvwxyz"
   # characters_json: "analysis/result/characters.json" # 分析 test 测试集容易混淆的字符
   padding_index: 0 # 验证码长度不足时填充的数字索引, 需使用 characters 的长度作为索引
 
 model:
   type: "CRNN"
-  in_channels: 3
+  in_channels: 1
   layers: 6
   activation: "relu"
-  width: 224
-  height: 224
+  width: 96
+  height: 32
   hidden_size: 256
 
 training:
