@@ -5,7 +5,7 @@ import os
 
 def shutdown(time=0):
     # 定义 shell 脚本路径
-    script_path = "/mnt/nlp/dh_ai/shell/execution.sh"
+    script_path = "/mnt/shell/execution.sh"
     if not os.path.exists(script_path):
         print(f"脚本不存在：{script_path}")
         return

@@ -5,6 +5,13 @@ from torchvision import datasets, transforms
 from model import VisionTransformer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from shutdown import shutdown
+import atexit
+import wandb
+import time
+
+wandb.init(**{'project': 'Vision Transformer', 'config': {'epochs': 5}})
+config = wandb.config
 
 # 数据预处理
 transform = transforms.Compose([
@@ -40,7 +47,7 @@ def test(model, test_loader):
     return correct, total
 
 
-def train(model, train_loader, epochs=5):
+def train(model, train_loader, epochs):
     # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
@@ -51,6 +58,7 @@ def train(model, train_loader, epochs=5):
         model.train()
         batch_progress = tqdm(train_loader, desc="Batch")
         total_loss = 0
+        start_time = time.time()
         for images, labels in batch_progress:
             images = images.to(device)
             labels = labels.to(device)
@@ -63,9 +71,24 @@ def train(model, train_loader, epochs=5):
             total_loss += loss.item()
         avg_loss = total_loss / len(train_loader)
         correct, total = test(model, test_loader)
-        epoch_progress.set_postfix(avg_loss=avg_loss, accuracy=f"{100 * correct / total:.2f}%")
+        test_accuracy = correct / total
+        wandb.log({
+            'train_loss': avg_loss,
+            'test_accuracy': test_accuracy,
+            'epoch_time': int(time.time() - start_time)
+        })
+        epoch_progress.set_postfix(avg_loss=avg_loss, accuracy=f"{100 * test_accuracy:.2f}%")
 
     print("Training complete")
 
+def clean_up():
+    # 保存模型权重
+    torch.save(model.state_dict(), f"model.pth")
+    print("Model saved")
+    wandb.finish()
+    shutdown(10)
+
+
 if __name__ == "__main__":
-  train(model, train_loader, epochs=5)
+    atexit.register(clean_up)
+    train(model, train_loader, epochs=config['epochs'])
