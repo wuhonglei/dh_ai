@@ -10,12 +10,32 @@ import atexit
 import wandb
 import time
 
-wandb.init(**{'project': 'Vision Transformer', 'config': {'epochs': 5}})
+wandb_config = {
+    'project': 'Vision Transformer',
+    'config': {
+        'epochs': 15,
+        'size': (224, 224),
+        'batch_size': 64,
+        'lr': 1e-3,
+        'drop_rate': 0.,
+        'attn_drop_rate': 0.,
+        'qkv_bias': True,
+        'mlp_ratio': 4.,
+        'depth': 12,
+        'n_heads': 12,
+        'embed_dim': 768,
+        'patch_size': 16,
+        'in_channels': 3,
+        'n_classes': 10,
+    }
+}
+
+wandb.init(**wandb_config)
 config = wandb.config
 
 # 数据预处理
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize(config['size']),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225]),
@@ -27,12 +47,14 @@ train_dataset = datasets.CIFAR10(
 test_dataset = datasets.CIFAR10(
     root='/mnt/dataset', train=False, download=True, transform=transform)
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(
+    train_dataset, batch_size=config['batch_size'], shuffle=True)
+test_loader = DataLoader(
+    test_dataset, batch_size=config['batch_size'], shuffle=False)
 
 # 定义模型
-model = VisionTransformer(img_size=224, patch_size=16, in_channels=3, n_classes=10, embed_dim=768,
-                          depth=12, n_heads=12, mlp_ratio=4., qkv_bias=True, drop_rate=0., attn_drop_rate=0.)
+model = VisionTransformer(img_size=config['size'][0], patch_size=config['patch_size'], in_channels=config['in_channels'], n_classes=config['n_classes'], embed_dim=config['embed_dim'],
+                          depth=config['depth'], n_heads=config['n_heads'], mlp_ratio=config['mlp_ratio'], qkv_bias=config['qkv_bias'], drop_rate=config['drop_rate'], attn_drop_rate=config['attn_drop_rate'])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
@@ -55,7 +77,7 @@ def test(model, test_loader):
 def train(model, train_loader, epochs):
     # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)  # type: ignore
 
     # 训练模型
     epoch_progress = tqdm(range(epochs), desc="Epoch")
@@ -93,7 +115,7 @@ def clean_up():
     torch.save(model.state_dict(), f"model.pth")
     print("Model saved")
     wandb.finish()
-    shutdown(10)
+    # shutdown(10)
 
 
 if __name__ == "__main__":
