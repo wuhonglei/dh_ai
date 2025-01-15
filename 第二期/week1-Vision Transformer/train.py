@@ -27,6 +27,8 @@ wandb_config = {
         'patch_size': 16,
         'in_channels': 3,
         'n_classes': 10,
+        'model_name': 'vit_224_16',
+        'shutdown': True,
     }
 }
 
@@ -112,10 +114,11 @@ def train(model, train_loader, epochs):
 
 def clean_up():
     # 保存模型权重
-    torch.save(model.state_dict(), f"model.pth")
+    torch.save(model.state_dict(), f"{config['model_name']}.pth")
     print("Model saved")
     wandb.finish()
-    # shutdown(10)
+    if config['shutdown']:
+        shutdown(10)
 
 
 if __name__ == "__main__":
