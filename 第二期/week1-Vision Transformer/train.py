@@ -13,7 +13,7 @@ import time
 wandb_config = {
     'project': 'Vision Transformer',
     'config': {
-        'epochs': 15,
+        'epochs': 50,
         'size': (224, 224),
         'batch_size': 64,
         'lr': 1e-3,
