@@ -13,23 +13,24 @@ import time
 wandb_config = {
     'project': 'Vision Transformer',
     'config': {
-        'epochs': 50,
-        'size': (224, 224),
-        'batch_size': 64,
-        'lr': 1e-3,
-        'drop_rate': 0.,
-        'attn_drop_rate': 0.,
-        'qkv_bias': True,
-        'mlp_ratio': 4.,
-        'depth': 12,
-        'n_heads': 12,
-        'embed_dim': 768,
-        'patch_size': 16,
-        'in_channels': 3,
-        'n_classes': 10,
-        'model_name': 'vit_224_16',
-        'shutdown': True,
-    }
+        'epochs': 50,  # 训练轮数
+        'batch_size': 128,  # 批量大小
+        'size': (32, 32),  # 输入图像大小
+        'patch_size': 4,  # 分块大小
+        'embed_dim': 144,  # 嵌入维度
+        'n_heads': 12,  # 注意力头数
+        'depth': 12,  # 深度
+        'n_classes': 10,  # 类别数
+        'lr': 1e-3,  # 学习率
+        'drop_rate': 0.,  # 丢弃率
+        'attn_drop_rate': 0.,  # 注意力丢弃率
+        'qkv_bias': True,  # 偏置
+        'mlp_ratio': 4.,  # MLP比例
+        'in_channels': 3,  # 输入通道数
+        'shutdown': False,
+        'model_name': 'vit_patch4_32',  # 模型名称
+    },
+    'pretrained': False,
 }
 
 wandb.init(**wandb_config)
@@ -114,7 +115,7 @@ def train(model, train_loader, epochs):
 
 def clean_up():
     # 保存模型权重
-    torch.save(model.state_dict(), f"{config['model_name']}.pth")
+    torch.save(model.state_dict(), f"./models/{config['model_name']}.pth")
     print("Model saved")
     wandb.finish()
     if config['shutdown']:
