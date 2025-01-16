@@ -13,9 +13,11 @@ import time
 wandb_config = {
     'project': 'Vision Transformer',
     'config': {
-        'epochs': 15,
-        'size': (224, 224),
-        'batch_size': 64,
+        'epochs': 50,
+        'size': (32, 32),
+        'batch_size': 128,
+        'patch_size': 4,
+        'embed_dim': 144,
         'lr': 1e-3,
         'drop_rate': 0.,
         'attn_drop_rate': 0.,
@@ -23,13 +25,12 @@ wandb_config = {
         'mlp_ratio': 4.,
         'depth': 12,
         'n_heads': 12,
-        'embed_dim': 768,
-        'patch_size': 16,
         'in_channels': 3,
         'n_classes': 10,
-        'model_name': 'vit_224_16',
-        'shutdown': True,
-    }
+        'shutdown': False,
+        'model_name': 'vit_patch4_32',
+    },
+    'pretrained': False,
 }
 
 wandb.init(**wandb_config)
@@ -114,7 +115,7 @@ def train(model, train_loader, epochs):
 
 def clean_up():
     # 保存模型权重
-    torch.save(model.state_dict(), f"{config['model_name']}.pth")
+    torch.save(model.state_dict(), f"./models/{config['model_name']}.pth")
     print("Model saved")
     wandb.finish()
     if config['shutdown']:
