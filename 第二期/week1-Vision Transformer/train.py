@@ -30,7 +30,7 @@ wandb_config = {
         'in_channels': 3,  # 输入通道数
         'model_name': 'vit_patch4_32',  # 模型名称
         'shutdown': False,
-        'sweep': False,
+        'sweep': True,
     },
     'job_type': 'train',
     'tags': ['pretrained:False'],
@@ -43,23 +43,17 @@ sweep_config = {
         'goal': 'maximize'  # 最大化验证集准确率
     },
     'parameters': {
-        'batch_size': {
-            'values': [32]
+        'embed_dim': {
+            'values': [72, 96, 144]
         },
-        'size': {
-            'values': [(32, 32), (64, 64)]
+        'n_heads': {
+            'values': [8, 12]
         },
         'patch_size': {
             'values': [2, 4]
         },
-        'embed_dim': {
-            'values': [72, 144, 288]
-        },
-        'n_heads': {
-            'values': [6, 12]
-        },
         'depth': {
-            'values': [6, 12]
+            'values': [6, 8]
         },
     }
 }
@@ -172,6 +166,6 @@ def main():
 if __name__ == "__main__":
     if wandb_config['config']['sweep']:
         sweep_id = wandb.sweep(sweep_config, project='vit-sweep-demo')
-        wandb.agent(sweep_id, main, count=20)
+        wandb.agent(sweep_id, main, count=24)
     else:
         main()
