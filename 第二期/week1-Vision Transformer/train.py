@@ -1,3 +1,5 @@
+import time
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -8,7 +10,6 @@ from tqdm import tqdm
 from shutdown import shutdown
 import atexit
 import wandb
-import time
 
 wandb_config = {
     'project': 'Vision Transformer',
@@ -27,8 +28,9 @@ wandb_config = {
         'qkv_bias': True,  # 偏置
         'mlp_ratio': 4.,  # MLP比例
         'in_channels': 3,  # 输入通道数
-        'shutdown': False,
         'model_name': 'vit_patch4_32',  # 模型名称
+        'shutdown': False,
+        'sweep': False,
     },
     'job_type': 'train',
     'tags': ['pretrained:False'],
@@ -84,10 +86,11 @@ def train(model, train_loader, test_loader, epochs, device):
     optimizer = optim.Adam(model.parameters(), lr=1e-3)  # type: ignore
 
     # 训练模型
-    epoch_progress = tqdm(range(epochs), desc="Epoch")
+    epoch_progress = tqdm(range(epochs), desc="Epoch", leave=True, position=0)
     for epoch in epoch_progress:
         model.train()
-        batch_progress = tqdm(train_loader, desc="Batch")
+        batch_progress = tqdm(train_loader, desc="Batch",
+                              leave=False, position=1)
         total_loss = 0
         start_time = time.time()
         train_correct = 0
@@ -167,5 +170,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sweep_id = wandb.sweep(sweep_config, project='vit-sweep-demo')
-    wandb.agent(sweep_id, main, count=20)
+    if wandb_config['config']['sweep']:
+        sweep_id = wandb.sweep(sweep_config, project='vit-sweep-demo')
+        wandb.agent(sweep_id, main, count=20)
+    else:
+        main()

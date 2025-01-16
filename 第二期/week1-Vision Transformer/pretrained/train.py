@@ -9,6 +9,7 @@ from tqdm import tqdm
 import atexit
 import wandb
 import time
+from torchinfo import summary
 
 wandb_config = {
     'project': 'Vision Transformer',
@@ -135,3 +136,4 @@ def clean_up():
 if __name__ == "__main__":
     atexit.register(clean_up)
     train(model, train_loader, epochs=config['epochs'])
+    # summary(model, input_size=(1, 3, 224, 224))
