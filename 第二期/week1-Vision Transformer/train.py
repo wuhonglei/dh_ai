@@ -29,7 +29,7 @@ wandb_config = {
         'qkv_bias': True,  # 偏置
         'mlp_ratio': 4.,  # MLP比例
         'in_channels': 3,  # 输入通道数
-        'model_name': 'vit_patch4_32',  # 模型名称
+        'model_name': 'vgg16',  # 模型名称
         'shutdown': False,
         'sweep': False,
         'model_type': 'vit',
