@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
-from model import VisionTransformer
+from vit_model import VisionTransformer
+from vgg16_model import VGG16
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from shutdown import shutdown
@@ -30,7 +31,8 @@ wandb_config = {
         'in_channels': 3,  # 输入通道数
         'model_name': 'vit_patch4_32',  # 模型名称
         'shutdown': False,
-        'sweep': True,
+        'sweep': False,
+        'model_type': 'vit',
     },
     'job_type': 'train',
     'tags': ['pretrained:False'],
@@ -147,9 +149,13 @@ def main():
     test_loader = DataLoader(
         test_dataset, batch_size=config['batch_size'], shuffle=False)
 
-    # 定义模型
-    model = VisionTransformer(img_size=config['size'][0], patch_size=config['patch_size'], in_channels=config['in_channels'], n_classes=config['n_classes'], embed_dim=config['embed_dim'],
-                              depth=config['depth'], n_heads=config['n_heads'], mlp_ratio=config['mlp_ratio'], qkv_bias=config['qkv_bias'], drop_rate=config['drop_rate'], attn_drop_rate=config['attn_drop_rate'])
+    if config['model_type'] == 'vit':
+        # 定义模型
+        model = VisionTransformer(img_size=config['size'][0], patch_size=config['patch_size'], in_channels=config['in_channels'], n_classes=config['n_classes'], embed_dim=config['embed_dim'],
+                                  depth=config['depth'], n_heads=config['n_heads'], mlp_ratio=config['mlp_ratio'], qkv_bias=config['qkv_bias'], drop_rate=config['drop_rate'], attn_drop_rate=config['attn_drop_rate'])
+    else:
+        model = VGG16(num_classes=config['n_classes'])
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
