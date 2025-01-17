@@ -14,11 +14,11 @@ import wandb
 wandb_config = {
     'project': 'Vision Transformer',
     'config': {
-        'epochs': 20,  # 训练轮数
+        'epochs': 15,  # 训练轮数
         'batch_size': 32,  # 批量大小
         'size': (32, 32),  # 输入图像大小
-        'patch_size': 4,  # 分块大小
-        'embed_dim': 144,  # 嵌入维度
+        'patch_size': 2,  # 分块大小
+        'embed_dim': 72,  # 嵌入维度
         'n_heads': 12,  # 注意力头数
         'depth': 12,  # 深度
         'n_classes': 10,  # 类别数
@@ -37,23 +37,18 @@ wandb_config = {
 }
 
 sweep_config = {
-    'method': 'random',  # 调参方法：random / grid / bayes
+    'method': 'grid',  # 调参方法：random / grid / bayes
+    'program': 'train.py',
     'metric': {
         'name': 'test_accuracy',  # 优化目标
         'goal': 'maximize'  # 最大化验证集准确率
     },
     'parameters': {
-        'embed_dim': {
-            'values': [72, 96, 144]
-        },
         'n_heads': {
             'values': [8, 12]
         },
-        'patch_size': {
-            'values': [2, 4]
-        },
         'depth': {
-            'values': [6, 8]
+            'values': [8, 12]
         },
     }
 }
@@ -166,6 +161,6 @@ def main():
 if __name__ == "__main__":
     if wandb_config['config']['sweep']:
         sweep_id = wandb.sweep(sweep_config, project='vit-sweep-demo')
-        wandb.agent(sweep_id, main, count=24)
+        wandb.agent(sweep_id, main)
     else:
         main()
