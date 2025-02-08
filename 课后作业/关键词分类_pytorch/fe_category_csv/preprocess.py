@@ -109,7 +109,7 @@ def get_cleaned_name(name: str) -> str:
     return name
 
 
-def clena_name_from_special_name():
+def clean_name_from_special_name():
     """
     移除特殊字符
     """
@@ -118,7 +118,7 @@ def clena_name_from_special_name():
     df.to_csv('data/keyword_category.csv', index=False)
 
 
-def clena_name_from_keyword_csv():
+def clean_name_from_keyword_csv():
     """
     移除特殊字符
     """
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     # origin_csv_rename()
     # keyword_len()
     # clean_name()
-    # clena_name_from_special_name()
+    # clean_name_from_special_name()
     # extract_keyword_from_name()
-    clena_name_from_keyword_csv()
+    clean_name_from_keyword_csv()
     pass
