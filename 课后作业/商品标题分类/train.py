@@ -12,6 +12,8 @@ from dataset import TitleDataset, collate_fn
 from utils.category import load_category_list
 from transformers import BertTokenizer
 from model import TitleClassifier
+import atexit
+from shutdown import shutdown
 
 
 wandb_config = {
@@ -138,7 +140,15 @@ def train(model, epochs, train_dataloader, val_dataloader):
     return best_accuracy
 
 
+def cleanup():
+    torch.save(model.state_dict(), 'model.pth')
+    wandb.finish()
+    shutdown(time=10)
+
+
 if __name__ == '__main__':
+    atexit.register(cleanup)
+
     best_accuracy = train(
         model, epochs=config['epochs'], train_dataloader=train_dataloader, val_dataloader=val_dataloader)
     print(f'Best Accuracy: {best_accuracy:.4f}')
