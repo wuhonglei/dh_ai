@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.preprocessing import LabelEncoder
+import os
 
 from tqdm import tqdm
 import wandb
@@ -22,7 +23,8 @@ wandb_config = {
         'batch_size': 128,
         'learning_rate': 0.001,
         'epochs': 10,
-        'bert_name': 'bert-base-uncased',
+        'bert_name': '/mnt/model/nlp/bert-base-uncased' if os.path.exists(
+            '/mnt/model/nlp/bert-base-uncased') else 'bert-base-uncased',
         'device': 'cuda' if torch.cuda.is_available() else 'cpu',
     },
     'job_type': 'train',
