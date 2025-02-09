@@ -50,7 +50,7 @@ def evaluate(model, dataloader, criterion, device):
     total_correct = 0
     total_samples = 0
 
-    batch_progress = tqdm(dataloader, desc='Batch', leave=False)
+    batch_progress = tqdm(dataloader, desc='Batch', leave=True)
     for batch in batch_progress:
         input_ids, attention_mask, labels = batch
         input_ids = input_ids.to(device)
@@ -100,14 +100,16 @@ def cleanup(model, model_name):
     # shutdown(time=10)
 
 
-def main(data_dir: str, category_id_list: list[str], model_name: str, tags: list[str] = []):
+def main(data_dir: str, label_names: list[str], category_id_list: list[str], model_name: str, tags: list[str] = []):
     # 加载数据集
     wandb_config = {
         'project': 'shopee_title_classification',
         'config': {
             'batch_size': 64,
             'learning_rate': 0.001,
-            'epochs': 10,
+            'epochs': 1,
+            'title_name': 'clean_name',
+            'label_names': label_names,
             'model_name': f'./models/{model_name}',
             'num_classes': len(category_id_list),
             'bert_name': '/mnt/model/nlp/bert-base-uncased' if os.path.exists(
@@ -121,14 +123,19 @@ def main(data_dir: str, category_id_list: list[str], model_name: str, tags: list
     wandb.init(**wandb_config)
     config = wandb.config
 
+    os.makedirs(config['model_name'], exist_ok=True)
+
     tokenizer = BertTokenizer.from_pretrained(config['bert_name'])
 
     label_encoder = LabelEncoder()
     label_encoder.fit(category_id_list)
 
-    train_dataset = TitleDataset(data_path=f'{data_dir}/train.csv')
-    test_dataset = TitleDataset(data_path=f'{data_dir}/test.csv')
-    val_dataset = TitleDataset(data_path=f'{data_dir}/val.csv')
+    train_dataset = TitleDataset(data_path=f'{data_dir}/train.csv', title_name=config['title_name'],
+                                 label_names=config['label_names'])
+    test_dataset = TitleDataset(data_path=f'{data_dir}/test.csv', title_name=config['title_name'],
+                                label_names=config['label_names'])
+    val_dataset = TitleDataset(data_path=f'{data_dir}/val.csv', title_name=config['title_name'],
+                               label_names=config['label_names'])
 
     train_dataloader = DataLoader(
         train_dataset, batch_size=config['batch_size'], shuffle=True, collate_fn=lambda x: collate_fn(x, label_encoder, tokenizer))
@@ -151,7 +158,8 @@ def main(data_dir: str, category_id_list: list[str], model_name: str, tags: list
         model, epochs=config['epochs'], train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, criterion=criterion, device=device, model_name=config['model_name'])
     print(f'Best Accuracy: {best_accuracy:.4f}')
 
-    model.load_state_dict(torch.load(f'{config["model_name"]}/best_model.pth'))
+    model.load_state_dict(torch.load(
+        f'{config["model_name"]}/best_model.pth', weights_only=True))
     test_loss, test_accuracy = evaluate(
         model, test_dataloader, criterion, device)
     print(f'Test Loss: {test_loss:.4f} - Test Accuracy: {test_accuracy:.4f}')

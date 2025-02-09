@@ -5,17 +5,17 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class TitleDataset(Dataset):
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, title_name: str, label_names: list[str]):
         self.data_path = data_path
-        self.title_name = 'clean_name'
-        self.label_name = 'level1_global_be_category_id'
+        self.title_name = title_name
+        self.label_names = label_names
         self.data = self.load_data()
 
     def load_data(self):
         return pd.read_csv(self.data_path,
-                           usecols=[self.title_name, self.label_name], dtype={
+                           usecols=[self.title_name, *self.label_names], dtype={
                                self.title_name: str,
-                               self.label_name: 'category'
+                               **{label_name: 'category' for label_name in self.label_names}
                            })
 
     def __len__(self):
@@ -24,7 +24,11 @@ class TitleDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data.iloc[idx]
         title = item[self.title_name]
-        label = item[self.label_name]
+        for label_name in self.label_names:
+            label = item[label_name]
+            if isinstance(label, str):
+                break
+
         return title, label
 
 

@@ -18,7 +18,7 @@ def get_leaf_level_category_list(category: dict) -> list[dict]:
     if not category:
         return leaf_category_list
 
-    if not category['has_children']:
+    if not category['children']:
         leaf_category_list.append(category)
     else:
         for child in category['children']:
