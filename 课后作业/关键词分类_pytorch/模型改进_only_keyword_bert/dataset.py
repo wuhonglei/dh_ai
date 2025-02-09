@@ -190,7 +190,8 @@ if __name__ == '__main__':
     country = 'SG'
     excel = get_data('./data/Keyword Categorization.xlsx')
     data = excel[country].drop_duplicates(
-        subset=['Keyword'], keep='first').reset_index(drop=True)  # type: ignore
+        # type: ignore
+        subset=['Keyword'], keep='first').reset_index(drop=True)
     X = data["Keyword"]
     y = data["Category"]
 
