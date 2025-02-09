@@ -31,12 +31,14 @@ class TitleDataset(Dataset):
 def collate_fn(batch: list[tuple[str, str]], label_encoder: LabelEncoder, tokenizer):
     titles = [item[0] for item in batch]
     labels = [item[1] for item in batch]
+
     # Tokenize titles using BERT tokenizer
     encoded_titles = tokenizer(
         titles,
         padding=True,
         truncation=True,
-        return_tensors='pt'
+        return_tensors='pt',
+        max_length=512
     )
     labels = label_encoder.transform(labels)
     labels = torch.tensor(labels, dtype=torch.long)

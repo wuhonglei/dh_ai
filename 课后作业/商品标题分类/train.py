@@ -16,13 +16,15 @@ from model import TitleClassifier
 import atexit
 from shutdown import shutdown
 
-
+# 加载数据集
+category_list = load_category_list('./json/mtsku_category_tree.json')
 wandb_config = {
     'project': 'shopee_title_classification',
     'config': {
         'batch_size': 128,
         'learning_rate': 0.001,
         'epochs': 10,
+        'num_classes': len(category_list),
         'bert_name': '/mnt/model/nlp/bert-base-uncased' if os.path.exists(
             '/mnt/model/nlp/bert-base-uncased') else 'bert-base-uncased',
         'device': 'cuda' if torch.cuda.is_available() else 'cpu',
@@ -36,8 +38,6 @@ config = wandb.config
 tokenizer = BertTokenizer.from_pretrained(config['bert_name'])
 
 
-# 加载数据集
-category_list = load_category_list('./json/mtsku_category_tree.json')
 label_encoder = LabelEncoder()
 label_encoder.fit([str(item['id']) for item in category_list])
 
@@ -58,9 +58,11 @@ val_dataloader = DataLoader(
     val_dataset, batch_size=config['batch_size'], shuffle=False, collate_fn=collate_fn_wrapper)
 
 device = torch.device(config['device'])
-model = TitleClassifier(num_classes=len(category_list),
+model = TitleClassifier(num_classes=config['num_classes'],
                         bert_name=config['bert_name']).to(device)
-optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
+
+optimizer = optim.Adam(  # type: ignore
+    model.parameters(), lr=config['learning_rate'])
 criterion = nn.CrossEntropyLoss()
 
 
@@ -145,7 +147,7 @@ def train(model, epochs, train_dataloader, val_dataloader):
 def cleanup():
     torch.save(model.state_dict(), 'model.pth')
     wandb.finish()
-    shutdown(time=10)
+    # shutdown(time=10)
 
 
 if __name__ == '__main__':
