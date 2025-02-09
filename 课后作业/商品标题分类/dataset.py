@@ -40,9 +40,10 @@ def collate_fn(batch: list[tuple[str, str]], label_encoder: LabelEncoder, tokeni
     encoded_titles = tokenizer(
         titles,
         padding=True,
-        truncation=True,
         return_tensors='pt',
-        max_length=512
+        max_length=512,
+        truncation=True,
+        return_token_type_ids=False,  # 对于单句分类任务不需要
     )
     labels = label_encoder.transform(labels)
     labels = torch.tensor(labels, dtype=torch.long)
