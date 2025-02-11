@@ -1,6 +1,8 @@
 from torch.utils.data import DataLoader
 import torch
 import torch.optim as optim
+from torch.amp.grad_scaler import GradScaler
+from torch.amp.autocast_mode import autocast
 import torch.nn as nn
 from sklearn.preprocessing import LabelEncoder
 import os
@@ -8,6 +10,7 @@ import os
 from tqdm import tqdm
 import wandb
 
+from utils.analysis import analysis_gpu_memory  # type: ignore
 from dataset import TitleDataset, collate_fn
 from transformers import BertTokenizer
 from model import TitleClassifier
@@ -21,6 +24,9 @@ def epoch_train(model, dataloader, optimizer, criterion, device):
     total_loss = 0
     total_correct = 0
     total_samples = 0
+    support_cuda = str(device) == 'cuda'
+    if support_cuda:
+        scaler = GradScaler()  # 梯度缩放（防止 FP16 下溢出）
 
     for batch in batch_progress:
         input_ids, attention_mask, labels = batch
@@ -29,10 +35,22 @@ def epoch_train(model, dataloader, optimizer, criterion, device):
         labels = labels.to(device)
 
         optimizer.zero_grad()
-        outputs = model(input_ids, attention_mask)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        if support_cuda:
+            # 前向传播使用 FP16
+            with autocast(device):
+                outputs = model(input_ids, attention_mask)
+            loss = criterion(outputs, labels)
+            # 反向传播使用 FP16，但梯度存储在 FP32 中
+            scaler.scale(loss).backward()
+            # 梯度缩放后更新参数（自动转回 FP32）
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            outputs = model(input_ids, attention_mask)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
         total_loss += loss.item()
         total_correct += (outputs.argmax(dim=1) == labels).sum().item()
         total_samples += labels.size(0)
@@ -72,6 +90,7 @@ def evaluate(model, dataloader, criterion, device):
 def train(model, epochs, train_dataloader, val_dataloader, optimizer, criterion, device, model_name: str):
     best_accuracy = 0
     epoch_progress = tqdm(range(epochs), desc='Epoch', leave=False)
+
     for epoch in epoch_progress:
         train_loss, train_accuracy = epoch_train(
             model, train_dataloader, optimizer, criterion, device)
