@@ -1,8 +1,0 @@
-repos:
--   repo: local
-    hooks:
-    -   id: check-file-size
-        name: Check file size
-        entry: scripts/check_file_size.sh
-        language: script
-        types: [file]
