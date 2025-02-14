@@ -52,14 +52,14 @@ class ModelArgs:
         beta_slow (int): Slow beta correction factor.
         mscale (float): Scaling factor for extended attention.
     """
-    max_batch_size: int = 8
-    max_seq_len: int = 4096 * 4
+    max_batch_size: int = 2
+    max_seq_len: int = 128
     dtype: Literal["bf16", "fp8"] = "bf16"
-    vocab_size: int = 102400
-    dim: int = 2048
-    inter_dim: int = 10944
+    vocab_size: int = 512
+    dim: int = 128
+    inter_dim: int = 1368
     moe_inter_dim: int = 1408
-    n_layers: int = 27
+    n_layers: int = 3
     n_dense_layers: int = 1
     n_heads: int = 16
     # moe
