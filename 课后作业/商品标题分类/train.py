@@ -1,3 +1,4 @@
+import time
 from torch.utils.data import DataLoader
 import torch
 import torch.optim as optim
@@ -34,31 +35,31 @@ def epoch_train(model, dataloader, optimizer, criterion, device):
         attention_mask = attention_mask.to(device)
         labels = labels.to(device)
 
-        optimizer.zero_grad()
-        if support_cuda:
-            # 前向传播使用 FP16
-            with autocast(device):
-                outputs = model(input_ids, attention_mask)
-            loss = criterion(outputs, labels)
-            # 反向传播使用 FP16，但梯度存储在 FP32 中
-            scaler.scale(loss).backward()
-            # 梯度缩放后更新参数（自动转回 FP32）
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            outputs = model(input_ids, attention_mask)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+    #     optimizer.zero_grad()
+    #     if support_cuda:
+    #         # 前向传播使用 FP16
+    #         with autocast(device):
+    #             outputs = model(input_ids, attention_mask)
+    #         loss = criterion(outputs, labels)
+    #         # 反向传播使用 FP16，但梯度存储在 FP32 中
+    #         scaler.scale(loss).backward()
+    #         # 梯度缩放后更新参数（自动转回 FP32）
+    #         scaler.step(optimizer)
+    #         scaler.update()
+    #     else:
+    #         outputs = model(input_ids, attention_mask)
+    #         loss = criterion(outputs, labels)
+    #         loss.backward()
+    #         optimizer.step()
 
-        total_loss += loss.item()
-        total_correct += (outputs.argmax(dim=1) == labels).sum().item()
-        total_samples += labels.size(0)
-        batch_progress.set_postfix(loss=loss.item())
+    #     total_loss += loss.item()
+    #     total_correct += (outputs.argmax(dim=1) == labels).sum().item()
+    #     total_samples += labels.size(0)
+    #     batch_progress.set_postfix(loss=loss.item())
 
-    loss = total_loss / len(dataloader)
-    accuracy = total_correct / total_samples
-    return loss, accuracy
+    # loss = total_loss / len(dataloader)
+    # accuracy = total_correct / total_samples
+    # return loss, accuracy
 
 
 def evaluate(model, dataloader, criterion, device):
@@ -92,23 +93,26 @@ def train(model, epochs, train_dataloader, val_dataloader, optimizer, criterion,
     epoch_progress = tqdm(range(epochs), desc='Epoch', leave=False)
 
     for epoch in epoch_progress:
-        train_loss, train_accuracy = epoch_train(
+        start_time = time.time()
+        epoch_train(
             model, train_dataloader, optimizer, criterion, device)
-        val_loss, val_accuracy = evaluate(
-            model, val_dataloader, criterion, device)
+        end_time = time.time()
+        print(f'{epoch} 训练时间: {end_time - start_time:.2f} 秒')
+        # val_loss, val_accuracy = evaluate(
+        #     model, val_dataloader, criterion, device)
 
-        if val_accuracy > best_accuracy:
-            best_accuracy = val_accuracy
-            torch.save(model.state_dict(), f'{model_name}/best_model.pth')
+        # if val_accuracy > best_accuracy:
+        #     best_accuracy = val_accuracy
+        #     torch.save(model.state_dict(), f'{model_name}/best_model.pth')
 
-        epoch_progress.set_postfix(
-            train_loss=train_loss, train_accuracy=train_accuracy, val_loss=val_loss, val_accuracy=val_accuracy)
-        wandb.log({
-            'train_loss': train_loss,
-            'train_accuracy': train_accuracy,
-            'val_loss': val_loss,
-            'val_accuracy': val_accuracy,
-        })
+        # epoch_progress.set_postfix(
+        #     train_loss=train_loss, train_accuracy=train_accuracy, val_loss=val_loss, val_accuracy=val_accuracy)
+        # wandb.log({
+        #     'train_loss': train_loss,
+        #     'train_accuracy': train_accuracy,
+        #     'val_loss': val_loss,
+        #     'val_accuracy': val_accuracy,
+        # })
 
     return best_accuracy
 
@@ -126,7 +130,7 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
         'config': {
             'batch_size': 64,
             'learning_rate': 0.001,
-            'epochs': 1,
+            'epochs': 5,
             'title_name': 'clean_name',
             'label_names': label_names,
             'model_name': f'./models/{model_name}',
@@ -149,12 +153,16 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
     label_encoder = LabelEncoder()
     label_encoder.fit(category_id_list)
 
+    start_time = time.time()
     train_dataset = TitleDataset(data_path=f'{data_dir}/train.csv', title_name=config['title_name'],
-                                 label_names=config['label_names'])
+                                 label_names=config['label_names'], tokenizer=tokenizer)
+    end_time = time.time()
+    print(f'训练集加载时间: {end_time - start_time:.2f} 秒')
+
     test_dataset = TitleDataset(data_path=f'{data_dir}/test.csv', title_name=config['title_name'],
-                                label_names=config['label_names'])
+                                label_names=config['label_names'], tokenizer=tokenizer)
     val_dataset = TitleDataset(data_path=f'{data_dir}/val.csv', title_name=config['title_name'],
-                               label_names=config['label_names'])
+                               label_names=config['label_names'], tokenizer=tokenizer)
 
     train_dataloader = DataLoader(
         train_dataset, batch_size=config['batch_size'], shuffle=True, collate_fn=lambda x: collate_fn(x, label_encoder, tokenizer))
@@ -173,16 +181,18 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
 
     atexit.register(cleanup, model, config['model_name'])
 
+    start_time = time.time()
     best_accuracy = train(
         model, epochs=config['epochs'], train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, criterion=criterion, device=device, model_name=config['model_name'])
-    print(f'Best Accuracy: {best_accuracy:.4f}')
+    end_time = time.time()
+    print(f'训练时间: {end_time - start_time:.2f} 秒')
 
-    model.load_state_dict(torch.load(
-        f'{config["model_name"]}/best_model.pth', weights_only=True))
-    test_loss, test_accuracy = evaluate(
-        model, test_dataloader, criterion, device)
-    print(f'Test Loss: {test_loss:.4f} - Test Accuracy: {test_accuracy:.4f}')
-    wandb.log({
-        'test_loss': test_loss,
-        'test_accuracy': test_accuracy,
-    })
+    # model.load_state_dict(torch.load(
+    #     f'{config["model_name"]}/best_model.pth', weights_only=True))
+    # test_loss, test_accuracy = evaluate(
+    #     model, test_dataloader, criterion, device)
+    # print(f'Test Loss: {test_loss:.4f} - Test Accuracy: {test_accuracy:.4f}')
+    # wandb.log({
+    #     'test_loss': test_loss,
+    #     'test_accuracy': test_accuracy,
+    # })
