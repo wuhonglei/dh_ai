@@ -1,23 +1,12 @@
+from transformers import BertModel, BertTokenizer
 import torch
-import torch.nn as nn
-from torchinfo import summary
 
+# 加载预训练的 BERT 模型和分词器
+model = BertModel.from_pretrained('bert-base-uncased')
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
-class TestModel(nn.Module):
-    def __init__(self):
-        super(TestModel, self).__init__()
-        self.hidden = nn.Linear(10, 100)
-        self.relu = nn.ReLU()
-        self.output = nn.Linear(100, 10)
+# 创建输入
+text = "This is a sample input for BERT."
+inputs = tokenizer(text, return_tensors="pt")
 
-    def forward(self, x):
-        x = self.hidden(x)
-        x = self.relu(x)
-        x = self.output(x)
-        return x
-
-
-if __name__ == '__main__':
-    model = TestModel()
-    # torch.save(model.state_dict(), 'test.pth')
-    summary(model, input_size=(100, 10))
+print(model)

@@ -19,5 +19,6 @@ class TitleClassifier(nn.Module):
 
 if __name__ == '__main__':
     model = TitleClassifier(num_classes=10, bert_name='bert-base-uncased')
-    summary(model, input_data=(torch.randint(
-        0, 100, (1, 10)), torch.randint(0, 2, (1, 10))))
+    input_ids = torch.randint(0, 100, (1, 10))
+    attention_mask = torch.randint(0, 2, (1, 10))
+    summary(model, input_data=(input_ids, attention_mask))
