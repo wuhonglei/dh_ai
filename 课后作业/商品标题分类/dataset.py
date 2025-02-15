@@ -1,19 +1,28 @@
+import os
+
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
 from sklearn.preprocessing import LabelEncoder
 from transformers import BertTokenizer
+from torch.nn.utils.rnn import pad_sequence
 
+from utils.common import exists_cache, load_cache, save_cache
 
 class TitleDataset(Dataset):
-    def __init__(self, data_path: str, title_name: str, label_names: list[str], tokenizer: BertTokenizer):
+    def __init__(self, data_path: str, title_name: str, label_names: list[str], tokenizer: BertTokenizer, cache_name: str):
         self.data_path = data_path
         self.title_name = title_name
         self.label_names = label_names
         self.tokenizer = tokenizer
         self.data = self.load_data()
-        # 预先对所有标题进行tokenization
-        self.encoded_titles = self.tokenize_titles()
+        cache_path = os.path.join('cache', cache_name)
+        if exists_cache(cache_path):
+            self.encoded_titles = load_cache(cache_path)
+        else:
+            # 预先对所有标题进行tokenization
+            self.encoded_titles = self.tokenize_titles()
+            save_cache(cache_path, self.encoded_titles)
 
     def load_data(self):
         return pd.read_csv(self.data_path,
@@ -43,8 +52,8 @@ class TitleDataset(Dataset):
         item = self.data.iloc[idx]
         # 返回预先计算好的tokens而不是原始文本
         encoded_title = {
-            'input_ids': self.encoded_titles[idx]['input_ids'],
-            'attention_mask': self.encoded_titles[idx]['attention_mask']
+            'input_ids': self.encoded_titles[idx]['input_ids'][0],
+            'attention_mask': self.encoded_titles[idx]['attention_mask'][0]
         }
         for label_name in self.label_names:
             label = item[label_name]
@@ -54,14 +63,10 @@ class TitleDataset(Dataset):
 
 
 def collate_fn(batch: list[tuple[dict, str]], label_encoder: LabelEncoder, tokenizer: BertTokenizer):
-    max_length = max([item[0]['input_ids'].shape[1] for item in batch])
     encoded_titles = {
-        # 对齐长度, 不足的用0填充 torch.pad
-        'input_ids': torch.stack([
-            torch.cat([
-                item[0]['input_ids'][0],
-                torch.zeros(max_length - item[0]['input_ids'].shape[1], dtype=torch.long)]) for item in batch]),
-        'attention_mask': torch.stack([torch.cat([item[0]['attention_mask'][0], torch.zeros(max_length - item[0]['attention_mask'].shape[1], dtype=torch.long)]) for item in batch])
+        # 对齐长度, 不足的用0填充 pad_sequence
+        'input_ids': pad_sequence([item[0]['input_ids'] for item in batch], batch_first=True),
+        'attention_mask': pad_sequence([item[0]['attention_mask'] for item in batch], batch_first=True)
     }
     labels = [item[1] for item in batch]
     labels = label_encoder.transform(labels)
