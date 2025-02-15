@@ -62,7 +62,7 @@ class TitleDataset(Dataset):
         return encoded_title, label
 
 
-def collate_fn(batch: list[tuple[dict, str]], label_encoder: LabelEncoder, tokenizer: BertTokenizer):
+def collate_fn(batch: list[tuple[dict, str]], label_encoder: LabelEncoder):
     encoded_titles = {
         # 对齐长度, 不足的用0填充 pad_sequence
         'input_ids': pad_sequence([item[0]['input_ids'] for item in batch], batch_first=True),

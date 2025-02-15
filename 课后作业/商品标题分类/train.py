@@ -12,11 +12,11 @@ from tqdm import tqdm
 import wandb
 
 from utils.analysis import analysis_gpu_memory  # type: ignore
+from utils.common import get_device
 from dataset import TitleDataset, collate_fn
 from transformers import BertTokenizer
 from model import TitleClassifier
 import atexit
-
 
 def epoch_train(model, dataloader, optimizer, criterion, device):
     """ 训练一个 epoch """
@@ -93,11 +93,8 @@ def train(model, epochs, train_dataloader, val_dataloader, optimizer, criterion,
     epoch_progress = tqdm(range(epochs), desc='Epoch', leave=False)
 
     for epoch in epoch_progress:
-        start_time = time.time()
         train_loss, train_accuracy = epoch_train(
             model, train_dataloader, optimizer, criterion, device)
-        end_time = time.time()
-        print(f'{epoch} 训练时间: {end_time - start_time:.2f} 秒')
         val_loss, val_accuracy = evaluate(
             model, val_dataloader, criterion, device)
 
@@ -128,7 +125,7 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
     wandb_config = {
         'project': 'shopee_title_classification',
         'config': {
-            'batch_size': 64,
+            'batch_size': 128,
             'learning_rate': 0.001,
             'epochs': 5,
             'title_name': 'clean_name',
@@ -137,7 +134,7 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
             'num_classes': len(category_id_list),
             'bert_name': '/mnt/model/nlp/bert-base-uncased' if os.path.exists(
                 '/mnt/model/nlp/bert-base-uncased') else 'bert-base-uncased',
-            'device': 'cuda' if torch.cuda.is_available() else 'cpu',
+            'device': get_device(),
         },
         'job_type': 'train',
         'tags': tags,
@@ -153,25 +150,22 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
     label_encoder = LabelEncoder()
     label_encoder.fit(category_id_list)
 
-    start_time = time.time()
+    model_name = os.path.basename(config['model_name'])
     train_dataset = TitleDataset(data_path=f'{data_dir}/train.csv', title_name=config['title_name'],
-                                 label_names=config['label_names'], tokenizer=tokenizer, cache_name=f'{config["model_name"]}/train_dataset.pkl')
-    end_time = time.time()
-    print(f'训练集加载时间: {end_time - start_time:.2f} 秒')
-
+                                 label_names=config['label_names'], tokenizer=tokenizer, cache_name=f'{model_name}/train_dataset.pkl')
     test_dataset = TitleDataset(data_path=f'{data_dir}/test.csv', title_name=config['title_name'],
-                                label_names=config['label_names'], tokenizer=tokenizer, cache_name=f'{config["model_name"]}/test_dataset.pkl')
+                                label_names=config['label_names'], tokenizer=tokenizer, cache_name=f'{model_name}/test_dataset.pkl')
     val_dataset = TitleDataset(data_path=f'{data_dir}/val.csv', title_name=config['title_name'],
-                               label_names=config['label_names'], tokenizer=tokenizer, cache_name=f'{config["model_name"]}/val_dataset.pkl')
+                               label_names=config['label_names'], tokenizer=tokenizer, cache_name=f'{model_name}/val_dataset.pkl')
 
     train_dataloader = DataLoader(
-        train_dataset, batch_size=config['batch_size'], shuffle=True, collate_fn=lambda x: collate_fn(x, label_encoder, tokenizer))
+        train_dataset, batch_size=config['batch_size'], shuffle=True, collate_fn=lambda x: collate_fn(x, label_encoder))
     test_dataloader = DataLoader(
-        test_dataset, batch_size=config['batch_size'], shuffle=False, collate_fn=lambda x: collate_fn(x, label_encoder, tokenizer))
+        test_dataset, batch_size=config['batch_size'], shuffle=False, collate_fn=lambda x: collate_fn(x, label_encoder))
     val_dataloader = DataLoader(
-        val_dataset, batch_size=config['batch_size'], shuffle=False, collate_fn=lambda x: collate_fn(x, label_encoder, tokenizer))
+        val_dataset, batch_size=config['batch_size'], shuffle=False, collate_fn=lambda x: collate_fn(x, label_encoder))
 
-    device = torch.device(config['device'])
+    device = config['device']
     model = TitleClassifier(num_classes=config['num_classes'],
                             bert_name=config['bert_name']).to(device)
 
@@ -181,11 +175,8 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
 
     atexit.register(cleanup, model, config['model_name'])
 
-    start_time = time.time()
     best_accuracy = train(
         model, epochs=config['epochs'], train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, criterion=criterion, device=device, model_name=config['model_name'])
-    end_time = time.time()
-    print(f'训练时间: {end_time - start_time:.2f} 秒')
 
     model.load_state_dict(torch.load(
         f'{config["model_name"]}/best_model.pth', weights_only=True))
