@@ -20,3 +20,5 @@ if __name__ == '__main__':
         category_id_list = [str(item['id']) for item in leaf_category_list]
         main(data_dir=data_dir, label_names=['level3_global_be_category_id', 'global_be_category_id'],
              category_id_list=category_id_list, model_name=f'leaf_levels_{level1_category_id}', tags=['leaf_levels', level1_category_id])
+
+        break

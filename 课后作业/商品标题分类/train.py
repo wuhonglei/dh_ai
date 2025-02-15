@@ -47,13 +47,13 @@ def epoch_train(model, dataloader, optimizer, scheduler, criterion, device):
             # 梯度缩放后更新参数（自动转回 FP32）
             scaler.step(optimizer)
             scaler.update()
-            scheduler.step()
+            # scheduler.step()
         else:
             outputs = model(input_ids, attention_mask)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
         total_loss += loss.item()
         total_correct += (outputs.argmax(dim=1) == labels).sum().item()
         total_samples += labels.size(0)
@@ -130,7 +130,7 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
             'batch_size': 64,  # 减小batch_size
             'bert_learning_rate': 2e-5,  # 降低学习率
             'classifier_learning_rate': 1e-4,  # 降低分类器学习率
-            'epochs': 3,  # 增加训练轮数
+            'epochs': 15,  # 增加训练轮数
             'title_name': 'clean_name',
             'label_names': label_names,
             'model_name': f'./models/{model_name}',
@@ -170,7 +170,10 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
 
     device = config['device']
     model = TitleClassifier(num_classes=config['num_classes'],
-                            bert_name=config['bert_name']).to(device)
+                            bert_name=config['bert_name'])
+    # model.load_state_dict(torch.load(
+    #     f'{config["model_name"]}/best_model.pth', weights_only=True))
+    model.to(device)
 
     # 为BERT和分类器设置不同的学习率
     optimizer_params = [

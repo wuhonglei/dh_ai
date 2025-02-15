@@ -9,6 +9,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from utils.common import exists_cache, load_cache, save_cache
 
+
 class TitleDataset(Dataset):
     def __init__(self, data_path: str, title_name: str, label_names: list[str], tokenizer: BertTokenizer, cache_name: str):
         self.data_path = data_path
