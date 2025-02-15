@@ -8,12 +8,13 @@ class TitleClassifier(nn.Module):
     def __init__(self, num_classes: int, bert_name: str):
         super().__init__()
         self.bert = BertModel.from_pretrained(bert_name)
-        self.fc = nn.Linear(self.bert.config.hidden_size, num_classes)
+        self.classifier = nn.Linear(self.bert.config.hidden_size, num_classes)
 
     def forward(self, input_ids, attention_mask):
         outputs = self.bert(input_ids, attention_mask=attention_mask)
-        pooled_output = outputs.pooler_output
-        return self.fc(pooled_output)
+        # [batch_size, hidden_size]
+        cls_output = outputs.last_hidden_state[:, 0, :]
+        return self.classifier(cls_output)
 
 
 if __name__ == '__main__':

@@ -19,6 +19,7 @@ def load_cache(file_path: str):
 def exists_cache(file_path: str):
     return os.path.exists(file_path)
 
+
 def get_device():
     """支持 mac gpu、nvidia gpu、cpu"""
     if torch.backends.mps.is_available():

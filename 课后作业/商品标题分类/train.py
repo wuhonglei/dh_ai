@@ -18,7 +18,8 @@ from transformers import BertTokenizer
 from model import TitleClassifier
 import atexit
 
-def epoch_train(model, dataloader, optimizer, criterion, device):
+
+def epoch_train(model, dataloader, optimizer, scheduler, criterion, device):
     """ 训练一个 epoch """
     model.train()
     batch_progress = tqdm(dataloader, desc='Batch', leave=False)
@@ -46,12 +47,13 @@ def epoch_train(model, dataloader, optimizer, criterion, device):
             # 梯度缩放后更新参数（自动转回 FP32）
             scaler.step(optimizer)
             scaler.update()
+            scheduler.step()
         else:
             outputs = model(input_ids, attention_mask)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
+            scheduler.step()
         total_loss += loss.item()
         total_correct += (outputs.argmax(dim=1) == labels).sum().item()
         total_samples += labels.size(0)
@@ -88,13 +90,13 @@ def evaluate(model, dataloader, criterion, device):
     return loss, accuracy
 
 
-def train(model, epochs, train_dataloader, val_dataloader, optimizer, criterion, device, model_name: str):
+def train(model, epochs, train_dataloader, val_dataloader, optimizer, scheduler, criterion, device, model_name: str):
     best_accuracy = 0
     epoch_progress = tqdm(range(epochs), desc='Epoch', leave=False)
 
     for epoch in epoch_progress:
         train_loss, train_accuracy = epoch_train(
-            model, train_dataloader, optimizer, criterion, device)
+            model, train_dataloader, optimizer, scheduler, criterion, device)
         val_loss, val_accuracy = evaluate(
             model, val_dataloader, criterion, device)
 
@@ -125,9 +127,10 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
     wandb_config = {
         'project': 'shopee_title_classification',
         'config': {
-            'batch_size': 128,
-            'learning_rate': 0.001,
-            'epochs': 5,
+            'batch_size': 64,  # 减小batch_size
+            'bert_learning_rate': 2e-5,  # 降低学习率
+            'classifier_learning_rate': 1e-4,  # 降低分类器学习率
+            'epochs': 3,  # 增加训练轮数
             'title_name': 'clean_name',
             'label_names': label_names,
             'model_name': f'./models/{model_name}',
@@ -169,14 +172,30 @@ def main(data_dir: str, label_names: list[str], category_id_list: list[str], mod
     model = TitleClassifier(num_classes=config['num_classes'],
                             bert_name=config['bert_name']).to(device)
 
-    optimizer = optim.Adam(  # type: ignore
-        model.parameters(), lr=config['learning_rate'])
+    # 为BERT和分类器设置不同的学习率
+    optimizer_params = [
+        {'params': model.bert.parameters(
+        ), 'lr': config['bert_learning_rate']},
+        {'params': model.classifier.parameters(
+        ), 'lr': config['classifier_learning_rate']}
+    ]
+    optimizer = optim.AdamW(  # type: ignore
+        optimizer_params, weight_decay=0.01)
+    # 添加学习率调度器
+    scheduler = optim.lr_scheduler.OneCycleLR(
+        optimizer,
+        max_lr=[config['bert_learning_rate'],
+                config['classifier_learning_rate']],
+        steps_per_epoch=len(train_dataloader),
+        epochs=config['epochs'],
+        pct_start=0.1
+    )    # 总训练步数
     criterion = nn.CrossEntropyLoss()
 
     atexit.register(cleanup, model, config['model_name'])
 
     best_accuracy = train(
-        model, epochs=config['epochs'], train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, criterion=criterion, device=device, model_name=config['model_name'])
+        model, epochs=config['epochs'], train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, scheduler=scheduler, criterion=criterion, device=device, model_name=config['model_name'])
 
     model.load_state_dict(torch.load(
         f'{config["model_name"]}/best_model.pth', weights_only=True))
