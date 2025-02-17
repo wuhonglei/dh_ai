@@ -31,7 +31,7 @@ class TextEncoder(nn.Module):
             self.model = DistilBertModel.from_pretrained(model_name)
         else:
             self.model = DistilBertModel(config=DistilBertConfig())
-            
+
         for p in self.model.parameters():
             p.requires_grad = trainable
 
@@ -42,7 +42,6 @@ class TextEncoder(nn.Module):
         output = self.model(input_ids=input_ids, attention_mask=attention_mask)
         last_hidden_state = output.last_hidden_state
         return last_hidden_state[:, self.target_token_idx, :]
-
 
 
 class ProjectionHead(nn.Module):
@@ -58,7 +57,7 @@ class ProjectionHead(nn.Module):
         self.fc = nn.Linear(projection_dim, projection_dim)
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(projection_dim)
-    
+
     def forward(self, x):
         projected = self.projection(x)
         x = self.gelu(projected)
@@ -67,4 +66,3 @@ class ProjectionHead(nn.Module):
         x = x + projected
         x = self.layer_norm(x)
         return x
-

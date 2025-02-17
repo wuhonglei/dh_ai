@@ -39,7 +39,7 @@ class CLIPModel(nn.Module):
         )
         texts_loss = cross_entropy(logits, targets, reduction='none')
         images_loss = cross_entropy(logits.T, targets.T, reduction='none')
-        loss =  (images_loss + texts_loss) / 2.0 # shape: (batch_size)
+        loss = (images_loss + texts_loss) / 2.0  # shape: (batch_size)
         return loss.mean()
 
 
@@ -50,6 +50,7 @@ def cross_entropy(preds, targets, reduction='none'):
         return loss
     elif reduction == "mean":
         return loss.mean()
+
 
 if __name__ == '__main__':
     images = torch.randn(8, 3, 224, 224)

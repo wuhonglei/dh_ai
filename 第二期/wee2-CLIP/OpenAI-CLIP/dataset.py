@@ -22,6 +22,7 @@ class CLIPDataset(torch.utils.data.Dataset):
         self.transforms = transforms
 
     def __getitem__(self, idx):
+        # 存储单个文本的 'input_ids', 'attention_mask'
         item = {
             key: torch.tensor(values[idx])
             for key, values in self.encoded_captions.items()
@@ -30,6 +31,7 @@ class CLIPDataset(torch.utils.data.Dataset):
         image = cv2.imread(f"{CFG.image_path}/{self.image_filenames[idx]}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = self.transforms(image=image)['image']
+        # 存储单个图像 (C, H, W)
         item['image'] = torch.tensor(image).permute(2, 0, 1).float()
         item['caption'] = self.captions[idx]
 
