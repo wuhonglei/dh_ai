@@ -1,8 +1,8 @@
 import torch
 
 debug = True
-image_path = "Datasets/Flicker-8k/Images"
-captions_path = "Datasets/Flicker-8k"
+image_path = "Datasets/flickr8k/Images"
+captions_path = "Datasets/flickr8k"
 batch_size = 8
 num_workers = 0
 lr = 1e-3
