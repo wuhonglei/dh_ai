@@ -10,7 +10,7 @@ class ImageEncoder(nn.Module):
         self.model = timm.create_model(  # type: ignore
             model_name, pretrained, num_classes=0, global_pool="avg"
         )
-        if not trainable:
+        if pretrained and not trainable:
             for p in self.model.parameters():
                 p.requires_grad = False
 

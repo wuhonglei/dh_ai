@@ -9,13 +9,12 @@ class TextEncoder(nn.Module):
         super().__init__()
         if pretrained:
             self.bert = DistilBertModel.from_pretrained(model_name)
+            if not trainable:
+                for param in self.bert.parameters():
+                    param.requires_grad = False
         else:
             config = DistilBertConfig()
             self.bert = DistilBertModel(config)
-
-        if not trainable:
-            for param in self.bert.parameters():
-                param.requires_grad = False
 
     def forward(self, input_ids, attention_mask):
         outputs = self.bert(input_ids, attention_mask=attention_mask)
