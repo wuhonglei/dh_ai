@@ -1,14 +1,17 @@
+import os
 import torch
 import torch.nn as nn
 from typing import Literal
 
 import wandb
-from dataset import get_transforms, CLIPDataset
+from dataset import CLIPDataset, get_transforms, collate_fn
 from torch.utils.data import DataLoader
 from transformers import DistilBertTokenizer
 from utils.common import get_device
 from tqdm import tqdm
 from clip import CLIPModel  # type: ignore
+
+import atexit
 
 wandb_config = {
     'project': 'CLIP',
@@ -38,9 +41,10 @@ wandb_config = {
         },
         'train': {
             'batch_size': 32,
-            'learning_rate': 0.001,
+            'learning_rate': 2e-4,
             'epochs': 3,
             'temperature': 1.0,
+            'step': 'epoch'
         },
         'shutdown': False,
         'sweep': False,
@@ -107,22 +111,23 @@ def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTo
     dataloader = DataLoader(
         dataset,
         batch_size=config['train']['batch_size'],
-        shuffle=True if mode == 'train' else False
+        shuffle=True if mode == 'train' else False,
+        collate_fn=collate_fn
     )
     return dataloader
 
 
-def train_one_epoch(model, train_loader, optimizer, scheduler, criterion, device):
+def train_one_epoch(model, train_loader, optimizer, scheduler, criterion, step: Literal['epoch', 'batch'], device):
     model.train()
-    batch_bar = tqdm(train_loader, desc='Training')
+    batch_bar = tqdm(train_loader, desc='Training', leave=False, position=1)
     total_loss = 0
     for batch in batch_bar:
         image = batch['image'].to(device)
-        text = batch['text'].to(device)
+        input_ids = batch['input_ids'].to(device)
         attention_mask = batch['attention_mask'].to(device)
         batch_size = image.shape[0]
         output = model(
-            image, text, attention_mask)
+            image, input_ids, attention_mask)
         labels = torch.arange(batch_size).to(device)
         optimizer.zero_grad()
         image_loss = criterion(output['logits_per_image'], labels)
@@ -130,7 +135,8 @@ def train_one_epoch(model, train_loader, optimizer, scheduler, criterion, device
         loss = (image_loss + text_loss) / 2
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        if step == 'batch':
+            scheduler.step(loss)
         batch_bar.set_postfix(loss=loss.item())
         total_loss += loss.item()
 
@@ -139,16 +145,27 @@ def train_one_epoch(model, train_loader, optimizer, scheduler, criterion, device
 
 def valid_epoch(model, valid_loader, criterion, device):
     model.eval()
-    batch_bar = tqdm(valid_loader, desc='Validating')
     total_loss = 0
+    batch_bar = tqdm(valid_loader, desc='Validating', leave=False, position=2)
     for batch in batch_bar:
         image = batch['image'].to(device)
-        text = batch['text'].to(device)
+        input_ids = batch['input_ids'].to(device)
         attention_mask = batch['attention_mask'].to(device)
         batch_size = image.shape[0]
-        output = model(image, text, attention_mask)
+        output = model(image, input_ids, attention_mask)
         labels = torch.arange(batch_size).to(device)
         loss = criterion(output['logits_per_image'], labels)
+        batch_bar.set_postfix(loss=loss.item())
+        total_loss += loss.item()
+
+    return total_loss / len(valid_loader)
+
+
+def cleanup(model):
+    os.makedirs('./models', exist_ok=True)
+    torch.save(model.state_dict(), f'./models/final_model.pth')
+    print('Saved Final Model!')
+    wandb.finish()
 
 
 def main():
@@ -174,16 +191,33 @@ def main():
         projection_dim=config['projection_head']['embedding_dim'],
     ).to(device)
 
+    atexit.register(cleanup, model)
+
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config['train']['learning_rate'])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.5, patience=10)
-    epoch_progress = tqdm(range(config['train']['epochs']), desc='Epochs')
     criterion = nn.CrossEntropyLoss()
+    step = config['train']['step']
+    best_loss = float('inf')
+
+    epoch_progress = tqdm(
+        range(config['train']['epochs']), desc='Epochs', leave=False, position=0)
     for epoch in epoch_progress:
         train_loss = train_one_epoch(model, train_loader, optimizer,
-                                     scheduler,  criterion, device)
-        epoch_progress.set_postfix(train_loss=train_loss)
+                                     scheduler,  criterion, step, device)
+        if step == 'epoch':
+            scheduler.step(train_loss)
+
+        test_loss = valid_epoch(model, test_loader, criterion, device)
+        epoch_progress.set_postfix(
+            train_loss=train_loss, test_loss=test_loss)
+        if test_loss < best_loss:
+            best_loss = test_loss
+            os.makedirs('./models', exist_ok=True)
+            torch.save(model.state_dict(), f'./models/best_model.pth')
+
+    run.finish()
 
 
 if __name__ == "__main__":

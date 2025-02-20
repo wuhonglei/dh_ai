@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import Dataset
 from transformers import DistilBertTokenizer
 from torchvision import transforms
@@ -7,6 +8,7 @@ from typing import Literal
 import albumentations as A
 import numpy as np
 from albumentations.pytorch import ToTensorV2
+from torch.nn.utils.rnn import pad_sequence
 
 
 class CLIPDataset(Dataset):
@@ -70,3 +72,20 @@ def get_transforms(mode: Literal['train', 'test'], image_size: int):
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2(),
         ])
+
+
+def collate_fn(batch):
+    images = torch.stack([item['image'] for item in batch])
+    captions = [item['caption'] for item in batch]
+    input_ids = pad_sequence([item['input_ids'][0]
+                             for item in batch], batch_first=True)
+    attention_mask = pad_sequence(
+        [item['attention_mask'][0] for item in batch], batch_first=True)
+
+    item = {
+        'image': images,
+        'caption': captions,
+        'input_ids': input_ids,
+        'attention_mask': attention_mask
+    }
+    return item
