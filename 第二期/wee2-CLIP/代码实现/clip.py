@@ -66,6 +66,17 @@ class CLIPModel(nn.Module):
         }
         return output
 
+    def get_image_features(self, image):
+        image_features_unnormalized = self.image_encoder(image)
+        image_features = image_features_unnormalized @ self.image_projection
+        return image_features
+
+    def get_text_features(self, input_ids, attention_mask):
+        text_features_unnormalized = self.text_encoder(
+            input_ids, attention_mask)
+        text_features = text_features_unnormalized @ self.text_projection
+        return text_features
+
 
 def clip_loss(output: dict[str, torch.Tensor], loss_type: Literal['fixed', 'dynamic']):
     logits_per_image = output['logits_per_image']
