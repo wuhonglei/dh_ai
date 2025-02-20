@@ -1,7 +1,19 @@
+from zmq import device
 from modules.image_encoder import ImageEncoder
 from modules.text_encoder import TextEncoder
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
+from typing import Literal
+
+
+def cross_entropy(preds, targets, reduction: Literal["none", "mean"] = "none"):
+    log_softmax = nn.LogSoftmax(dim=-1)
+    loss = (-targets * log_softmax(preds)).sum(1)
+    if reduction == "mean":
+        return loss.mean()
+
+    return loss
 
 
 class CLIPModel(nn.Module):
@@ -16,6 +28,7 @@ class CLIPModel(nn.Module):
             text_embedding_dim,
             image_embedding_dim,
             projection_dim,
+            temperature
     ):
         super(CLIPModel, self).__init__()
         self.image_encoder = ImageEncoder(
@@ -26,8 +39,10 @@ class CLIPModel(nn.Module):
             torch.randn(image_embedding_dim, projection_dim))
         self.text_projection = nn.Parameter(
             torch.randn(text_embedding_dim, projection_dim))
+        self.temperature = temperature
+        self.criterion = nn.CrossEntropyLoss()
 
-    def forward(self, image, input_ids, attention_mask):
+    def forward(self, image, input_ids, attention_mask) -> dict[str, torch.Tensor]:
         image_features_unnormalized = self.image_encoder(
             image)  # [batch_size, 512]
         text_features_unnormalized = self.text_encoder(
@@ -37,13 +52,6 @@ class CLIPModel(nn.Module):
         image_features = image_features_unnormalized @ self.image_projection
         # [batch_size, 512]
         text_features = text_features_unnormalized @ self.text_projection
-
-        # [batch_size, 512]
-        image_features = image_features / \
-            image_features.norm(dim=-1, keepdim=True)
-        # [batch_size, 512]
-        text_features = text_features / \
-            text_features.norm(dim=-1, keepdim=True)
 
         logits_per_image = image_features @ text_features.T
         logits_per_text = logits_per_image.T
@@ -59,6 +67,26 @@ class CLIPModel(nn.Module):
         return output
 
 
+def clip_loss(output: dict[str, torch.Tensor], loss_type: Literal['fixed', 'dynamic']):
+    logits_per_image = output['logits_per_image']
+    logits_per_text = output['logits_per_text']
+    device = logits_per_image.device
+
+    if loss_type == 'fixed':
+        batch_size = logits_per_image.shape[0]
+        targets = torch.arange(batch_size, device=device)
+    elif loss_type == 'dynamic':
+        image_features = output['image_features']
+        text_features = output['text_features']
+        images_similarity = image_features @ image_features.T
+        texts_similarity = text_features @ text_features.T
+        targets = F.softmax(
+            (images_similarity + texts_similarity) / 2, dim=-1, dtype=torch.float32
+        )
+
+    return (F.cross_entropy(logits_per_image, targets) + F.cross_entropy(logits_per_text, targets)) / 2
+
+
 if __name__ == "__main__":
     clip = CLIPModel(
         text_model_name="distilbert-base-uncased",
@@ -70,6 +98,7 @@ if __name__ == "__main__":
         text_embedding_dim=768,
         image_embedding_dim=2048,
         projection_dim=512,
+        temperature=1.0
     )
     batch_size = 2
     image = torch.randn(batch_size, 3, 224, 224)
