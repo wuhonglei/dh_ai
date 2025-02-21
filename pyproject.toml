@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "albumentations>=2.0.4",
+    "ipykernel>=6.29.5",
+    "matplotlib>=3.10.0",
     "numpy<2",
     "pandas>=2.2.3",
     "scikit-learn>=1.6.1",
@@ -13,6 +15,7 @@ dependencies = [
     "torchinfo>=1.8.0",
     "torchvision>=0.15.2",
     "transformers>=4.49.0",
+    "uv>=0.6.2",
     "wandb>=0.19.7",
 ]
 [tool.uv]
