@@ -6,24 +6,14 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "albumentations>=2.0.4",
-    "captcha>=0.7.0",
-    "flask>=3.1.0",
-    "import-ipynb>=0.2",
-    "matplotlib>=3.10.0",
-    "nltk>=3.9.1",
     "numpy<2",
-    "opencv-python>=4.11.0.86",
     "pandas>=2.2.3",
-    "pymilvus>=2.5.4",
-    "python-dotenv>=1.0.1",
     "scikit-learn>=1.6.1",
-    "scipy>=1.15.2",
-    "seaborn>=0.13.2",
     "timm>=1.0.14",
-    "torch==2.0.1",
-    "torchaudio>=2.0.2",
     "torchinfo>=1.8.0",
     "torchvision>=0.15.2",
     "transformers>=4.49.0",
     "wandb>=0.19.7",
 ]
+[tool.uv]
+index-url = "https://mirrors.aliyun.com/pypi/simple/"
