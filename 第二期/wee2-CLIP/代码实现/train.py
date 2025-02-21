@@ -1,6 +1,7 @@
 import os
 import time
 import torch
+import pandas as pd
 import torch.nn as nn
 from typing import Literal
 
@@ -18,14 +19,14 @@ wandb_config = {
     'project': 'CLIP',
     'config': {
         'data': {
-            'train_data_path': "./datasets/train_split.csv",
-            'test_data_path': "./datasets/test_split.csv",
-            'image_dir': "./datasets/images"
+            'train_data_path': "datasets/train_split.csv",
+            'test_data_path': "datasets/test_split.csv",
+            'image_dir': "datasets/images"
         },
         'text_encoder': {
             'model_name': "distilbert-base-uncased",
             'embedding_dim': 768,
-            'pretrained': True,
+            'pretrained': False,
             'trainable': True,
             'max_length': 200
         },
@@ -33,7 +34,7 @@ wandb_config = {
             'model_name': "resnet50",
             'input_size': 224,
             'embedding_dim': 2048,
-            'pretrained': True,
+            'pretrained': False,
             'trainable': True
         },
         'projection_head': {
@@ -42,13 +43,12 @@ wandb_config = {
         },
         'train': {
             'batch_size': 64,
-            'epochs': 10,
+            'epochs': 15,
             'temperature': 1.0,
-            'step': 'batch',
-            'image_encoder_learning_rate': 2e-5,
-            'text_encoder_learning_rate': 2e-5,
-            'projection_head_learning_rate': 1e-4,
-            'loss_type': 'dynamic'  # 'fixed' / 'dynamic'
+            'image_encoder_learning_rate': 5e-4,
+            'text_encoder_learning_rate': 5e-4,
+            'projection_head_learning_rate': 5e-4,
+            'loss_type': 'fixed'  # 'fixed' / 'dynamic'
         },
         'pretrained': True,
         'shutdown': False,
@@ -113,12 +113,22 @@ sweep_config = {
 def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTokenizer):
     transforms = get_transforms(
         mode=mode, image_size=config['image_encoder']['input_size'])
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(current_dir, config['data'][f'{mode}_data_path'])
+    image_dir = os.path.join(current_dir, config['data']['image_dir'])
+    df = pd.read_csv(csv_path)
+    image_filenames = [
+        os.path.join(image_dir, image_name)
+        for image_name in df['image'].tolist()
+    ]
+    captions = df['caption'].tolist()
+
     dataset = CLIPDataset(
-        csv_path=config['data'][f'{mode}_data_path'],
+        image_filenames=image_filenames,
+        captions=captions,
         tokenizer=tokenizer,
         max_length=config['text_encoder']['max_length'],
         transforms=transforms,
-        image_dir=config['data']['image_dir']
     )
     dataloader = DataLoader(
         dataset,
