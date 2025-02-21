@@ -1,5 +1,7 @@
 import os
+import time
 import torch
+import pandas as pd
 import torch.nn as nn
 from typing import Literal
 
@@ -9,7 +11,7 @@ from torch.utils.data import DataLoader
 from transformers import DistilBertTokenizer
 from utils.common import get_device
 from tqdm import tqdm
-from clip import CLIPModel  # type: ignore
+from clip import CLIPModel, clip_loss  # type: ignore
 
 import atexit
 
@@ -17,35 +19,38 @@ wandb_config = {
     'project': 'CLIP',
     'config': {
         'data': {
-            'train_data_path': "./datasets/train_split.csv",
-            'test_data_path': "./datasets/test_split.csv",
-            'image_dir': "./datasets/images"
+            'train_data_path': "datasets/train_split.csv",
+            'test_data_path': "datasets/test_split.csv",
+            'image_dir': "datasets/images"
         },
         'text_encoder': {
             'model_name': "distilbert-base-uncased",
             'embedding_dim': 768,
-            'pretrained': True,
-            'trainable': False,
+            'pretrained': False,
+            'trainable': True,
             'max_length': 200
         },
         'image_encoder': {
             'model_name': "resnet50",
             'input_size': 224,
             'embedding_dim': 2048,
-            'pretrained': True,
-            'trainable': False
+            'pretrained': False,
+            'trainable': True
         },
         'projection_head': {
             'embedding_dim': 256,
             'dropout': 0.1
         },
         'train': {
-            'batch_size': 32,
-            'learning_rate': 2e-4,
-            'epochs': 3,
+            'batch_size': 64,
+            'epochs': 15,
             'temperature': 1.0,
-            'step': 'epoch'
+            'image_encoder_learning_rate': 0.001,
+            'text_encoder_learning_rate': 0.001,
+            'projection_head_learning_rate': 0.001,
+            'loss_type': 'fixed'  # 'fixed' / 'dynamic'
         },
+        'pretrained': False,
         'shutdown': False,
         'sweep': False,
         'device': get_device()
@@ -94,6 +99,13 @@ sweep_config = {
                 }
             }
         },
+        'train': {
+            'parameters': {
+                'loss_type': {
+                    'values': ['fixed', 'dynamic']
+                }
+            }
+        }
     }
 }
 
@@ -101,12 +113,22 @@ sweep_config = {
 def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTokenizer):
     transforms = get_transforms(
         mode=mode, image_size=config['image_encoder']['input_size'])
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(current_dir, config['data'][f'{mode}_data_path'])
+    image_dir = os.path.join(current_dir, config['data']['image_dir'])
+    df = pd.read_csv(csv_path)
+    image_filenames = [
+        os.path.join(image_dir, image_name)
+        for image_name in df['image'].tolist()
+    ]
+    captions = df['caption'].tolist()
+
     dataset = CLIPDataset(
-        csv_path=config['data'][f'{mode}_data_path'],
+        image_filenames=image_filenames,
+        captions=captions,
         tokenizer=tokenizer,
         max_length=config['text_encoder']['max_length'],
         transforms=transforms,
-        image_dir=config['data']['image_dir']
     )
     dataloader = DataLoader(
         dataset,
@@ -117,7 +139,7 @@ def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTo
     return dataloader
 
 
-def train_one_epoch(model, train_loader, optimizer, scheduler, criterion, step: Literal['epoch', 'batch'], device):
+def train_one_epoch(model: CLIPModel, train_loader, optimizer, loss_type, device) -> float:
     model.train()
     batch_bar = tqdm(train_loader, desc='Training', leave=False, position=1)
     total_loss = 0
@@ -125,25 +147,19 @@ def train_one_epoch(model, train_loader, optimizer, scheduler, criterion, step: 
         image = batch['image'].to(device)
         input_ids = batch['input_ids'].to(device)
         attention_mask = batch['attention_mask'].to(device)
-        batch_size = image.shape[0]
         output = model(
             image, input_ids, attention_mask)
-        labels = torch.arange(batch_size).to(device)
         optimizer.zero_grad()
-        image_loss = criterion(output['logits_per_image'], labels)
-        text_loss = criterion(output['logits_per_text'], labels)
-        loss = (image_loss + text_loss) / 2
+        loss = clip_loss(output, loss_type)
         loss.backward()
         optimizer.step()
-        if step == 'batch':
-            scheduler.step(loss)
         batch_bar.set_postfix(loss=loss.item())
         total_loss += loss.item()
 
     return total_loss / len(train_loader)
 
 
-def valid_epoch(model, valid_loader, criterion, device):
+def valid_epoch(model: CLIPModel, valid_loader, loss_type, device) -> float:
     model.eval()
     total_loss = 0
     batch_bar = tqdm(valid_loader, desc='Validating', leave=False, position=2)
@@ -151,10 +167,8 @@ def valid_epoch(model, valid_loader, criterion, device):
         image = batch['image'].to(device)
         input_ids = batch['input_ids'].to(device)
         attention_mask = batch['attention_mask'].to(device)
-        batch_size = image.shape[0]
         output = model(image, input_ids, attention_mask)
-        labels = torch.arange(batch_size).to(device)
-        loss = criterion(output['logits_per_image'], labels)
+        loss = clip_loss(output, loss_type)
         batch_bar.set_postfix(loss=loss.item())
         total_loss += loss.item()
 
@@ -189,33 +203,52 @@ def main():
         text_embedding_dim=config['text_encoder']['embedding_dim'],
         image_embedding_dim=config['image_encoder']['embedding_dim'],
         projection_dim=config['projection_head']['embedding_dim'],
+        temperature=config['train']['temperature']
     ).to(device)
+
+    if config['pretrained'] and os.path.exists('./models/best_model.pth'):
+        model.load_state_dict(torch.load(
+            f'./models/best_model.pth', map_location=device, weights_only=True))
+        print('Loaded Pretrained Model!')
 
     atexit.register(cleanup, model)
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(), lr=config['train']['learning_rate'])
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=10)
-    criterion = nn.CrossEntropyLoss()
-    step = config['train']['step']
+    optimizer_params = [{
+        'params': model.image_encoder.parameters(),
+        'lr': config['train']['image_encoder_learning_rate']
+    }, {
+        'params': model.text_encoder.parameters(),
+        'lr': config['train']['text_encoder_learning_rate']
+    }, {
+        'params': [model.image_projection, model.text_projection],
+        'lr': config['train']['projection_head_learning_rate']
+    }]
+    optimizer = torch.optim.AdamW(  # type: ignore
+        optimizer_params, weight_decay=0.01)
+    loss_type = config['train']['loss_type']
     best_loss = float('inf')
 
     epoch_progress = tqdm(
         range(config['train']['epochs']), desc='Epochs', leave=False, position=0)
     for epoch in epoch_progress:
-        train_loss = train_one_epoch(model, train_loader, optimizer,
-                                     scheduler,  criterion, step, device)
-        if step == 'epoch':
-            scheduler.step(train_loss)
+        start_time = time.time()
+        train_loss = train_one_epoch(
+            model, train_loader, optimizer, loss_type, device)
+        end_time = time.time()
 
-        test_loss = valid_epoch(model, test_loader, criterion, device)
+        test_loss = valid_epoch(model, test_loader, loss_type, device)
         epoch_progress.set_postfix(
             train_loss=train_loss, test_loss=test_loss)
         if test_loss < best_loss:
             best_loss = test_loss
             os.makedirs('./models', exist_ok=True)
             torch.save(model.state_dict(), f'./models/best_model.pth')
+
+        wandb.log({
+            'train_loss': train_loss,
+            'test_loss': test_loss,
+            'time': end_time - start_time
+        })
 
     run.finish()
 
