@@ -1,4 +1,3 @@
-from zmq import device
 from modules.image_encoder import ImageEncoder
 from modules.text_encoder import TextEncoder
 import torch.nn as nn

@@ -1,8 +1,6 @@
 import torch
 from torch.utils.data import Dataset
 from transformers import DistilBertTokenizer
-from torchvision import transforms
-import pandas as pd
 from PIL import Image
 from typing import Literal, List
 import numpy as np
