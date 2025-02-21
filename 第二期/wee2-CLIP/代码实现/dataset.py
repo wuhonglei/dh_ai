@@ -12,7 +12,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 class CLIPDataset(Dataset):
-    def __init__(self, image_filenames: List[str], captions: List[str], tokenizer: DistilBertTokenizer, max_length: int, transforms: A.Compose):
+    def __init__(self, image_filenames: List[str] | None, captions: List[str] | None, tokenizer: DistilBertTokenizer | None, max_length: int | None, transforms: A.Compose | None):
         self.image_filenames = image_filenames
         self.captions = captions
         self.tokenizer = tokenizer
@@ -22,8 +22,10 @@ class CLIPDataset(Dataset):
     def __len__(self):
         if self.image_filenames:
             return len(self.image_filenames)
-        else:
+        elif self.captions:
             return len(self.captions)
+        else:
+            return 0
 
     def process_image(self, image_path: str | None):
         if image_path is None:
@@ -31,7 +33,7 @@ class CLIPDataset(Dataset):
 
         image = Image.open(image_path)
         image = np.array(image)
-        transformed = self.transforms(image=image)
+        transformed = self.transforms(image=image)  # type: ignore
         return transformed['image']
 
     def process_caption(self, caption: str | None):
@@ -84,12 +86,24 @@ def get_transforms(mode: Literal['train', 'test'], image_size: int):
 
 
 def collate_fn(batch):
-    images = torch.stack([item['image'] for item in batch])
-    captions = [item['caption'] for item in batch]
-    input_ids = pad_sequence([item['input_ids']
-                             for item in batch], batch_first=True)
-    attention_mask = pad_sequence(
-        [item['attention_mask'] for item in batch], batch_first=True)
+    has_image = any(item['image'] is not None for item in batch)
+    has_caption = any(item['caption'] is not None for item in batch)
+
+    if has_image:
+        images = torch.stack([item['image'] for item in batch])
+    else:
+        images = None
+
+    if has_caption:
+        captions = [item['caption'] for item in batch]
+        input_ids = pad_sequence([item['input_ids']
+                                  for item in batch], batch_first=True)
+        attention_mask = pad_sequence(
+            [item['attention_mask'] for item in batch], batch_first=True)
+    else:
+        captions = None
+        input_ids = None
+        attention_mask = None
 
     item = {
         'image': images,

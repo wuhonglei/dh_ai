@@ -45,12 +45,12 @@ wandb_config = {
             'batch_size': 64,
             'epochs': 15,
             'temperature': 1.0,
-            'image_encoder_learning_rate': 5e-4,
-            'text_encoder_learning_rate': 5e-4,
-            'projection_head_learning_rate': 5e-4,
+            'image_encoder_learning_rate': 0.001,
+            'text_encoder_learning_rate': 0.001,
+            'projection_head_learning_rate': 0.001,
             'loss_type': 'fixed'  # 'fixed' / 'dynamic'
         },
-        'pretrained': True,
+        'pretrained': False,
         'shutdown': False,
         'sweep': False,
         'device': get_device()
