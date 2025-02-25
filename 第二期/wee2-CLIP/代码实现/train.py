@@ -14,6 +14,9 @@ from tqdm import tqdm
 from clip import CLIPModel, clip_loss  # type: ignore
 
 import atexit
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
 
 wandb_config = {
     'project': 'CLIP',
@@ -26,7 +29,7 @@ wandb_config = {
         'text_encoder': {
             'model_name': "distilbert-base-uncased",
             'embedding_dim': 768,
-            'pretrained': False,
+            'pretrained': True,
             'trainable': True,
             'max_length': 200
         },
@@ -34,7 +37,7 @@ wandb_config = {
             'model_name': "resnet50",
             'input_size': 224,
             'embedding_dim': 2048,
-            'pretrained': False,
+            'pretrained': True,
             'trainable': True
         },
         'projection_head': {
@@ -43,12 +46,14 @@ wandb_config = {
         },
         'train': {
             'batch_size': 64,
-            'epochs': 3,
+            'epochs': 10,
             'temperature': 1.0,
             'image_encoder_learning_rate': 0.001,
             'text_encoder_learning_rate': 0.001,
             'projection_head_learning_rate': 0.001,
-            'loss_type': 'fixed'  # 'fixed' / 'dynamic'
+            'loss_type': 'fixed',  # 'fixed' / 'dynamic'
+            'distributed': True,   # 是否使用分布式训练
+            'num_workers': 4       # 数据加载的工作进程数
         },
         'pretrained': False,
         'shutdown': False,
@@ -56,7 +61,7 @@ wandb_config = {
         'device': get_device()
     },
     'job_type': 'train',
-    'tags': ['time_cost', 'baseline']
+    'tags': ['time_cost', 'single_node_2_gpu']
 }
 
 sweep_config = {
@@ -131,10 +136,19 @@ def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTo
         max_length=config['text_encoder']['max_length'],
         transforms=transforms,
     )
+
+    if config['train']['distributed']:
+        sampler = DistributedSampler(dataset, shuffle=(mode == 'train'))
+    else:
+        sampler = None
+
     dataloader = DataLoader(
         dataset,
         batch_size=config['train']['batch_size'],
-        shuffle=True if mode == 'train' else False,
+        shuffle=(sampler is None and mode == 'train'),
+        sampler=sampler,
+        num_workers=config['train']['num_workers'],
+        pin_memory=True,
         collate_fn=collate_fn
     )
     return dataloader
@@ -176,24 +190,53 @@ def valid_epoch(model: CLIPModel, valid_loader, loss_type, device) -> float:
     return total_loss / len(valid_loader)
 
 
-def cleanup(model):
-    os.makedirs('./models', exist_ok=True)
-    torch.save(model.state_dict(), f'./models/final_model.pth')
-    print('Saved Final Model!')
-    wandb.finish()
+def setup_distributed(rank, world_size):
+    """
+    设置分布式训练环境
+    """
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    # 初始化进程组
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+
+    # 设置当前设备
+    torch.cuda.set_device(rank)
 
 
-def main():
-    run = wandb.init(**wandb_config)
-    config = run.config
+def cleanup_distributed():
+    """
+    清理分布式训练环境
+    """
+    if dist.is_initialized():
+        dist.destroy_process_group()
+
+
+def main_worker(rank, world_size, config):
+    """
+    每个GPU上运行的主要工作函数
+    """
+    if config['train']['distributed']:
+        setup_distributed(rank, world_size)
+
+    # 只在主进程上初始化wandb
+    if rank == 0:
+        run = wandb.init(**wandb_config)
+        config = run.config
+    else:
+        run = None
+
+    device = torch.device(
+        f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
 
     tokenizer = DistilBertTokenizer.from_pretrained(
         config['text_encoder']['model_name'])
-    train_loader = build_loader(
-        mode='train', config=config, tokenizer=tokenizer)
-    test_loader = build_loader(
-        mode='test', config=config, tokenizer=tokenizer)
-    device = config['device']
+
+    # 创建数据加载器
+    train_loader = build_loader('train', config, tokenizer, )
+    test_loader = build_loader('test', config, tokenizer, )
+
+    # 创建模型
     model = CLIPModel(
         text_model_name=config['text_encoder']['model_name'],
         image_model_name=config['image_encoder']['model_name'],
@@ -207,51 +250,109 @@ def main():
         temperature=config['train']['temperature']
     ).to(device)
 
+    # 加载预训练模型
     if config['pretrained'] and os.path.exists('./models/best_model.pth'):
         model.load_state_dict(torch.load(
             f'./models/best_model.pth', map_location=device, weights_only=True))
-        print('Loaded Pretrained Model!')
+        if rank == 0:
+            print('Loaded Pretrained Model!')
 
-    atexit.register(cleanup, model)
+    # 将模型包装为DDP模型
+    if config['train']['distributed']:
+        model = DDP(model, device_ids=[rank], output_device=rank)
 
+    # 设置优化器
     optimizer_params = [{
-        'params': model.image_encoder.parameters(),
+        'params': model.module.image_encoder.parameters() if config['train']['distributed'] else model.image_encoder.parameters(),
         'lr': config['train']['image_encoder_learning_rate']
     }, {
-        'params': model.text_encoder.parameters(),
+        'params': model.module.text_encoder.parameters() if config['train']['distributed'] else model.text_encoder.parameters(),
         'lr': config['train']['text_encoder_learning_rate']
     }, {
-        'params': [model.image_projection, model.text_projection],
+        'params': [model.module.image_projection, model.module.text_projection] if config['train']['distributed']
+        else [model.image_projection, model.text_projection],
         'lr': config['train']['projection_head_learning_rate']
     }]
-    optimizer = torch.optim.AdamW(  # type: ignore
-        optimizer_params, weight_decay=0.01)
+
+    optimizer = torch.optim.AdamW(optimizer_params, weight_decay=0.01)
     loss_type = config['train']['loss_type']
     best_loss = float('inf')
 
-    epoch_progress = tqdm(
-        range(config['train']['epochs']), desc='Epochs', leave=False, position=0)
+    # 训练循环
+    if rank == 0:
+        epoch_progress = tqdm(
+            range(config['train']['epochs']), desc='Epochs', leave=False, position=0)
+    else:
+        epoch_progress = range(config['train']['epochs'])
+
+    print(f'rank: {rank}, train_loader_len: {len(train_loader)}')
+    print(f'rank: {rank}, test_loader_len: {len(test_loader)}')
+
     for epoch in epoch_progress:
+        if config['train']['distributed']:
+            train_loader.sampler.set_epoch(epoch)
+
         start_time = time.time()
         train_loss = train_one_epoch(
             model, train_loader, optimizer, loss_type, device)
         end_time = time.time()
 
         test_loss = valid_epoch(model, test_loader, loss_type, device)
-        epoch_progress.set_postfix(
-            train_loss=train_loss, test_loss=test_loss)
-        if test_loss < best_loss:
-            best_loss = test_loss
-            os.makedirs('./models', exist_ok=True)
-            torch.save(model.state_dict(), f'./models/best_model.pth')
 
-        wandb.log({
-            'train_loss': train_loss,
-            'test_loss': test_loss,
-            'time': end_time - start_time
-        })
+        if rank == 0:
+            if isinstance(epoch_progress, tqdm):
+                epoch_progress.set_postfix(
+                    train_loss=train_loss, test_loss=test_loss)
 
-    run.finish()
+            if test_loss < best_loss:
+                best_loss = test_loss
+                os.makedirs('./models', exist_ok=True)
+                # 保存非DDP模型
+                if config['train']['distributed']:
+                    torch.save(model.module.state_dict(),
+                               f'./models/best_model.pth')
+                else:
+                    torch.save(model.state_dict(), f'./models/best_model.pth')
+
+            wandb.log({
+                'train_loss': train_loss,
+                'test_loss': test_loss,
+                'time': end_time - start_time
+            })
+
+    # 清理
+    if rank == 0:
+        os.makedirs('./models', exist_ok=True)
+        if config['train']['distributed']:
+            torch.save(model.module.state_dict(), f'./models/final_model.pth')
+        else:
+            torch.save(model.state_dict(), f'./models/final_model.pth')
+        print('Saved Final Model!')
+        if run:
+            run.finish()
+
+    if config['train']['distributed']:
+        cleanup_distributed()
+
+
+def main():
+    config = wandb_config['config']
+
+    if config['train']['distributed']:
+        # 获取可用的GPU数量
+        world_size = torch.cuda.device_count()
+        if world_size > 1:
+            # 使用torch.multiprocessing启动多个进程
+            import torch.multiprocessing as mp
+            mp.spawn(main_worker, args=(world_size, config),
+                     nprocs=world_size, join=True)
+        else:
+            print("警告：分布式训练需要多个GPU，但只找到一个。将使用单GPU训练。")
+            config['train']['distributed'] = False
+            main_worker(0, 1, config)
+    else:
+        # 单GPU训练
+        main_worker(0, 1, config)
 
 
 if __name__ == "__main__":
