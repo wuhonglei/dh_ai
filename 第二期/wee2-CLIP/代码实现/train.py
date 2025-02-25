@@ -43,7 +43,7 @@ wandb_config = {
         },
         'train': {
             'batch_size': 64,
-            'epochs': 15,
+            'epochs': 3,
             'temperature': 1.0,
             'image_encoder_learning_rate': 0.001,
             'text_encoder_learning_rate': 0.001,
@@ -56,6 +56,7 @@ wandb_config = {
         'device': get_device()
     },
     'job_type': 'train',
+    'tags': ['time_cost', 'baseline']
 }
 
 sweep_config = {
