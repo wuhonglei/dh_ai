@@ -48,9 +48,9 @@ wandb_config = {
             'batch_size': 64,
             'epochs': 10,
             'temperature': 1.0,
-            'image_encoder_learning_rate': 0.001,
-            'text_encoder_learning_rate': 0.001,
-            'projection_head_learning_rate': 0.001,
+            'image_encoder_learning_rate': 2e-5,
+            'text_encoder_learning_rate': 2e-5,
+            'projection_head_learning_rate': 1e-3,
             'loss_type': 'fixed',  # 'fixed' / 'dynamic'
             'distributed': True,   # 是否使用分布式训练
             'num_workers': 4       # 数据加载的工作进程数
@@ -147,9 +147,9 @@ def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTo
         batch_size=config['train']['batch_size'],
         shuffle=(sampler is None and mode == 'train'),
         sampler=sampler,
+        collate_fn=collate_fn,
         num_workers=config['train']['num_workers'],
         pin_memory=True,
-        collate_fn=collate_fn
     )
     return dataloader
 
@@ -227,14 +227,14 @@ def main_worker(rank, world_size, config):
         run = None
 
     device = torch.device(
-        f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
+        f'cuda:{rank}' if 'cuda' in config['device'] else config['device'])
 
     tokenizer = DistilBertTokenizer.from_pretrained(
         config['text_encoder']['model_name'])
 
     # 创建数据加载器
-    train_loader = build_loader('train', config, tokenizer, )
-    test_loader = build_loader('test', config, tokenizer, )
+    train_loader = build_loader('train', config, tokenizer)
+    test_loader = build_loader('test', config, tokenizer)
 
     # 创建模型
     model = CLIPModel(
@@ -356,8 +356,11 @@ def main():
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     if wandb_config['config']['sweep']:
         sweep_id = wandb.sweep(sweep_config, project=wandb_config['project'])
         wandb.agent(sweep_id, main)
     else:
         main()
+    end_time = time.time()
+    print(f'Total time: {end_time - start_time} seconds')
