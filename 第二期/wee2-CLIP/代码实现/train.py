@@ -4,6 +4,8 @@ import torch
 import pandas as pd
 import torch.nn as nn
 from typing import Literal
+from torch.cuda.amp.autocast_mode import autocast
+from torch.cuda.amp.grad_scaler import GradScaler
 
 import wandb
 from dataset import CLIPDataset, get_transforms, collate_fn
@@ -144,16 +146,24 @@ def train_one_epoch(model: CLIPModel, train_loader, optimizer, loss_type, device
     model.train()
     batch_bar = tqdm(train_loader, desc='Training', leave=False, position=1)
     total_loss = 0
+    scaler = GradScaler()  # 创建梯度缩放器
+
     for batch in batch_bar:
         image = batch['image'].to(device)
         input_ids = batch['input_ids'].to(device)
         attention_mask = batch['attention_mask'].to(device)
-        output = model(
-            image, input_ids, attention_mask)
+
+        # 使用autocast上下文管理器进行混合精度训练
+        with autocast():
+            output = model(image, input_ids, attention_mask)
+            loss = clip_loss(output, loss_type)
+
         optimizer.zero_grad()
-        loss = clip_loss(output, loss_type)
-        loss.backward()
-        optimizer.step()
+        # 使用scaler来处理梯度
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+
         batch_bar.set_postfix(loss=loss.item())
         total_loss += loss.item()
 
@@ -164,14 +174,16 @@ def valid_epoch(model: CLIPModel, valid_loader, loss_type, device) -> float:
     model.eval()
     total_loss = 0
     batch_bar = tqdm(valid_loader, desc='Validating', leave=False, position=2)
-    for batch in batch_bar:
-        image = batch['image'].to(device)
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
-        output = model(image, input_ids, attention_mask)
-        loss = clip_loss(output, loss_type)
-        batch_bar.set_postfix(loss=loss.item())
-        total_loss += loss.item()
+
+    with torch.no_grad(), autocast():  # 在验证时也使用混合精度
+        for batch in batch_bar:
+            image = batch['image'].to(device)
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            output = model(image, input_ids, attention_mask)
+            loss = clip_loss(output, loss_type)
+            batch_bar.set_postfix(loss=loss.item())
+            total_loss += loss.item()
 
     return total_loss / len(valid_loader)
 
