@@ -293,9 +293,8 @@ def main_worker(local_rank, config):
     else:
         epoch_progress = range(config['train']['epochs'])
 
-    if rank == 0:
-        print(f'rank: {rank}, train_loader_len: {len(train_loader)}')
-        print(f'rank: {rank}, test_loader_len: {len(test_loader)}')
+    print(f'rank: {rank}, train_loader_len: {len(train_loader)}')
+    print(f'rank: {rank}, test_loader_len: {len(test_loader)}')
 
     for epoch in epoch_progress:
         if config['train']['distributed'] and hasattr(train_loader.sampler, 'set_epoch'):
@@ -349,10 +348,8 @@ def main_worker(local_rank, config):
 
 def main():
     # 解析命令行参数
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local_rank", type=int, default=0,
-                        help="Local rank. Necessary for using the torch.distributed.launch utility.")
-    args = parser.parse_args()
+    local_rank = int(os.environ.get('LOCAL_RANK', '0'))
+    print(f'local_rank: {local_rank}')
 
     config = wandb_config['config']
 
@@ -361,7 +358,7 @@ def main():
         config['train']['distributed'] = True
 
     # 调用主工作函数
-    main_worker(args.local_rank, config)
+    main_worker(local_rank, config)
 
 
 if __name__ == "__main__":
