@@ -194,9 +194,6 @@ def setup_distributed(local_rank, rank, world_size):
     """
     设置分布式训练环境
     """
-    os.environ['MASTER_ADDR'] = os.environ.get('MASTER_ADDR', 'localhost')
-    os.environ['MASTER_PORT'] = os.environ.get('MASTER_PORT', '12355')
-
     # 初始化进程组
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
