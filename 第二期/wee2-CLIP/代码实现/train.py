@@ -3,7 +3,7 @@ import time
 import torch
 import pandas as pd
 import torch.nn as nn
-from typing import Literal
+from typing import Literal, Union, Any, cast
 
 import wandb
 from dataset import CLIPDataset, get_transforms, collate_fn
@@ -13,7 +13,7 @@ from utils.common import get_device
 from tqdm import tqdm
 from clip import CLIPModel, clip_loss  # type: ignore
 
-import atexit
+import argparse
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler
@@ -61,7 +61,7 @@ wandb_config = {
         'device': get_device()
     },
     'job_type': 'train',
-    'tags': ['time_cost', 'single_node_2_gpu']
+    'tags': ['time_cost', 'multi_node_multi_gpu']
 }
 
 sweep_config = {
@@ -154,7 +154,7 @@ def build_loader(mode: Literal['train', 'test'], config, tokenizer: DistilBertTo
     return dataloader
 
 
-def train_one_epoch(model: CLIPModel, train_loader, optimizer, loss_type, device) -> float:
+def train_one_epoch(model: Union[CLIPModel, DDP], train_loader, optimizer, loss_type, device) -> float:
     model.train()
     batch_bar = tqdm(train_loader, desc='Training', leave=False, position=1)
     total_loss = 0
@@ -174,7 +174,7 @@ def train_one_epoch(model: CLIPModel, train_loader, optimizer, loss_type, device
     return total_loss / len(train_loader)
 
 
-def valid_epoch(model: CLIPModel, valid_loader, loss_type, device) -> float:
+def valid_epoch(model: Union[CLIPModel, DDP], valid_loader, loss_type, device) -> float:
     model.eval()
     total_loss = 0
     batch_bar = tqdm(valid_loader, desc='Validating', leave=False, position=2)
@@ -190,18 +190,18 @@ def valid_epoch(model: CLIPModel, valid_loader, loss_type, device) -> float:
     return total_loss / len(valid_loader)
 
 
-def setup_distributed(rank, world_size):
+def setup_distributed(local_rank, rank, world_size):
     """
     设置分布式训练环境
     """
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
+    os.environ['MASTER_ADDR'] = os.environ.get('MASTER_ADDR', 'localhost')
+    os.environ['MASTER_PORT'] = os.environ.get('MASTER_PORT', '12355')
 
     # 初始化进程组
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
     # 设置当前设备
-    torch.cuda.set_device(rank)
+    torch.cuda.set_device(local_rank)
 
 
 def cleanup_distributed():
@@ -212,12 +212,18 @@ def cleanup_distributed():
         dist.destroy_process_group()
 
 
-def main_worker(rank, world_size, config):
+def main_worker(local_rank, config):
     """
     每个GPU上运行的主要工作函数
     """
+    # 获取分布式训练的环境变量
     if config['train']['distributed']:
-        setup_distributed(rank, world_size)
+        rank = int(os.environ.get('RANK', '0'))
+        world_size = int(os.environ.get('WORLD_SIZE', '1'))
+        setup_distributed(local_rank, rank, world_size)
+    else:
+        rank = 0
+        world_size = 1
 
     # 只在主进程上初始化wandb
     if rank == 0:
@@ -227,7 +233,7 @@ def main_worker(rank, world_size, config):
         run = None
 
     device = torch.device(
-        f'cuda:{rank}' if 'cuda' in config['device'] else config['device'])
+        f'cuda:{local_rank}' if torch.cuda.is_available() else 'cpu')
 
     tokenizer = DistilBertTokenizer.from_pretrained(
         config['text_encoder']['model_name'])
@@ -237,7 +243,7 @@ def main_worker(rank, world_size, config):
     test_loader = build_loader('test', config, tokenizer)
 
     # 创建模型
-    model = CLIPModel(
+    clip_model = CLIPModel(
         text_model_name=config['text_encoder']['model_name'],
         image_model_name=config['image_encoder']['model_name'],
         text_pretrained=config['text_encoder']['pretrained'],
@@ -252,27 +258,32 @@ def main_worker(rank, world_size, config):
 
     # 加载预训练模型
     if config['pretrained'] and os.path.exists('./models/best_model.pth'):
-        model.load_state_dict(torch.load(
-            f'./models/best_model.pth', map_location=device, weights_only=True))
+        clip_model.load_state_dict(torch.load(
+            f'./models/best_model.pth', map_location=device))
         if rank == 0:
             print('Loaded Pretrained Model!')
 
+    # 设置优化器 - 在包装为DDP前获取参数
+    image_encoder_params = clip_model.image_encoder.parameters()
+    text_encoder_params = clip_model.text_encoder.parameters()
+    projection_params = [clip_model.image_projection,
+                         clip_model.text_projection]
+
     # 将模型包装为DDP模型
     if config['train']['distributed']:
-        model = DDP(model, device_ids=[rank], output_device=rank)
+        model = DDP(clip_model, device_ids=[
+                    local_rank], output_device=local_rank)
+    else:
+        model = clip_model
 
-    # 设置优化器
-    optimizer_params = [{
-        'params': model.module.image_encoder.parameters() if config['train']['distributed'] else model.image_encoder.parameters(),
-        'lr': config['train']['image_encoder_learning_rate']
-    }, {
-        'params': model.module.text_encoder.parameters() if config['train']['distributed'] else model.text_encoder.parameters(),
-        'lr': config['train']['text_encoder_learning_rate']
-    }, {
-        'params': [model.module.image_projection, model.module.text_projection] if config['train']['distributed']
-        else [model.image_projection, model.text_projection],
-        'lr': config['train']['projection_head_learning_rate']
-    }]
+    optimizer_params = [
+        {'params': image_encoder_params,
+            'lr': config['train']['image_encoder_learning_rate']},
+        {'params': text_encoder_params,
+            'lr': config['train']['text_encoder_learning_rate']},
+        {'params': projection_params,
+            'lr': config['train']['projection_head_learning_rate']}
+    ]
 
     optimizer = torch.optim.AdamW(optimizer_params, weight_decay=0.01)
     loss_type = config['train']['loss_type']
@@ -285,11 +296,12 @@ def main_worker(rank, world_size, config):
     else:
         epoch_progress = range(config['train']['epochs'])
 
-    print(f'rank: {rank}, train_loader_len: {len(train_loader)}')
-    print(f'rank: {rank}, test_loader_len: {len(test_loader)}')
+    if rank == 0:
+        print(f'rank: {rank}, train_loader_len: {len(train_loader)}')
+        print(f'rank: {rank}, test_loader_len: {len(test_loader)}')
 
     for epoch in epoch_progress:
-        if config['train']['distributed']:
+        if config['train']['distributed'] and hasattr(train_loader.sampler, 'set_epoch'):
             train_loader.sampler.set_epoch(epoch)
 
         start_time = time.time()
@@ -307,12 +319,14 @@ def main_worker(rank, world_size, config):
             if test_loss < best_loss:
                 best_loss = test_loss
                 os.makedirs('./models', exist_ok=True)
-                # 保存非DDP模型
+                # 保存模型
                 if config['train']['distributed']:
-                    torch.save(model.module.state_dict(),
+                    # 保存DDP模型的module部分
+                    torch.save(clip_model.state_dict(),
                                f'./models/best_model.pth')
                 else:
-                    torch.save(model.state_dict(), f'./models/best_model.pth')
+                    torch.save(clip_model.state_dict(),
+                               f'./models/best_model.pth')
 
             wandb.log({
                 'train_loss': train_loss,
@@ -324,9 +338,10 @@ def main_worker(rank, world_size, config):
     if rank == 0:
         os.makedirs('./models', exist_ok=True)
         if config['train']['distributed']:
-            torch.save(model.module.state_dict(), f'./models/final_model.pth')
+            # 保存DDP模型的module部分
+            torch.save(clip_model.state_dict(), f'./models/final_model.pth')
         else:
-            torch.save(model.state_dict(), f'./models/final_model.pth')
+            torch.save(clip_model.state_dict(), f'./models/final_model.pth')
         print('Saved Final Model!')
         if run:
             run.finish()
@@ -336,23 +351,20 @@ def main_worker(rank, world_size, config):
 
 
 def main():
+    # 解析命令行参数
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--local_rank", type=int, default=0,
+                        help="Local rank. Necessary for using the torch.distributed.launch utility.")
+    args = parser.parse_args()
+
     config = wandb_config['config']
 
-    if config['train']['distributed']:
-        # 获取可用的GPU数量
-        world_size = torch.cuda.device_count()
-        if world_size > 1:
-            # 使用torch.multiprocessing启动多个进程
-            import torch.multiprocessing as mp
-            mp.spawn(main_worker, args=(world_size, config),
-                     nprocs=world_size, join=True)
-        else:
-            print("警告：分布式训练需要多个GPU，但只找到一个。将使用单GPU训练。")
-            config['train']['distributed'] = False
-            main_worker(0, 1, config)
-    else:
-        # 单GPU训练
-        main_worker(0, 1, config)
+    # 根据环境变量判断是否使用分布式训练
+    if "WORLD_SIZE" in os.environ:
+        config['train']['distributed'] = True
+
+    # 调用主工作函数
+    main_worker(args.local_rank, config)
 
 
 if __name__ == "__main__":
