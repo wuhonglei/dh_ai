@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "albumentations>=2.0.4",
+    "gensim>=4.3.3",
     "ipykernel>=6.29.5",
     "matplotlib>=3.10.0",
     "numpy<2",
