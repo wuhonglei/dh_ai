@@ -16,6 +16,12 @@ resolution-markers = [
     "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux'",
 ]
 
+[manifest]
+members = [
+    "dh-ai",
+    "gpt-2-pytorch",
+]
+
 [[package]]
 name = "albucore"
 version = "0.0.23"
@@ -536,6 +542,17 @@ sdist = { url = "https://mirrors.aliyun.com/pypi/packages/c0/89/37df0b7147315357
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl", hash = "sha256:9e0e10cda9bed1ee64bc9a6de50e7e38a9c9943241cd7f585f6df3ed28011110" },
 ]
+
+[[package]]
+name = "gpt-2-pytorch"
+version = "0.1.0"
+source = { virtual = "第二期/week3-gpt2/gpt-2-Pytorch" }
+dependencies = [
+    { name = "regex" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "regex", specifier = ">=2024.11.6" }]
 
 [[package]]
 name = "huggingface-hub"
