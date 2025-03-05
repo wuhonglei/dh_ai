@@ -15,6 +15,6 @@ prompt = "Hello world"
 inputs = tokenizer(prompt, return_tensors="pt").to(device)
 print('inputs', inputs['input_ids'])
 outputs = model.generate(**inputs, do_sample=False, temperature=0.9,
-                         pad_token_id=tokenizer.pad_token_id, max_length=50, repetition_penalty=1.5)
+                         pad_token_id=tokenizer.pad_token_id, max_length=30, repetition_penalty=1.5)
 
 print(tokenizer.decode(outputs[0], skip_special_tokens=False))
