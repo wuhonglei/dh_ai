@@ -1,0 +1,12 @@
+[project]
+name = "performance-test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "datasets>=3.3.2",
+    "evaluate>=0.4.3",
+    "nltk>=3.9.1",
+    "rouge-score>=0.1.2",
+]
