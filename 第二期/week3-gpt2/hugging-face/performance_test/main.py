@@ -47,7 +47,7 @@ def main():
 
     if distributed:
         local_rank, device = setup_distributed()
-        is_main_process = dist.get_rank() == 0
+        is_main_process = local_rank == 0
     else:
         # 非分布式模式下，强制使用第一个GPU
         torch.cuda.set_device(0)  # 添加这行，确保使用 cuda:0
@@ -66,7 +66,7 @@ def main():
     tokenizer.padding_side = 'left'
     tokenizer.pad_token = tokenizer.eos_token
 
-    batch_size = 64
+    batch_size = 32
     train_loader, test_loader, val_loader = get_dataloaders(  # type: ignore
         ['train', 'test', 'val'], batch_size, distributed)
 
@@ -113,6 +113,7 @@ def main():
         all_references = references
 
     if is_main_process:
+        print('start to evaluate')
         end_time = time.time()
         # 计算 BLEU 和 ROUGE
         bleu_score = bleu.compute(
