@@ -33,3 +33,14 @@ def create_optimized_model(model_name, device) -> PreTrainedModel:
             print(f"Model compilation failed: {e}")
 
     return model  # type: ignore
+
+
+# 性能优化设置
+def setup_performance_opts():
+    if torch.cuda.is_available():
+        # 启用 TF32
+        torch.backends.cuda.matmul.allow_tf32 = True  # type: ignore
+        # 启用 cuDNN 基准测试
+        # torch.backends.cudnn.benchmark = True  # type: ignore
+        # 可选：设置确定性计算
+        # torch.backends.cudnn.deterministic = True

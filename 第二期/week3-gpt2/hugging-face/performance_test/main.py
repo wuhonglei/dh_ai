@@ -1,8 +1,8 @@
 from typing import List
-from transformers import GPT2Tokenizer, GPT2LMHeadModel, PreTrainedModel, PreTrainedTokenizer
+from transformers import GPT2Tokenizer, PreTrainedModel, PreTrainedTokenizer
 from evaluate import load
-from utils.common import get_device, get_text_token_len, get_max_token_len, write_to_file
-from utils.model import create_optimized_model
+from utils.common import get_text_token_len, get_max_token_len, write_to_file
+from utils.model import create_optimized_model, setup_performance_opts
 from dataset import WritingPromptsDataset, BucketSampler
 from torch.utils.data import DataLoader
 import torchvision
@@ -16,8 +16,7 @@ import time
 torchvision.disable_beta_transforms_warning()
 
 # 启用torch的cuda优化：
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.benchmark = True
+setup_performance_opts()
 
 # 设置设备
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
