@@ -52,26 +52,39 @@ model = DDP(model, device_ids=[local_rank])
 tokenizer.padding_side = 'left'
 tokenizer.pad_token = tokenizer.eos_token
 
+main_rank = 0
+is_main_process = dist.get_rank() == main_rank
 
-def build_loader(prompt_path, story_path, batch_size=1, shuffle=False):
+
+def build_loader(prompt_path, story_path, batch_size=1, is_distributed=False):
     dataset = WritingPromptsDataset(
         prompt_path=prompt_path,
         story_path=story_path,
     )
-    # 创建分布式采样器
-    if shuffle:
+
+    if is_distributed:
+        # 分布式环境下使用 DistributedSampler，推理时不需要 shuffle
         sampler = DistributedSampler(
-            dataset, shuffle=True)
+            dataset,
+            shuffle=False,
+            drop_last=False  # 推理时不丢弃最后的不完整批次
+        )
     else:
-        sampler = BucketSampler(dataset, batch_size, lambda item: sum(
-            [get_text_token_len([text])[0] for text in item.values()]
-        ))
+        # 非分布式环境下使用 BucketSampler
+        sampler = BucketSampler(
+            dataset,
+            batch_size,
+            lambda item: sum([get_text_token_len([text])[0]
+                             for text in item.values()])
+        )
+
     return DataLoader(
         dataset,
         batch_size=batch_size,
         sampler=sampler,
         num_workers=4,
-        pin_memory=True
+        pin_memory=True,
+        drop_last=False  # 推理时不丢弃最后的不完整批次
     )
 
 
@@ -80,21 +93,21 @@ train_loader = build_loader(
     prompt_path="./writingPrompts/train.wp_source",
     story_path="./writingPrompts/train.wp_target",
     batch_size=batch_size,
-    shuffle=True,
+    is_distributed=dist.is_initialized()
 )
 
 test_loader = build_loader(
     prompt_path="./writingPrompts/test.wp_source",
     story_path="./writingPrompts/test.wp_target",
     batch_size=batch_size,
-    shuffle=False,
+    is_distributed=dist.is_initialized()
 )
 
 validation_loader = build_loader(
     prompt_path="./writingPrompts/valid.wp_source",
     story_path="./writingPrompts/valid.wp_target",
     batch_size=batch_size,
-    shuffle=False,
+    is_distributed=dist.is_initialized()
 )
 
 
@@ -125,6 +138,7 @@ def generate_text(model: PreTrainedModel | DDP, prompt_list: List[str], max_leng
 predictions: List[str] = []
 references: List[str] = []
 start_time = time.time()
+test_loader = tqdm(test_loader) if is_main_process else test_loader
 for batch_examples in test_loader:
     prompt: List[str] = batch_examples["prompt"]
     reference: List[str] = batch_examples["story"]
@@ -144,7 +158,6 @@ rouge = load("rouge")
 all_predictions: List[str] = []
 all_references: List[str] = []
 world_size = dist.get_world_size()
-main_rank = 0
 
 # 在每个进程上收集预测结果
 gathered_predictions: List[List[str]] = [[] for _ in range(world_size)]
@@ -155,7 +168,7 @@ dist.gather_object(references, gathered_references, dst=main_rank)
 
 
 # 只在主进程计算指标和写入结果
-if dist.get_rank() == main_rank:
+if is_main_process:
     for pred, ref in zip(gathered_predictions, gathered_references):
         all_predictions.extend(pred)
         all_references.extend(ref)
