@@ -4,8 +4,8 @@ from torch.utils.data import Dataset, Sampler
 
 class WritingPromptsDataset(Dataset):
     def __init__(self, prompt_path: str, story_path: str):
-        self.prompt_file = self._load_file(prompt_path)
-        self.story_file = self._load_file(story_path)
+        self.prompt_file = self._load_file(prompt_path)[:1000]
+        self.story_file = self._load_file(story_path)[:1000]
 
     def __len__(self):
         return len(self.prompt_file)
