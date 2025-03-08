@@ -1,13 +1,13 @@
 from typing import List
-import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, PreTrainedModel, PreTrainedTokenizer
 from evaluate import load
 from tqdm import tqdm
 from utils.common import get_device, get_text_token_len, get_max_token_len, write_to_file
-from dataset import WritingPromptsDataset
+from dataset import WritingPromptsDataset, BucketSampler
 from torch.utils.data import DataLoader
 import torchvision
 from pprint import pprint
+
 
 torchvision.disable_beta_transforms_warning()
 
@@ -33,43 +33,49 @@ def build_loader(prompt_path, story_path, batch_size=1, shuffle=False):
         prompt_path=prompt_path,
         story_path=story_path,
     )
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    sampler = BucketSampler(dataset, batch_size, lambda item: sum(
+        [
+            get_text_token_len([text])[0] for text in item.values()
+        ]
+    ))
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, sampler=None if shuffle else sampler)
 
 
+batch_size = 4
 train_loader = build_loader(
     prompt_path="./writingPrompts/train.wp_source",
     story_path="./writingPrompts/train.wp_target",
-    batch_size=2,
+    batch_size=batch_size,
     shuffle=True,
 )
 
 test_loader = build_loader(
     prompt_path="./writingPrompts/test.wp_source",
     story_path="./writingPrompts/test.wp_target",
-    batch_size=2,
+    batch_size=batch_size,
     shuffle=False,
 )
 
 validation_loader = build_loader(
     prompt_path="./writingPrompts/valid.wp_source",
     story_path="./writingPrompts/valid.wp_target",
-    batch_size=2,
+    batch_size=batch_size,
     shuffle=False,
 )
 
 
 def generate_text(model: PreTrainedModel, prompt_list: List[str], max_length: int = 100) -> List[str]:
-    inputs = tokenizer(
-        prompt_list, return_tensors="pt", max_length=1024, truncation=True, padding=True).to(device)
     try:
+        inputs = tokenizer(
+            prompt_list, return_tensors="pt", max_length=1024, truncation=True, padding=True).to(device)
         outputs = model.generate(
             **inputs,  # type: ignore
             do_sample=False,
             max_length=max_length,
             num_return_sequences=1,
             no_repeat_ngram_size=3,  # 避免重复
-            # top_p=0.95,  # 使用 nucleus sampling
-            # temperature=0.7,  # 控制随机性
+            pad_token_id=tokenizer.pad_token_id,  # 明确指定pad_token_id
+            eos_token_id=tokenizer.eos_token_id,  # 明确指定eos_token_id
         )
         generated_list = tokenizer.batch_decode(
             outputs, skip_special_tokens=True)
