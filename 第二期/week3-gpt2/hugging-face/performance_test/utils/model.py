@@ -15,10 +15,8 @@ def create_optimized_model(model_name, device) -> PreTrainedModel:
         model_name,
         config=config,
         torch_dtype=torch.float16,  # 使用半精度
-        device_map="auto"  # 自动处理设备映射
     )
 
-    # 3. 模型优化
     model = model.to(device)
 
     # 4. 编译模型（如果可用）
