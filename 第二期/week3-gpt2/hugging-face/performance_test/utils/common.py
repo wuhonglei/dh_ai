@@ -7,10 +7,10 @@ def get_text_token_len(text: List[str]) -> List[int]:
     return [len(t.split()) for t in text]
 
 
-def get_max_token_len(prompt_len: List[int], story_len: List[int], min_len: int = 50, max_len: int = 900) -> int:
+def get_max_token_len(prompt_len: List[int], story_len: List[int], k: float, min_len: int = 50, max_len: int = 900) -> int:
     avg_prompt_len = sum(prompt_len) / len(prompt_len)
     avg_story_len = sum(story_len) / len(story_len)
-    return int(min(max(avg_prompt_len+avg_story_len, min_len), max_len))
+    return int(min(max(avg_prompt_len+k * avg_story_len, min_len), max_len))
 
 
 def write_to_file(file_path: str, content: dict):

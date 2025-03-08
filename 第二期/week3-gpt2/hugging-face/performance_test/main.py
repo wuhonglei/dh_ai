@@ -13,14 +13,11 @@ from tqdm import tqdm
 import time
 
 from utils.common import get_text_token_len, get_max_token_len, write_to_file
-from utils.model import create_optimized_model, setup_performance_opts, generate_text
+from utils.model import create_optimized_model, generate_text
 from utils.dataset import get_dataloaders
 
 
 torchvision.disable_beta_transforms_warning()
-
-# 启用torch的cuda优化：
-# setup_performance_opts()
 
 
 def is_dist_avail_and_initialized() -> bool:
@@ -67,6 +64,7 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
 
     batch_size = 32
+    k = 0.8
     train_loader, test_loader, val_loader = get_dataloaders(  # type: ignore
         ['train', 'test', 'val'], batch_size, distributed)
 
@@ -79,7 +77,7 @@ def main():
         reference: List[str] = batch_examples["story"]
         prompt_len = get_text_token_len(prompt)
         story_len = get_text_token_len(reference)
-        max_len = get_max_token_len(prompt_len, story_len)
+        max_len = get_max_token_len(prompt_len, story_len, k)
         generated_list = generate_text(
             model, tokenizer, prompt, max_len, device)
         predictions.extend(generated_list)
@@ -126,7 +124,7 @@ def main():
             'batch_size': batch_size * (dist.get_world_size() if distributed else 1),
             "model_name": model_name,
             'total_time': int(end_time - start_time),
-            'max_length': 'min(max(prompt_len+story_len, min_len), max_len)',
+            'max_length': f'min(max(prompt_len+{k} * story_len, min_len), max_len)',
             "bleu_score": bleu_score['bleu'] if bleu_score else 0,
             "rouge_score": rouge_score
         }
