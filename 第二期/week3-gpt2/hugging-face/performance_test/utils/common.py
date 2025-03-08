@@ -3,13 +3,6 @@ from typing import Literal, List
 import json
 
 
-def get_device() -> Literal["mps", "cuda", "cpu"]:
-    if torch.cuda.is_available():
-        return 'cuda'
-    else:
-        return 'cpu'
-
-
 def get_text_token_len(text: List[str]) -> List[int]:
     return [len(t.split()) for t in text]
 
