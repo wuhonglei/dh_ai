@@ -1,0 +1,1 @@
+{"dataset": "test", "batch_size": 128, "model_name": "gpt2-large", "total_time": 1801, "max_length": "min(max(prompt_len+story_len, min_len), max_len)", "bleu_score": 0.0031495456414219417, "rouge_score": {"rouge1": 0.18434589399981133, "rouge2": 0.022181933200074826, "rougeL": 0.10230406770756051, "rougeLsum": 0.11794290624426185}}
