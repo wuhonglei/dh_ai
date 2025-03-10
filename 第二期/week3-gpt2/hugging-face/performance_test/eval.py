@@ -4,7 +4,6 @@ from evaluate import load
 import torchvision
 from pprint import pprint
 import torch
-from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
 import os
 
