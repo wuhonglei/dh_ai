@@ -3,6 +3,7 @@ from typing import List
 
 import requests
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
 
 from config import header_config
 from urls import urls
@@ -18,8 +19,7 @@ def reader_url(url: str):
     }
 
     response = requests.get(request_url, headers=headers)
-    json_res = response.json()
-    return response.text  # or response.json() if you expect JSON response
+    return response.text
 
 
 def save_to_file(text: str, file_path: str):
@@ -40,13 +40,29 @@ def load_cache(dir_path: str):
     return cache_files
 
 
-if __name__ == "__main__":
+def process_url(url):
+    text = reader_url(url)
+    if '<!DOCTYPE html>' in text:
+        return
+    save_to_file(text, f"raw_data/{get_name_from_url(url)}.md")
+
+
+def main():
     cache = load_cache('raw_data')
     valid_urls = [
         url for url in set(urls)
         if 'nowcoder' in url and get_name_from_url(url) not in cache
     ]
 
-    for url in tqdm(valid_urls):
-        text = reader_url(url)
-        save_to_file(text, f"raw_data/{get_name_from_url(url)}.md")
+    # 设置线程池，max_workers 可以根据需要调整
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        # 使用 list() 确保所有任务完成
+        list(tqdm(
+            executor.map(process_url, valid_urls),
+            total=len(valid_urls),
+            desc="Processing URLs"
+        ))
+
+
+if __name__ == "__main__":
+    main()
