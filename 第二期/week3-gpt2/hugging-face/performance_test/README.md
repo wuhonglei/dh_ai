@@ -20,3 +20,15 @@ torchrun --nproc_per_node=4 eval.py
 ```bash
 python eval.py
 ```
+
+## 分布式训练
+
+```bash
+torchrun --nproc_per_node=4 train.py
+```
+
+## 单机训练
+
+```bash
+python train.py
+```

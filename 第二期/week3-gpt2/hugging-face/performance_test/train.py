@@ -83,7 +83,7 @@ def main():
         save_total_limit=2,
         logging_steps=50,
         learning_rate=2e-5,
-        eval_strategy="no",
+        eval_strategy="epoch",
         eval_steps=1000,
 
         # 分布式训练相关参数
@@ -104,7 +104,7 @@ def main():
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        # eval_dataset=valid_dataset,
+        eval_dataset=valid_dataset,
     )
 
     # 7. 开始训练

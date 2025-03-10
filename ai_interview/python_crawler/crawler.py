@@ -42,7 +42,7 @@ def load_cache(dir_path: str):
 
 def process_url(url):
     text = reader_url(url)
-    if '<!DOCTYPE html>' in text:
+    if '<!DOCTYPE html>' in text or 'AssertionFailureError' in text or 'ServiceCrashedError' in text:
         return
     save_to_file(text, f"raw_data/{get_name_from_url(url)}.md")
 
