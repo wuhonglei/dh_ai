@@ -28,6 +28,7 @@ def is_dist_avail_and_initialized() -> bool:
     # 检查是否已经初始化了分布式环境
     if torch.distributed.is_available() and torch.distributed.is_initialized():  # type: ignore
         return True
+
     return False
 
 
@@ -47,7 +48,6 @@ def main():
         is_main_process = local_rank == 0
     else:
         # 非分布式模式下，强制使用第一个GPU
-        torch.cuda.set_device(0)  # 添加这行，确保使用 cuda:0
         local_rank, device = None, torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         is_main_process = True
