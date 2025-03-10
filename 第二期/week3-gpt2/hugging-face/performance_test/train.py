@@ -34,8 +34,8 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
     prompts = Dataset.from_text(prompt_path)
     stories = Dataset.from_text(story_path)
     raw_dataset = Dataset.from_dict({
-        'prompt': prompts['text'][:100],  # type: ignore
-        'story': stories['text'][:100]  # type: ignore
+        'prompt': prompts['text'][:1000],  # type: ignore
+        'story': stories['text'][:1000]  # type: ignore
     })
 
     processed_dataset = raw_dataset.map(
@@ -85,6 +85,10 @@ def main():
         learning_rate=2e-5,
         eval_strategy="epoch",
         eval_steps=1000,
+
+        # wandb 配置
+        report_to=["wandb"],           # 启用 wandb 日志
+        run_name="gpt2-story-gen",     # wandb 运行的名称
 
         # 分布式训练相关参数
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
