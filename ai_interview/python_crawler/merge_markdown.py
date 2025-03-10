@@ -22,7 +22,7 @@ def main():
     dst_path = 'merged_data'
     files = get_all_markdown_files(dir_path)
     temp_files = []
-    limit = 150
+    limit = 500
     fragment = 0
     for file in files:
         temp_files.append(file)
