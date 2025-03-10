@@ -3,6 +3,7 @@ from datasets import Dataset
 from accelerate import DistributedDataParallelKwargs
 import torch.distributed as dist
 import os
+from shutdown import shutdown
 
 import warnings
 warnings.filterwarnings("ignore", message=".*torch.cpu.amp.autocast.*")
@@ -34,8 +35,8 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
     prompts = Dataset.from_text(prompt_path)
     stories = Dataset.from_text(story_path)
     raw_dataset = Dataset.from_dict({
-        'prompt': prompts['text'][:1000],  # type: ignore
-        'story': stories['text'][:1000]  # type: ignore
+        'prompt': prompts['text'][:100000],  # type: ignore
+        'story': stories['text'][:100000]  # type: ignore
     })
 
     processed_dataset = raw_dataset.map(
@@ -120,6 +121,7 @@ def main():
         model.save_pretrained("./gpt2-writing-prompts-final")
         tokenizer.save_pretrained("./gpt2-writing-prompts-final")
         print("模型保存完成")
+        shutdown(10)
 
     # 9. 清理分布式训练资源
     if training_args.local_rank != -1:
