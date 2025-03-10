@@ -11,6 +11,10 @@ def merge_markdown_files(files: list[str], dst_path: str):
     for i, file in enumerate(files):
         with open(file, 'r', encoding='utf-8') as f:
             content = f.read()
+            temp_content = content.lower().replace('剑指offer', '')
+            if 'offer' not in temp_content:
+                continue
+
         with open(dst_path, 'a', encoding='utf-8') as f:
             if i != 0:
                 f.write('\n\n<!-- 文档分割线 -->\n\n')
