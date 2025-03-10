@@ -1,7 +1,5 @@
-import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments, GPT2Config
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments
 from datasets import Dataset
-import multiprocessing as mp
 
 
 def preprocess_function(tokenizer: GPT2Tokenizer, examples: dict):
@@ -51,7 +49,7 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
 
 def main():
     # 1. 加载预训练模型和分词器
-    model_name = "gpt2-large"
+    model_name = "gpt2-medium"
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     model = GPT2LMHeadModel.from_pretrained(
         model_name)
@@ -94,12 +92,6 @@ def main():
     # 8. 保存模型
     model.save_pretrained("./gpt2-writing-prompts-final")
     tokenizer.save_pretrained("./gpt2-writing-prompts-final")
-
-
-def cleanup():
-    # 在脚本结束时显式清理资源
-    for p in mp.active_children():
-        p.terminate()
 
 
 if __name__ == "__main__":
