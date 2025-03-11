@@ -35,8 +35,8 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
     prompts = Dataset.from_text(prompt_path)
     stories = Dataset.from_text(story_path)
     raw_dataset = Dataset.from_dict({
-        'prompt': prompts['text'][:100000],  # type: ignore
-        'story': stories['text'][:100000]  # type: ignore
+        'prompt': prompts['text'],  # type: ignore
+        'story': stories['text']  # type: ignore
     })
 
     processed_dataset = raw_dataset.map(
