@@ -76,16 +76,15 @@ def main():
 
     # 5. 定义训练参数
     training_args = TrainingArguments(
-        output_dir="./gpt2-writing-prompts",
-        num_train_epochs=3,
+        output_dir="./gpt2-writing-prompts-frozen",
+        num_train_epochs=2,
         per_device_train_batch_size=8,
         gradient_accumulation_steps=4,
-        save_steps=1000,
+        save_steps=0.75,
         save_total_limit=2,
         logging_steps=50,
         learning_rate=2e-5,
         eval_strategy="epoch",
-        eval_steps=1000,
 
         # wandb 配置
         report_to=["wandb"],           # 启用 wandb 日志
@@ -118,8 +117,8 @@ def main():
     # 8. 只在主进程中保存模型
     if training_args.local_rank == 0:
         print("正在保存模型...")
-        model.save_pretrained("./gpt2-writing-prompts-final")
-        tokenizer.save_pretrained("./gpt2-writing-prompts-final")
+        model.save_pretrained("./gpt2-writing-prompts-frozen-final")
+        tokenizer.save_pretrained("./gpt2-writing-prompts-frozen-final")
         print("模型保存完成")
         shutdown(10)
 
