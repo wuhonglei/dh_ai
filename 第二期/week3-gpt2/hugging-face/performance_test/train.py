@@ -102,6 +102,10 @@ def main():
         dataloader_num_workers=4,
     )
 
+    # 6. 冻结部分参数（可选）
+    for param in model.transformer.h[:8].parameters():
+        param.requires_grad = False
+
     # 6. 创建训练器
     trainer = Trainer(
         model=model,
