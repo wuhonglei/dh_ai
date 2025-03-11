@@ -27,6 +27,11 @@ python eval.py
 torchrun --nproc_per_node=4 train.py
 ```
 
+后台运行:
+```
+nohup torchrun --nproc_per_node=4 train.py > train.log 2>&1 &
+```
+
 ## 单机训练
 
 ```bash
