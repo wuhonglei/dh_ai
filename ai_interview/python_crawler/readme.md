@@ -1,6 +1,11 @@
 ## 一、代码执行顺序
 1. 先执行 `crawler.py` 爬虫程序，爬取链接生成 markdown
-2. 再执行 `merge_markdown.py` 将多个 markdown 文件合并成一个文件
+
+```bash
+uv run crawler.py --output_dir=boss直聘 --urls=boss直聘.txt
+```
+
+2. 再执行 `merge.py` 将多个 markdown 文件合并成一个文件
 
 ## 生成 pdf 后，使用大模型解析的提示词如下
 
@@ -13,3 +18,5 @@
 4. 对于高频知识点，需要在知识点后增加标识
 5. 对于 NLP 知识点，需要在知识点后增加标识
 ```
+
+

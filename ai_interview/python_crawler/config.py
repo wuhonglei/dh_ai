@@ -4,4 +4,9 @@ header_config = {
         "X-Target-Selector": ".post-content-box",
         "X-Wait-For-Selector": ".post-content-box"
     },
+    "www.zhipin.com": {
+        "X-Set-Cookie": "lastCity=101280600, __zp_seo_uuid__=d6d36ab7-08ea-4578-b985-6fcd9164b0ed, __g=-, Hm_lvt_194df3105ad7148dcf2b98a91b5e727a=1741662272, HMACCOUNT=768E403E2CFA3DC6, wt2=D2O3jx43nkqwCn1H7tClp0HjavNUdHwCCkbfqTpsvsGSF2jABMqBGnRN2ZuPXb04ZKhWUoNaG6N-mhxltjLgyww~~, wbg=0, zp_at=Dxi_dMBHssLWdwLZSs-TnLPSsb-OPOJI8Ihvpu6lZ3Y~, ab_guid=e0a2b4d4-63a4-489f-a79e-b3719031bc49, __l=r=https%3A%2F%2Fwww.google.com.hk%2F&l=%2Fwww.zhipin.com%2Fweb%2Fgeek%2Fjob%3Fcity%3D101280600%26position%3D100117%26jobType%3D1901%26page%3D1&s=3&friend_source=0&s=3&friend_source=0, Hm_lpvt_194df3105ad7148dcf2b98a91b5e727a=1741666266, __zp_stoken__=b34dfw4%2FDvMKmDEJdCgdcDHhaDW7Dg0lrW09uwrhaXGzDhcKweVvCuFhKwpjCr11xwqFTwqlHwrrCrMKjwq%2FDvWnEgFXCuEfEgVjEgMKuwqPEoMOoxYTEoMSzwqHCucKjQCkQCxUPEhEeFBIPDwwJCx4MDwkLHgsQCgwNQTXDv8OOw7c%2FOzpFJk1SSBNKbmRPWEYUblBUREILCgtfQi8ZRUQ2wr%2FDv8OBC8K8w7nDgx7DjsO2wr1iRTw2OcOFTS80IxPDgHgSwrnCixHDhMO0DcK%2FwpMQw4Ziw7DCnsOnWzNFQMODOzwhO0E%2FQjZAPD88MUAbw4Ziw7DCnsOnSyw%2FIDk%2FPD1CQT88O0A7Mzw4HTM%2FOS88CwsQCRIyPMK9w5nDhcOSPzw%3D, __zp_sseed__=7W0TsZPLeJmCS2kk08t8UgavcYXebFvlyWRanHIRn/4=, __zp_sname__=87b7f462, __zp_sts__=1741666267242, bst=V2RNskEe3721hgXdJtzRsfKSuw7DLTwg~~|RNskEe3721hgXdJtzRsfKSuw7DLXxA~~, __c=1741662272, __a=49527041.1741662272..1741662272.18.1.18.18",
+        "X-Target-Selector": ".info-primary  .name, .job-detail-section:first-of-type .job-sec-text, .detail-section-item.company-info-box",
+        "X-Wait-For-Selector": ".info-primary  .name"
+    }
 }
