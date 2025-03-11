@@ -88,7 +88,7 @@ def main():
 
         # wandb 配置
         report_to=["wandb"],           # 启用 wandb 日志
-        run_name="gpt2-story-gen",     # wandb 运行的名称
+        run_name="gpt2-story-gen-frozen 冻结浅层参数",     # wandb 运行的名称
 
         # 分布式训练相关参数
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
