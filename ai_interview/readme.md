@@ -22,8 +22,9 @@
 4. 对于高频知识点，需要在知识点后增加标识
 5. 对于 NLP 知识点，需要在知识点后增加标识
 ```
+
+对话链接: https://monica.im/home/chat/Monica/monica?convId=conv%3Afac78752-e5ee-4d35-bcfd-7422f4b982b3
 ![](https://p.ipic.vip/7pya4j.png)
-https://monica.im/home/chat/Monica/monica?convId=conv%3Afac78752-e5ee-4d35-bcfd-7422f4b982b3
 
 
 #### 2. boss直聘分析提示词如下:
@@ -46,3 +47,6 @@ https://monica.im/home/chat/Monica/monica?convId=conv%3Afac78752-e5ee-4d35-bcfd-
 </任职资格>
 如果文件中没有相关信息，请在相应标签内注明“未提及”。
 ```
+
+对话链接: https://monica.im/home/chat/Monica/monica?convId=conv%3A5accf9a6-3de8-4eff-8783-052b41ef4cf2
+![](https://p.ipic.vip/hir1km.png)
