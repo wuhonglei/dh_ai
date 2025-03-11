@@ -1,6 +1,5 @@
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, Trainer, TrainingArguments
 from datasets import Dataset
-from accelerate import DistributedDataParallelKwargs
 import torch.distributed as dist
 import os
 from shutdown import shutdown
