@@ -52,7 +52,7 @@ def main():
         is_main_process = True
 
     # 模型初始化
-    model_name = "gpt2-medium"
+    model_name = "./gpt2-writing-prompts-final"
     tokenizer: PreTrainedTokenizer = GPT2Tokenizer.from_pretrained(model_name)
     model = create_optimized_model(model_name, device)
     model.config.pad_token_id = tokenizer.pad_token_id
