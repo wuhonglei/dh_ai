@@ -12,6 +12,7 @@ dependencies = [
     "matplotlib>=3.10.0",
     "numpy<2",
     "pandas>=2.2.3",
+    "playwright>=1.50.0",
     "scikit-learn>=1.6.1",
     "timm>=1.0.14",
     "torchinfo>=1.8.0",
