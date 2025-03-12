@@ -69,20 +69,20 @@ def main():
     model.config.pad_token_id = tokenizer.pad_token_id
 
     train_dataset = build_dataset(
-        "writingPrompts/test.wp_source", "writingPrompts/test.wp_target", tokenizer)
-    valid_dataset = build_dataset(
         "writingPrompts/valid.wp_source", "writingPrompts/valid.wp_target", tokenizer)
+    valid_dataset = build_dataset(
+        "writingPrompts/test.wp_source", "writingPrompts/test.wp_target", tokenizer)
 
     # 5. 定义训练参数
     training_args = TrainingArguments(
-        output_dir="./gpt2-writing-prompts-frozen",
-        num_train_epochs=2,
+        output_dir="./checkpoint/gpt2-writing-prompts-frozen",
+        num_train_epochs=10,
         per_device_train_batch_size=8,
         gradient_accumulation_steps=4,
         save_steps=0.75,
         save_total_limit=2,
         logging_steps=50,
-        learning_rate=2e-5,
+        learning_rate=5e-6,
         eval_strategy="epoch",
 
         # wandb 配置
@@ -120,10 +120,11 @@ def main():
     # 8. 只在主进程中保存模型
     if training_args.local_rank == 0:
         print("正在保存模型...")
-        model.save_pretrained("./gpt2-writing-prompts-frozen-final")
-        tokenizer.save_pretrained("./gpt2-writing-prompts-frozen-final")
+        model.save_pretrained("./checkpoint/gpt2-writing-prompts-frozen-final")
+        tokenizer.save_pretrained(
+            "./checkpoint/gpt2-writing-prompts-frozen-final")
         print("模型保存完成")
-        shutdown(10)
+        # shutdown(10)
 
     # 9. 清理分布式训练资源
     if training_args.local_rank != -1:

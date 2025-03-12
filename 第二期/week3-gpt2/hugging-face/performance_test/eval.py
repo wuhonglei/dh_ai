@@ -52,7 +52,7 @@ def main():
         is_main_process = True
 
     # 模型初始化
-    model_name = "./gpt2-writing-prompts-final"
+    model_name = "gpt2"
     tokenizer: PreTrainedTokenizer = GPT2Tokenizer.from_pretrained(model_name)
     model = create_optimized_model(model_name, device)
     model.config.pad_token_id = tokenizer.pad_token_id
@@ -64,8 +64,8 @@ def main():
 
     batch_size = 32
     k = 0.8
-    train_loader, test_loader, val_loader = get_dataloaders(  # type: ignore
-        ['train', 'test', 'val'], batch_size, distributed)
+    test_loader, val_loader = get_dataloaders(  # type: ignore
+        ['test', 'val'], batch_size, distributed)
 
     predictions: List[str] = []
     references: List[str] = []

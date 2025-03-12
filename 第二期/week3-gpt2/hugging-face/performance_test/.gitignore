@@ -2,3 +2,5 @@
 /gpt2-writing-prompts/
 /gpt2-writing-prompts-*
 /*.log
+/checkpoint/
+/logs/
