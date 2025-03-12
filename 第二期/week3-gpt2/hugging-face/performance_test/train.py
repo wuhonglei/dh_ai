@@ -19,7 +19,7 @@ def preprocess_function(tokenizer: GPT2Tokenizer, examples: dict):
     encodings = tokenizer(
         combined_texts,
         truncation=True,
-        max_length=900,
+        max_length=300,
         padding="max_length",
         return_tensors="pt"
     )
@@ -55,7 +55,7 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
 
 def main():
     # 1. 加载预训练模型和分词器
-    model_name = "gpt2-medium"
+    model_name = "gpt2"
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     model = GPT2LMHeadModel.from_pretrained(
         model_name)
@@ -69,7 +69,7 @@ def main():
     model.config.pad_token_id = tokenizer.pad_token_id
 
     train_dataset = build_dataset(
-        "writingPrompts/train.wp_source", "writingPrompts/train.wp_target", tokenizer)
+        "writingPrompts/test.wp_source", "writingPrompts/test.wp_target", tokenizer)
     valid_dataset = build_dataset(
         "writingPrompts/valid.wp_source", "writingPrompts/valid.wp_target", tokenizer)
 
@@ -87,7 +87,7 @@ def main():
 
         # wandb 配置
         report_to=["wandb"],           # 启用 wandb 日志
-        run_name="gpt2-story-gen-frozen 冻结浅层参数",     # wandb 运行的名称
+        run_name="gpt2-story-gen-small",     # wandb 运行的名称
 
         # 分布式训练相关参数
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
@@ -102,9 +102,9 @@ def main():
         dataloader_num_workers=4,
     )
 
-    # 6. 冻结部分参数（可选）
-    for param in model.transformer.h[:8].parameters():
-        param.requires_grad = False
+    # # 6. 冻结部分参数（可选）
+    # for param in model.transformer.h[:8].parameters():
+    #     param.requires_grad = False
 
     # 6. 创建训练器
     trainer = Trainer(
