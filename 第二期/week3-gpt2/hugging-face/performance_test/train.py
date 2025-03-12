@@ -76,7 +76,7 @@ def main():
     # 5. 定义训练参数
     training_args = TrainingArguments(
         output_dir="./checkpoint/gpt2-writing-prompts-frozen",
-        num_train_epochs=10,
+        num_train_epochs=3,
         per_device_train_batch_size=8,
         gradient_accumulation_steps=4,
         save_steps=0.75,
