@@ -59,7 +59,6 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
         lambda example: preprocess_function(tokenizer, example),
         batched=True,
         batch_size=500,
-        num_proc=4
     )
     return dataset
 
