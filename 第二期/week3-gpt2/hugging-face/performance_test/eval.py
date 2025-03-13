@@ -60,8 +60,8 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
     stories = Dataset.from_text(story_path)
 
     dataset = Dataset.from_dict({
-        'prompt': prompts['text'][:100],  # type: ignore
-        'story': stories['text'][:100]  # type: ignore
+        'prompt': prompts['text'],  # type: ignore
+        'story': stories['text']  # type: ignore
     })
     dataset = dataset.map(
         lambda example: preprocess_function(tokenizer, example),
@@ -79,7 +79,7 @@ def write_to_file(text: str, file_path: str):
 def main():
     is_distributed = is_distributed_env()
 
-    model_name = 'gpt2'
+    model_name = './checkpoint/distilgpt2-story-final'
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 
     tokenizer.pad_token = tokenizer.eos_token
@@ -110,6 +110,7 @@ def main():
     performance = trainer.evaluate()
     if training_args.local_rank == 0:
         data = {
+            'model': model_name,
             'desc': 'multi process' if is_distributed else 'single process',
             'dataset_size': len(test_dataset),
             'ddp_backend': training_args.ddp_backend,

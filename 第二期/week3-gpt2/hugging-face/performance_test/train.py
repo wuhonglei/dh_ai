@@ -55,7 +55,7 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
 
 def main():
     # 1. 加载预训练模型和分词器
-    model_name = "gpt2"
+    model_name = "distilgpt2"
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     model = GPT2LMHeadModel.from_pretrained(
         model_name)
@@ -74,20 +74,21 @@ def main():
         "writingPrompts/test.wp_source", "writingPrompts/test.wp_target", tokenizer)
 
     # 5. 定义训练参数
+    output_dir_name = "distilgpt2-story"
     training_args = TrainingArguments(
-        output_dir="./checkpoint/gpt2-writing-prompts-frozen",
-        num_train_epochs=3,
+        output_dir=f"./checkpoint/{output_dir_name}",
+        num_train_epochs=10,
         per_device_train_batch_size=8,
         gradient_accumulation_steps=4,
         save_steps=0.75,
         save_total_limit=2,
         logging_steps=50,
-        learning_rate=5e-6,
+        learning_rate=1e-6,
         eval_strategy="epoch",
 
         # wandb 配置
         report_to=["wandb"],           # 启用 wandb 日志
-        run_name="gpt2-story-gen-small",     # wandb 运行的名称
+        run_name=output_dir_name,     # wandb 运行的名称
 
         # 分布式训练相关参数
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
@@ -120,9 +121,8 @@ def main():
     # 8. 只在主进程中保存模型
     if training_args.local_rank == 0:
         print("正在保存模型...")
-        model.save_pretrained("./checkpoint/gpt2-writing-prompts-frozen-final")
-        tokenizer.save_pretrained(
-            "./checkpoint/gpt2-writing-prompts-frozen-final")
+        model.save_pretrained(f"./checkpoint/{output_dir_name}-final")
+        tokenizer.save_pretrained(f"./checkpoint/{output_dir_name}-final")
         print("模型保存完成")
         # shutdown(10)
 
