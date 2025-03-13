@@ -8,6 +8,8 @@ import torch
 import math
 import torch.nn as nn
 from torch.nn.parameter import Parameter
+from config import GPT2Config
+from torchinfo import summary
 
 
 def gelu(x):
@@ -226,3 +228,9 @@ class GPT2LMHeadModel(nn.Module):
                 lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
             return loss
         return lm_logits, presents
+
+
+if __name__ == "__main__":
+    config = GPT2Config()
+    model = GPT2LMHeadModel(config)
+    summary(model, input_size=(1, 10), dtypes=[torch.int64])
