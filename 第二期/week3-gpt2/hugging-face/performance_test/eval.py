@@ -115,7 +115,7 @@ def main():
             'ddp_backend': training_args.ddp_backend,
             'performance': performance,
         }
-        # write_to_file(json.dumps(data), './eval.txt')
+        write_to_file(json.dumps(data), './eval.txt')
 
     if is_distributed:
         dist.destroy_process_group()
