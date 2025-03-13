@@ -60,8 +60,8 @@ def build_dataset(prompt_path: str, story_path: str, tokenizer: GPT2Tokenizer) -
     stories = Dataset.from_text(story_path)
 
     dataset = Dataset.from_dict({
-        'prompt': prompts['text'][:10],  # type: ignore
-        'story': stories['text'][:10]  # type: ignore
+        'prompt': prompts['text'][:100],  # type: ignore
+        'story': stories['text'][:100]  # type: ignore
     })
     dataset = dataset.map(
         lambda example: preprocess_function(tokenizer, example),
@@ -85,7 +85,6 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
 
     model = GPT2LMHeadModel.from_pretrained(model_name)
-    print(model.config)
 
     test_dataset = build_dataset(
         './writingPrompts/test.wp_source',
@@ -97,9 +96,8 @@ def main():
         report_to=[],  # 禁用所有日志上传
         output_dir='./results',
         eval_strategy='epoch',
-        learning_rate=2e-5,
         local_rank=-1,
-        ddp_backend="nccl" if is_distributed else None,  # 使用NCCL作为分布式后端
+        ddp_backend="nccl" if is_distributed else None,  # 使用 NCCL 作为分布式后端
         per_device_eval_batch_size=4,
     )
 
@@ -113,6 +111,8 @@ def main():
     if training_args.local_rank == 0:
         data = {
             'desc': 'multi process' if is_distributed else 'single process',
+            'dataset_size': len(test_dataset),
+            'ddp_backend': training_args.ddp_backend,
             'performance': performance,
         }
         # write_to_file(json.dumps(data), './eval.txt')

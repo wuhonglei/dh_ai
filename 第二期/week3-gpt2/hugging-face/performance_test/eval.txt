@@ -1,2 +1,5 @@
 {"desc": "single process", "performance": {"eval_loss": 4.078867435455322, "eval_runtime": 19.9871, "eval_samples_per_second": 50.032, "eval_steps_per_second": 3.152}}
 {"desc": "multi process", "performance": {"eval_loss": 4.078930377960205, "eval_model_preparation_time": 0.0014, "eval_runtime": 2.0583, "eval_samples_per_second": 485.829, "eval_steps_per_second": 30.607}}
+{"desc": "multi process", "dataset_size": 1000, "ddp_backend": "nccl", "performance": {"eval_loss": 4.078930377960205, "eval_model_preparation_time": 0.0023, "eval_runtime": 2.2633, "eval_samples_per_second": 441.824, "eval_steps_per_second": 27.835}}
+{"desc": "multi process", "dataset_size": 1000, "ddp_backend": null, "performance": {"eval_loss": 4.078930377960205, "eval_model_preparation_time": 0.0023, "eval_runtime": 3.1803, "eval_samples_per_second": 314.433, "eval_steps_per_second": 19.809}}
+{"desc": "single process", "dataset_size": 1000, "ddp_backend": null, "performance": {"eval_loss": 4.078867435455322, "eval_runtime": 20.1649, "eval_samples_per_second": 49.591, "eval_steps_per_second": 3.124}}
