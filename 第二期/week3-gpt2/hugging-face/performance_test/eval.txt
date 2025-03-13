@@ -1,0 +1,2 @@
+{"desc": "single process", "performance": {"eval_loss": 4.078867435455322, "eval_runtime": 19.9871, "eval_samples_per_second": 50.032, "eval_steps_per_second": 3.152}}
+{"desc": "multi process", "performance": {"eval_loss": 4.078930377960205, "eval_model_preparation_time": 0.0014, "eval_runtime": 2.0583, "eval_samples_per_second": 485.829, "eval_steps_per_second": 30.607}}
