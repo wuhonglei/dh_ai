@@ -1,11 +1,6 @@
-'''
-    code by TaeHwan Jung(@graykode)
-    Original Paper and repository here : https://github.com/openai/gpt-2
-    GPT2 Pytorch Model : https://github.com/huggingface/pytorch-pretrained-BERT
-'''
 import torch
+from mode import GPT2LMHeadModel
 import torch.nn.functional as F
-from tqdm import trange
 
 
 def top_k_logits(logits, k):
@@ -16,20 +11,14 @@ def top_k_logits(logits, k):
     return torch.where(logits < min_values, torch.ones_like(logits, dtype=logits.dtype) * -1e10, logits)
 
 
-def sample_sequence(model, length, start_token=None, batch_size=None, context=None, temperature=1, top_k=0, device='cuda', sample=False):
-    if start_token is None:
-        assert context is not None, 'Specify exactly one of start_token and context!'
-        context = torch.tensor(context, device=device, dtype=torch.long).unsqueeze(
-            0).repeat(batch_size, 1)
-    else:
-        assert context is None, 'Specify exactly one of start_token and context!'
-        context = torch.full((batch_size, 1), start_token,
-                             device=device, dtype=torch.long)
+def sample_sequence(model, length, batch_size=1, context=None, temperature=1, top_k=0, device='cuda', sample=False):
+    context = torch.tensor(context, device=device, dtype=torch.long).unsqueeze(
+        0).repeat(batch_size, 1)
     prev = context
     output = context
     past = None
     with torch.no_grad():
-        for i in trange(length):
+        for i in range(length):
             logits, past = model(prev, past=past)
             logits = logits[:, -1, :] / temperature
             logits = top_k_logits(logits, k=top_k)
@@ -43,8 +32,8 @@ def sample_sequence(model, length, start_token=None, batch_size=None, context=No
 
 
 if __name__ == "__main__":
-    from model import GPT2LMHeadModel
+    from mode import GPT2LMHeadModel
     from config import GPT2Config
     config = GPT2Config()
     model = GPT2LMHeadModel(config)
-    sample_sequence(model, 10, start_token=50256)
+    sample_sequence(model, 10, context=[1, 2, 3])

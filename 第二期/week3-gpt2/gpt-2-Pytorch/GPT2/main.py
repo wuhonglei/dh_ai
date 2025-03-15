@@ -9,16 +9,16 @@ import torch
 import random
 import argparse
 import numpy as np
-from GPT2.model import (GPT2LMHeadModel)
-from GPT2.utils import load_weight
-from GPT2.config import GPT2Config
-from GPT2.sample import sample_sequence
-from GPT2.encoder import get_encoder
+from model import (GPT2LMHeadModel)
+from utils import load_weight
+from config import GPT2Config
+from sample import sample_sequence
+from encoder import get_encoder
 
 
 def text_generator(state_dict):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--text", type=str, required=True,
+    parser.add_argument("--text", type=str, required=False,
                         default="Today is a good day")
     parser.add_argument("--quiet", type=bool, default=False)
     parser.add_argument("--nsamples", type=int, default=1)
