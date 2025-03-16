@@ -1,5 +1,5 @@
 import torch
-from mode import GPT2LMHeadModel
+from model import GPT2LMHeadModel
 import torch.nn.functional as F
 
 

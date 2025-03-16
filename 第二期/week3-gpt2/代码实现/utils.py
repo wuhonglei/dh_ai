@@ -4,6 +4,7 @@
     GPT2 Pytorch Model : https://github.com/huggingface/pytorch-pretrained-BERT
 '''
 import logging
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -52,3 +53,15 @@ def load_weight(model, state_dict):
     # Make sure we are still sharing the output and input embeddings after loading weights
     model.set_tied()
     return model
+
+
+# 比较两个模型的权重
+def compare_models(model1, model2):
+    for (name1, param1), (name2, param2) in zip(model1.state_dict().items(), model2.state_dict().items()):
+        if name1 != name2:
+            print(f"参数名称不同: {name1} vs {name2}")
+            return False
+        if not torch.equal(param1, param2):
+            print(f"参数值不同: {name1}")
+            return False
+    return True

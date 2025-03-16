@@ -1,8 +1,8 @@
 from encoder import get_encoder
 from config import GPT2Config
-from mode import GPT2LMHeadModel
+from model import GPT2LMHeadModel
 from sample import sample_sequence
-from utils import load_weight
+from utils import load_weight, compare_models
 import argparse
 import random
 import numpy as np

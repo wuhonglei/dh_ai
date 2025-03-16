@@ -14,6 +14,22 @@ def gelu(x):
     return 0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
 
 
+class Conv1D(nn.Module):
+    def __init__(self, nx: int, nf: int):
+        super(Conv1D, self).__init__()
+        self.nf = nf
+        w = torch.empty(nx, nf)
+        nn.init.normal_(w, std=0.02)
+        self.weight = nn.Parameter(w)
+        self.bias = nn.Parameter(torch.zeros(nf))
+
+    def forward(self, x):
+        size_out = x.size()[:-1] + (self.nf,)
+        x = torch.addmm(self.bias, x.view(-1, x.size(-1)), self.weight)
+        x = x.view(*size_out)
+        return x
+
+
 class Attention(nn.Module):
     def __init__(self, nx: int, n_ctx: int, config: GPT2Config, scale: bool = False):
         super(Attention, self).__init__()
@@ -24,8 +40,8 @@ class Attention(nn.Module):
         self.n_head = config.n_head
         self.split_size = n_state
         self.scale = scale
-        self.c_attn = nn.Linear(nx, nx * 3)
-        self.c_proj = nn.Linear(nx, nx)
+        self.c_attn = Conv1D(nx, nx * 3)
+        self.c_proj = Conv1D(nx, nx)
         self.register_buffer('bias', torch.tril(  # 下三角矩阵, 右上角元素为 0
             torch.ones(n_ctx, n_ctx)).view(1, 1, n_ctx, n_ctx))
 
@@ -89,8 +105,8 @@ class MLP(nn.Module):
     def __init__(self, n_state: int, config: GPT2Config):
         super(MLP, self).__init__()
         nx = config.n_embd
-        self.c_fc = nn.Linear(nx, n_state)
-        self.c_proj = nn.Linear(n_state, nx)
+        self.c_fc = Conv1D(nx, n_state)
+        self.c_proj = Conv1D(n_state, nx)
         self.act = gelu
 
     def forward(self, x):
@@ -120,12 +136,12 @@ class Block(nn.Module):
 class GPT2Model(nn.Module):
     def __init__(self, config):
         super(GPT2Model, self).__init__()
-        self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
         self.wte = nn.Embedding(config.vocab_size, config.n_embd)
         self.wpe = nn.Embedding(config.n_positions, config.n_embd)
         block = Block(config.n_ctx, config, scale=True)
         self.h = nn.ModuleList([copy.deepcopy(block)
                                for _ in range(config.n_layer)])
+        self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
 
     def forward(self, input_ids, past=None):
         if past is None:
@@ -150,15 +166,15 @@ class GPT2LMHead(nn.Module):
     def __init__(self, model_embeddings_weights, config):
         super(GPT2LMHead, self).__init__()
         self.n_embd = config.n_embd
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.decoder = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.set_embeddings_weights(model_embeddings_weights)
 
     def set_embeddings_weights(self, model_embeddings_weights):
-        self.lm_head.weight = model_embeddings_weights
+        self.decoder.weight = model_embeddings_weights
 
     def forward(self, hidden_state):
         # h_trunc = hidden_state[:, :-1].contiguous().view(-1, self.n_embd)
-        lm_logits = self.lm_head(hidden_state)
+        lm_logits = self.decoder(hidden_state)
         return lm_logits
 
 
