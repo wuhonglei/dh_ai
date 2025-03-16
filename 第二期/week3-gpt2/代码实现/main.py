@@ -15,6 +15,7 @@ def main():
                         default="Today is a good day")
     parser.add_argument("--quiet", type=bool, default=False)
     parser.add_argument("--nsamples", type=int, default=1)
+    parser.add_argument("--length", type=int, default=-1)
     parser.add_argument("--batch_size", type=int, default=-1)
     parser.add_argument("--do_sample", type=bool, default=False)
 
@@ -43,11 +44,14 @@ def main():
     model.to(device)
     model.eval()
 
+    if args.length == -1:
+        args.length = config.n_ctx // 2
+
     # Generate Text
     context = enc.encode(args.text)
     generated = 0
     while generated < args.nsamples:
-        out = sample_sequence(model, length=100, context=context,
+        out = sample_sequence(model, length=args.length, context=context,
                               temperature=1, top_k=0, device=device, sample=args.do_sample)  # type: ignore
         out = out[:, len(context):].tolist()
         for i in range(args.batch_size):

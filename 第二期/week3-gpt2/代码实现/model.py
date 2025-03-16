@@ -7,6 +7,7 @@ import copy
 import math
 
 from config import GPT2Config
+from utils import compute_loss
 
 
 def gelu(x):
@@ -188,10 +189,7 @@ class GPT2LMHeadModel(nn.Module):
         hidden_states, presents = self.transformer(input_ids, past=past)
         lm_logits = self.lm_head(hidden_states)
         if lm_labels is not None:
-            loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
-            loss = loss_fct(
-                lm_logits.view(-1, lm_logits.size(-1)), lm_labels.view(-1))
-            return loss
+            return compute_loss(lm_logits, lm_labels)
         return lm_logits, presents
 
     def set_tied(self):

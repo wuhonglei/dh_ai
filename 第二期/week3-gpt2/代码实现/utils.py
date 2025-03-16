@@ -5,7 +5,7 @@
 '''
 import logging
 import torch
-
+import torch.nn as nn
 logger = logging.getLogger(__name__)
 
 
@@ -65,3 +65,39 @@ def compare_models(model1, model2):
             print(f"参数值不同: {name1}")
             return False
     return True
+
+
+def get_device():
+    return 'cpu'
+
+    if torch.backends.mps.is_available():  # type: ignore
+        return 'mps'
+    elif torch.cuda.is_available():
+        return 'cuda'
+    else:
+        return 'cpu'
+
+
+def compute_loss(lm_logits, lm_labels):
+    # 1. 检查输入维度
+    expected_shape = lm_logits.size()[:-1]  # 除最后一维外应该相同
+    if lm_labels.size() != expected_shape:
+        raise ValueError(
+            f"标签形状 {lm_labels.size()} 与预期形状 {expected_shape} 不匹配"
+        )
+
+    # 2. 确保数据类型正确
+    if not lm_labels.dtype == torch.long:
+        lm_labels = lm_labels.long()
+
+    # 3. 创建损失函数
+    loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
+
+    # 4. 重塑张量并计算损失
+    loss = loss_fct(
+        # [batch_size * seq_len, vocab_size]
+        lm_logits.view(-1, lm_logits.size(-1)),
+        lm_labels.view(-1)                        # [batch_size * seq_len]
+    )
+
+    return loss
