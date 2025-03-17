@@ -78,7 +78,7 @@ def get_device():
         return 'cpu'
 
 
-def compute_loss(lm_logits, lm_labels):
+def compute_loss(lm_logits, lm_labels, ignore_index: int):
     # 1. 检查输入维度
     expected_shape = lm_logits.size()[:-1]  # 除最后一维外应该相同
     if lm_labels.size() != expected_shape:
@@ -91,7 +91,7 @@ def compute_loss(lm_logits, lm_labels):
         lm_labels = lm_labels.long()
 
     # 3. 创建损失函数
-    loss_fct = nn.CrossEntropyLoss(ignore_index=-1)
+    loss_fct = nn.CrossEntropyLoss(ignore_index=ignore_index)
 
     # 4. 重塑张量并计算损失
     loss = loss_fct(

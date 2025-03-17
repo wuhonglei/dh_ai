@@ -185,11 +185,11 @@ class GPT2LMHeadModel(nn.Module):
         self.transformer = GPT2Model(config)
         self.lm_head = GPT2LMHead(self.transformer.wte.weight, config)
 
-    def forward(self, input_ids, lm_labels=None, past=None):
+    def forward(self, input_ids, lm_labels=None, past=None, ignore_index: int = 0):
         hidden_states, presents = self.transformer(input_ids, past=past)
         lm_logits = self.lm_head(hidden_states)
         if lm_labels is not None:
-            return compute_loss(lm_logits, lm_labels)
+            return compute_loss(lm_logits, lm_labels, ignore_index)
         return lm_logits, presents
 
     def set_tied(self):

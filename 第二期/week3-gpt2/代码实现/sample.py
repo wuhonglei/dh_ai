@@ -32,7 +32,7 @@ def sample_sequence(model, length, batch_size=1, context=None, temperature=1, to
 
 
 if __name__ == "__main__":
-    from mode import GPT2LMHeadModel
+    from model import GPT2LMHeadModel
     from config import GPT2Config
     config = GPT2Config()
     model = GPT2LMHeadModel(config)

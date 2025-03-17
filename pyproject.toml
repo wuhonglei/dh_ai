@@ -9,6 +9,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "gensim>=4.3.3",
     "ipykernel>=6.29.5",
+    "jieba>=0.42.1",
     "matplotlib>=3.10.0",
     "numpy<2",
     "pandas>=2.2.3",

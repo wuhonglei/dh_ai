@@ -1,31 +1,54 @@
 import torch
+from dataset import TextDataset, collate_fn
 from model import GPT2LMHeadModel
 from config import GPT2Config
-from encoder import get_encoder
+from encoder import Encoder
 from utils import get_device, load_weight
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from sample import sample_sequence
+import jieba
 
 
 def train():
     device = get_device()
-    text_list = ['how are you']
-    enc = get_encoder()
-    config = GPT2Config()
+    encoder = Encoder("data/vocab.txt")
+    pad_token_id = encoder.vocab.index('<pad>')
+    dataset = TextDataset("data/train.txt")
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True,
+                            collate_fn=lambda batch: collate_fn(batch, encoder, pad_token_id=pad_token_id))
+    config = GPT2Config(**{
+        'vocab_size_or_config_json_file': len(encoder),
+        'n_positions': 1024,
+        'n_ctx': 1024,
+        'n_embd': 128,
+        'n_layer': 2,
+        'n_head': 4,
+        'layer_norm_epsilon': 1e-5,
+    })
     model = GPT2LMHeadModel(config)
-    state_dict = torch.load(
-        "/Users/apple/Desktop/python/dh_ai/第二期/week3-gpt2/gpt-2-Pytorch/GPT2/gpt2-pytorch_model.bin", map_location=device)
-    model = load_weight(model, state_dict)
     model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    epoch_progress = tqdm(range(100), desc="Epoch")
+    for epoch in epoch_progress:
+        for input_ids, labels in dataloader:
+            input_ids = input_ids.to(device)
+            labels = labels.to(device)
+            loss = model(input_ids, lm_labels=labels,
+                         ignore_index=pad_token_id)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        epoch_progress.set_postfix(loss=loss.item())
 
-    model.train()
-    context = torch.tensor([enc.encode(text)
-                           for text in text_list], device=device)
-    # 生成 labels: context 左移一位, 最后一个元素替换为 -1
-    labels = context.clone()
-    labels[:, :-1] = context[:, 1:]
-    labels[:, -1] = -1
+    while True:
+        prompt = input('请输入prompt:')
+        if prompt == 'q':
+            break
 
-    output = model(context, lm_labels=labels)
-    print('output', output)
+        context = encoder.encode(jieba.lcut(prompt))
+        print(''.join(encoder.decode(sample_sequence(
+            model, 25, context=context, device=device, sample=False, top_k=10)[0].tolist())))
 
 
 if __name__ == "__main__":
