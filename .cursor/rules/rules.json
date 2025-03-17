@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "language": "python",
+      "completion": {
+        "enabled": true,
+        "trigger_on_dot": true
+      },
+      "formatting": {
+        "indent_style": "space",
+        "indent_size": 4
+      },
+      "snippets": {
+        "import_typing": "from typing import List, Dict, Tuple, Optional, Union",
+        "torch_imports": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nfrom torch.utils.data import DataLoader, Dataset",
+        "torch_model": "class ${1:ModelName}(nn.Module):\n    def __init__(self):\n        super(${1:ModelName}, self).__init__()\n        ${2:# Define layers here}\n\n    def forward(self, x: torch.Tensor) -> torch.Tensor:\n        ${3:# Define forward pass here}\n        return x",
+        "train_loop": "def train(model: nn.Module, dataloader: DataLoader, criterion: nn.Module, optimizer: optim.Optimizer, device: torch.device) -> None:\n    model.train()\n    for batch_idx, (inputs, targets) in enumerate(dataloader):\n        inputs, targets = inputs.to(device), targets.to(device)\n        optimizer.zero_grad()\n        outputs = model(inputs)\n        loss = criterion(outputs, targets)\n        loss.backward()\n        optimizer.step()\n        print(f'Batch {batch_idx + 1}, Loss: {loss.item():.4f}')",
+        "nlp_pipeline": "def nlp_pipeline(text: str) -> List[str]:\n    ${1:# Tokenize and preprocess the input text}\n    tokens = text.split()\n    return tokens"
+      }
+    }
+  ]
+}

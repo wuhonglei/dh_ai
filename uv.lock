@@ -562,6 +562,7 @@ dependencies = [
     { name = "ipykernel" },
     { name = "jieba" },
     { name = "matplotlib" },
+    { name = "memory-profiler" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "playwright" },
@@ -582,6 +583,7 @@ requires-dist = [
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "jieba", specifier = ">=0.42.1" },
     { name = "matplotlib", specifier = ">=3.10.0" },
+    { name = "memory-profiler", specifier = ">=0.61.0" },
     { name = "numpy", specifier = "<2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "playwright", specifier = ">=1.50.0" },
@@ -1287,6 +1289,18 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/99/5b/a36a337438a14116b16480db471ad061c36c3694df7c2084a0da7ba538b7/matplotlib_inline-0.1.7.tar.gz", hash = "sha256:8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/8f/8e/9ad090d3553c280a8060fbf6e24dc1c0c29704ee7d1c372f0c174aa59285/matplotlib_inline-0.1.7-py3-none-any.whl", hash = "sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca" },
+]
+
+[[package]]
+name = "memory-profiler"
+version = "0.61.0"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "psutil" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/b2/88/e1907e1ca3488f2d9507ca8b0ae1add7b1cd5d3ca2bc8e5b329382ea2c7b/memory_profiler-0.61.0.tar.gz", hash = "sha256:4e5b73d7864a1d1292fb76a03e82a3e78ef934d06828a698d9dada76da2067b0" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/49/26/aaca612a0634ceede20682e692a6c55e35a94c21ba36b807cc40fe910ae1/memory_profiler-0.61.0-py3-none-any.whl", hash = "sha256:400348e61031e3942ad4d4109d18753b2fb08c2f6fb8290671c5513a34182d84" },
 ]
 
 [[package]]
