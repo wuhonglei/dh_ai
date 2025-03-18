@@ -3,6 +3,8 @@ from tqdm import tqdm
 from typing import Dict, List
 import sys
 from collections import UserDict, Counter
+import pandas as pd
+from tqdm import tqdm
 
 # fmt: off
 sys.path.append("..")
@@ -14,8 +16,12 @@ class Vocab:
     def __init__(self, dataset: NewsDatasetCsv):
         self.dataset = dataset
         self.counter: Counter = Counter()
+        self.special_tokens = ['<unk>', '<pad>']
         self.word_to_index: Dict[str, int] = {}
         self.index_to_word: List[str] = []
+        for token in self.special_tokens:
+            self.word_to_index[token] = len(self.word_to_index)
+            self.index_to_word.append(token)
 
     def build_vocab_from_dataset(self):
         self.counter = Counter()
@@ -26,11 +32,13 @@ class Vocab:
             self.counter.update(jieba.lcut(content))
         return self.counter
 
-    def load_vocab_from_txt(self, path: str):
+    def load_vocab_from_txt(self, path: str, min_freq: int = 1):
         with open(path, 'r') as f:
-            for word in f:
-                self.word_to_index[word] = len(self.word_to_index)
-                self.index_to_word.append(word)
+            for line in f:
+                word, freq = line.rsplit(' ', 1)  # 避免空格词汇被错误分割
+                if int(freq) >= min_freq:
+                    self.word_to_index[word] = len(self.word_to_index)
+                    self.index_to_word.append(word)
 
         self.vocab = set(self.index_to_word)
 
@@ -69,5 +77,6 @@ class Vocab:
 if __name__ == "__main__":
     dataset = NewsDatasetCsv("../data/origin/sohu_data.csv")
     vocab = Vocab(dataset)
-    vocab.build_vocab_from_dataset()
-    vocab.save_vocab_set("../data/vocab.txt", min_freq=10)
+    vocab.load_vocab_from_txt("../data/vocab.txt", min_freq=90)
+    print(vocab.word_to_index)
+    print(vocab.index_to_word)
