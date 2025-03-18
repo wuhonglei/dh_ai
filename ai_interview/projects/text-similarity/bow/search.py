@@ -1,12 +1,8 @@
 from torch import embedding
 from vocab import Vocab
 from vector import Vector
-from db import MilvusDB, DataItem
+from db import MilvusDB
 import pandas as pd
-from dataset import NewsDatasetCsv, NewsItem
-from torch.utils.data import DataLoader
-from typing import List
-from tqdm import tqdm
 from config import BowConfig
 from util import setup_readline, get_input
 
@@ -27,8 +23,10 @@ def search():
 
     while True:
         context = get_input()
-        if context is None or context == 'q':
+        if context == 'q':
             break
+        if context is None:
+            continue
 
         print('开始搜索...')
         embedding = vector.vectorize_text(context)

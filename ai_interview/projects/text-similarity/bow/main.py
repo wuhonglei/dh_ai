@@ -46,13 +46,12 @@ def main():
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))
 
-    print(f"Inserting {len(dataloader)} batches into Milvus")
     tqdm_dataloader = tqdm(dataloader)
     total = 0
     for batch in tqdm_dataloader:
         db.insert(batch)
         total += len(batch)
-        if total > 1000:
+        if total > 100000:
             break
     print(f"Inserted {total} items into Milvus")
 

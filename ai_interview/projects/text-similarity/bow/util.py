@@ -17,10 +17,9 @@ def setup_readline():
 def get_input() -> str | None:
     try:
         context = input('请输入搜索内容: ')
-        context = context.strip()
         # 保存到历史文件
         readline.write_history_file(BowConfig.search_history_path)
-        return context
+        return context.strip()
     except KeyboardInterrupt:
         print('\n已取消输入')
         return None
