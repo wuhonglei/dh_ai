@@ -1,9 +1,10 @@
 from typing import List, TypedDict, Union
-from pymilvus import MilvusClient, connections, FieldSchema, CollectionSchema, DataType, Collection, utility
-import time
 from numpy.typing import NDArray
 import numpy as np
 from config import BowConfig
+
+from pymilvus import MilvusClient, connections, FieldSchema, CollectionSchema, DataType, Collection, utility
+from pymilvus.milvus_client import IndexParams
 
 
 class DataItem(TypedDict):
@@ -31,7 +32,15 @@ class MilvusDB:
                 schema = CollectionSchema(
                     fields, "title_embedding and content_embedding")
                 self.client.create_collection(
-                    collection_name=self.collection_name, schema=schema, metric_type=BowConfig.metric_type)
+                    collection_name=self.collection_name,
+                    schema=schema,
+                    index_params=IndexParams(
+                        field_name=BowConfig.embedding_name,
+                        index_type="FLAT",
+                        metric_type=BowConfig.metric_type,
+                        params={}
+                    )
+                )
                 print(
                     f"Collection '{self.collection_name}' created with index.")
             else:
