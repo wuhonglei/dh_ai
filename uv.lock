@@ -21,6 +21,7 @@ members = [
     "dh-ai",
     "gpt-2-pytorch",
     "performance-test",
+    "text-similarity",
 ]
 
 [[package]]
@@ -2776,6 +2777,21 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/11/8a/5a7fd6284fa8caac23a26c9ddf9c30485a48169344b4bd3b0f02fef1890f/sympy-1.13.3.tar.gz", hash = "sha256:b27fd2c6530e0ab39e275fc9b683895367e51d5da91baa8d3d64db2565fec4d9" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/99/ff/c87e0622b1dadea79d2fb0b25ade9ed98954c9033722eb707053d310d4f3/sympy-1.13.3-py3-none-any.whl", hash = "sha256:54612cf55a62755ee71824ce692986f23c88ffa77207b30c1368eda4a7060f73" },
+]
+
+[[package]]
+name = "text-similarity"
+version = "0.1.0"
+source = { virtual = "ai_interview/projects/text-similarity" }
+dependencies = [
+    { name = "jieba" },
+    { name = "memory-profiler" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jieba", specifier = ">=0.42.1" },
+    { name = "memory-profiler", specifier = ">=0.61.0" },
 ]
 
 [[package]]

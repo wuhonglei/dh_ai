@@ -6,12 +6,12 @@ from collections import UserDict, Counter
 
 # fmt: off
 sys.path.append("..")
-from dataset import NewsDataset
+from dataset import NewsDatasetCsv
 # fmt: on
 
 
 class Vocab:
-    def __init__(self, dataset: NewsDataset):
+    def __init__(self, dataset: NewsDatasetCsv):
         self.dataset = dataset
         self.counter: Counter = Counter()
         self.word_to_index: Dict[str, int] = {}
@@ -67,7 +67,7 @@ class Vocab:
 
 
 if __name__ == "__main__":
-    dataset = NewsDataset("../data/origin/sohu_data.csv")
+    dataset = NewsDatasetCsv("../data/origin/sohu_data.csv")
     vocab = Vocab(dataset)
     vocab.build_vocab_from_dataset()
     vocab.save_vocab_set("../data/vocab.txt", min_freq=10)
