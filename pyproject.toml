@@ -27,4 +27,4 @@ dependencies = [
 index-url = "https://mirrors.aliyun.com/pypi/simple/"
 
 [tool.uv.workspace]
-members = ["第二期/week3-gpt2/gpt-2-Pytorch", "第二期/week3-gpt2/hugging-face/performance_test"]
+members = ["第二期/week3-gpt2/gpt-2-Pytorch", "第二期/week3-gpt2/hugging-face/performance_test", "ai_interview/projects/text-similarity"]

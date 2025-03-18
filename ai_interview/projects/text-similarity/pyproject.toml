@@ -1,0 +1,9 @@
+[project]
+name = "text-similarity"
+version = "0.1.0" 
+description = "文本相似度计算"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "memory-profiler>=0.61.0",
+]
