@@ -12,6 +12,11 @@ class DataItem(TypedDict):
     content_embedding: NDArray[np.float16]
 
 
+class SearchResult(TypedDict):
+    id: int
+    distance: float
+
+
 class MilvusDB:
     def __init__(self, db_name: str, collection_name: str, dimension: int):
         self.db_name = db_name
@@ -55,7 +60,7 @@ class MilvusDB:
         self.client.insert(collection_name=self.collection_name,
                            data=data)  # type: ignore
 
-    def search(self, embedding: NDArray[np.float16], limit: int = 10):
+    def search(self, embedding: NDArray[np.float16], limit: int = 10) -> List[SearchResult]:
         results = self.client.search(
             collection_name=self.collection_name,
             data=[embedding],
@@ -63,7 +68,7 @@ class MilvusDB:
             anns_field=BowConfig.embedding_name,
             search_params={"metric_type": BowConfig.metric_type},
         )
-        return results
+        return results[0]  # type: ignore
 
 
 if __name__ == "__main__":

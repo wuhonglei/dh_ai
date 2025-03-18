@@ -8,30 +8,7 @@ from torch.utils.data import DataLoader
 from typing import List
 from tqdm import tqdm
 from config import BowConfig
-import readline
-
-
-def setup_readline():
-    # 设置历史文件路径
-    readline.parse_and_bind('tab: complete')
-    # 设置历史记录长度
-    readline.set_history_length(1000)
-    try:
-        # 尝试从历史文件加载
-        readline.read_history_file(BowConfig.search_history_path)
-    except FileNotFoundError:
-        pass
-
-
-def get_input() -> str | None:
-    try:
-        context = input('请输入搜索内容: ')
-        # 保存到历史文件
-        readline.write_history_file(BowConfig.search_history_path)
-        return context
-    except KeyboardInterrupt:
-        print('\n已取消输入')
-        return None
+from util import setup_readline, get_input
 
 
 def search():
@@ -43,6 +20,8 @@ def search():
     db = MilvusDB(db_name=BowConfig.db_name,
                   collection_name=BowConfig.collection_name, dimension=len(vocab))
 
+    df = pd.read_csv(BowConfig.val_csv_ptah)
+
     # 在主循环之前调用
     setup_readline()
 
@@ -53,8 +32,18 @@ def search():
 
         print('开始搜索...')
         embedding = vector.vectorize_text(context)
-        results = db.search(embedding, limit=10)
-        print(results)
+        results = db.search(embedding, limit=3)
+        for item in results:
+            new_df = df[df['index'] == item['id']]
+            if new_df.empty:
+                continue
+            row = new_df.iloc[0]
+            content = row.content
+            print()
+            print(f'distance: {item["distance"]:.4f}')
+            print(f'content: {content}')
+            print()
+
         # 替换原来的输入
         context = get_input()
 
