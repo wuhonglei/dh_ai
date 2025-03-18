@@ -1,8 +1,13 @@
-from dataset import NewsDatasetJson
 import csv
 import time
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+import sys
+
+# fmt: off
+sys.path.append("..")
+from bow.dataset import NewsDatasetJson
+# fmt: on
 
 
 def process_item(item):

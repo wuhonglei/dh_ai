@@ -1,12 +1,14 @@
 from typing import List, TypedDict, Union
 from pymilvus import MilvusClient, connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 import time
+from numpy.typing import NDArray
+import numpy as np
+from config import BowConfig
 
 
 class DataItem(TypedDict):
-    id: int
-    title_embedding: List[float]
-    content_embedding: List[float]
+    index: int
+    content_embedding: NDArray[np.float16]
 
 
 class MilvusDB:
@@ -21,40 +23,40 @@ class MilvusDB:
         try:
             if not self.client.has_collection(self.collection_name):
                 fields = [
-                    FieldSchema(name="id", dtype=DataType.INT64,
-                                is_primary=True),
                     FieldSchema(name="index", dtype=DataType.INT64,
-                                is_primary=False),
-                    FieldSchema(name="title_embedding",
-                                dtype=DataType.FLOAT_VECTOR, dim=self.dimension),
-                    FieldSchema(name="content_embedding",
-                                dtype=DataType.FLOAT_VECTOR, dim=self.dimension),
+                                is_primary=True),
+                    FieldSchema(name=BowConfig.embedding_name,
+                                dtype=DataType.FLOAT16_VECTOR, dim=self.dimension),
                 ]
                 schema = CollectionSchema(
                     fields, "title_embedding and content_embedding")
                 self.client.create_collection(
-                    collection_name=self.collection_name, schema=schema)
-                print(f"Collection '{self.collection_name}' created.")
+                    collection_name=self.collection_name, schema=schema, metric_type=BowConfig.metric_type)
+                print(
+                    f"Collection '{self.collection_name}' created with index.")
             else:
                 print(f"Collection '{self.collection_name}' already exists.")
         except Exception as e:
             print(f"Error creating collection: {e}")
 
+    def get_collection(self):
+        return self.client.load_collection(self.collection_name)
+
     def insert(self, data: Union[List[DataItem], DataItem]):
         self.client.insert(collection_name=self.collection_name,
                            data=data)  # type: ignore
 
-    def close(self):
-        self.client.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+    def search(self, embedding: NDArray[np.float16], limit: int = 10):
+        results = self.client.search(
+            collection_name=self.collection_name,
+            data=[embedding],
+            limit=limit,
+            anns_field=BowConfig.embedding_name,
+            search_params={"metric_type": BowConfig.metric_type},
+        )
+        return results
 
 
 if __name__ == "__main__":
-    with MilvusDB(db_name="./database/milvus_demo.db",
-                  collection_name="bow_title_content_collection", dimension=100) as db:
-        pass
+    df = MilvusDB(db_name="./database/milvus_demo.db",
+                  collection_name="bow_title_content_collection", dimension=100)

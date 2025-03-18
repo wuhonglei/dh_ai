@@ -2,6 +2,13 @@ from torch.utils.data import Dataset
 from memory_profiler import profile
 import pandas as pd
 import json
+from typing import TypedDict
+
+
+class NewsItem(TypedDict):
+    index: int
+    title: str
+    content: str
 
 
 class NewsDatasetCsv(Dataset):
@@ -19,9 +26,13 @@ class NewsDatasetCsv(Dataset):
     def load_data(self):
         return pd.read_csv(self.data_path)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> NewsItem:
         item = self.data.iloc[index]
-        return item['title'], item['content']
+        return {
+            'index': item['index'],
+            'title': item['title'],
+            'content': item['content']
+        }
 
 
 class NewsDatasetJson(Dataset):
@@ -41,9 +52,13 @@ class NewsDatasetJson(Dataset):
             data = json.load(f)
         return data
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> NewsItem:
         item = self.data[index]
-        return item['title'], item['content']
+        return {
+            'index': item['index'],
+            'title': item['title'],
+            'content': item['content']
+        }
 
 
 if __name__ == "__main__":
