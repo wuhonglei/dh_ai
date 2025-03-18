@@ -5,6 +5,7 @@ import sys
 from collections import UserDict, Counter
 import pandas as pd
 from tqdm import tqdm
+import os
 
 # fmt: off
 sys.path.append("..")
@@ -13,8 +14,7 @@ from dataset import NewsDatasetCsv
 
 
 class Vocab:
-    def __init__(self, dataset: NewsDatasetCsv):
-        self.dataset = dataset
+    def __init__(self):
         self.counter: Counter = Counter()
         self.special_tokens = ['<unk>', '<pad>']
         self.word_to_index: Dict[str, int] = {}
@@ -23,22 +23,27 @@ class Vocab:
             self.word_to_index[token] = len(self.word_to_index)
             self.index_to_word.append(token)
 
-    def build_vocab_from_dataset(self):
+    def build_vocab_from_dataset(self, dataset: NewsDatasetCsv):
         self.counter = Counter()
-        progress = tqdm(range(len(self.dataset)), desc="Building vocab")
+        progress = tqdm(range(len(dataset)), desc="Building vocab")
         for i in progress:
-            title, content = self.dataset[i]
+            title, content = dataset[i]
             self.counter.update(jieba.lcut(title))
             self.counter.update(jieba.lcut(content))
         return self.counter
 
-    def load_vocab_from_txt(self, path: str, min_freq: int = 1):
+    def load_vocab_from_txt(self, path: str, min_freq: int = 90):
         with open(path, 'r') as f:
             for line in f:
+                if line.strip() == '':
+                    continue
+
                 word, freq = line.rsplit(' ', 1)  # 避免空格词汇被错误分割
                 if int(freq) >= min_freq:
                     self.word_to_index[word] = len(self.word_to_index)
                     self.index_to_word.append(word)
+                else:
+                    break
 
         self.vocab = set(self.index_to_word)
 
@@ -49,6 +54,8 @@ class Vocab:
         return self.word_to_index[word]
 
     def encoder(self, word: str):
+        if word not in self.word_to_index:
+            return self.word_to_index['<unk>']
         return self.word_to_index[word]
 
     def batch_encoder(self, words: List[str]):
@@ -75,8 +82,7 @@ class Vocab:
 
 
 if __name__ == "__main__":
-    dataset = NewsDatasetCsv("../data/origin/sohu_data.csv")
-    vocab = Vocab(dataset)
+    vocab = Vocab()
     vocab.load_vocab_from_txt("../data/vocab.txt", min_freq=90)
     print(vocab.word_to_index)
     print(vocab.index_to_word)

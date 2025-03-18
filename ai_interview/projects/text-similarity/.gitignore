@@ -1,2 +1,2 @@
-sohu_data.csv
-sohu_data.json
+data/origin/
+data/*.csv

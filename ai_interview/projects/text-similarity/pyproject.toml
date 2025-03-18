@@ -7,4 +7,10 @@ requires-python = ">=3.10"
 dependencies = [
     "jieba>=0.42.1",
     "memory-profiler>=0.61.0",
+    "milvus-lite>=2.4.11",
+    "pymilvus>=2.5.5",
+    "scipy>=1.13.1",
+    "torch>=2.6.0",
+    "torchaudio>=2.6.0",
+    "torchvision>=0.21.0",
 ]
