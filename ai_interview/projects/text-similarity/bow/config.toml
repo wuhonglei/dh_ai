@@ -6,6 +6,10 @@ vocab_path = "data/vocab.txt"
 val_csv_path = "data/val.csv"
 min_freq = 1000
 
+[evaluate]
+test_data_path = "性能测试原材料.json"
+evaluate_result_path = "性能测试/milvus.bow.v1.json"
+
 [milvus]
 version = "milvus.bow.v1"
 metric_type = "COSINE"

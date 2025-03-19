@@ -5,20 +5,11 @@ from config import MILVUS_CONFIG, MilvusConfig
 
 from pymilvus import MilvusClient, connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 from pymilvus.milvus_client import IndexParams
-
-
-class DataItem(TypedDict):
-    index: int
-    content_embedding: NDArray[np.float16]
-
-
-class DbResult(TypedDict):
-    id: int
-    distance: float
+from type_definitions import DataItem, DbResult
 
 
 class MilvusDB:
-    def __init__(self, dimension: int, milvus_config: Optional[MilvusConfig] = None):
+    def __init__(self, dimension: int, milvus_config: Optional[MilvusConfig]):
         # 使用整个配置对象
         self.config = milvus_config or MILVUS_CONFIG
         self.client = MilvusClient(uri=self.config.db_name)

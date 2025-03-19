@@ -22,10 +22,16 @@ class MilvusConfig(BaseModel):
     embedding_name: str
 
 
+class EvaluateConfig(BaseModel):
+    test_data_path: str
+    evaluate_result_path: str
+
+
 class AppConfig(BaseModel):
     cache: CacheConfig
     data: DataConfig
     milvus: MilvusConfig
+    evaluate: EvaluateConfig
 
 
 # 加载 Dynaconf 配置
@@ -46,3 +52,4 @@ config: AppConfig = AppConfig.model_validate(_config_dict)
 CACHE_CONFIG = config.cache
 DATA_CONFIG = config.data
 MILVUS_CONFIG = config.milvus
+EVALUATE_CONFIG = config.evaluate

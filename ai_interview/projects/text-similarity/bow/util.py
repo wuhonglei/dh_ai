@@ -2,6 +2,9 @@ import os
 import readline
 from config import DATA_CONFIG, CACHE_CONFIG, MILVUS_CONFIG
 import time
+import json
+from type_definitions import CategoryItem
+from typing import Any
 
 
 def init_dir():
@@ -67,3 +70,16 @@ def timer_decorator(func):
         print(f"函数 {func.__name__} 的执行时间为: {execution_time} 秒")
         return result
     return wrapper
+
+
+def load_json_file(file_path: str) -> list[CategoryItem]:
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"文件 {file_path} 不存在")
+
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+
+def write_json_file(file_path: str, data: Any):
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False)

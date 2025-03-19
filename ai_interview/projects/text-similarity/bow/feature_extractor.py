@@ -1,6 +1,5 @@
 from vocab import Vocab
 from vector import Vector
-from db import MilvusDB, DataItem
 from dataset import NewsDatasetCsv, NewsItem
 from torch.utils.data import DataLoader
 from typing import List
@@ -8,6 +7,9 @@ from tqdm import tqdm
 from config import MILVUS_CONFIG, DATA_CONFIG
 from util import init_dir
 import time
+from db import MilvusDB
+
+from type_definitions import DataItem
 
 
 def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
