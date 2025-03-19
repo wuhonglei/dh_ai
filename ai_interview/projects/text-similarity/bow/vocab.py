@@ -3,7 +3,7 @@ from tqdm import tqdm
 from typing import Dict, List
 from collections import Counter
 from dataset import NewsDatasetCsv
-from config import DATA_CONFIG
+from config import DATASET_CONFIG
 
 
 class Vocab:
@@ -75,6 +75,5 @@ class Vocab:
 
 if __name__ == "__main__":
     vocab = Vocab()
-    dataset = NewsDatasetCsv(DATA_CONFIG.val_csv_path)
+    dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     vocab.build_vocab_from_dataset(dataset)
-    # vocab.save_vocab_set(DATA_CONFIG.vocab_path, DATA_CONFIG.min_freq)

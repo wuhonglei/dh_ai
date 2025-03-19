@@ -1,10 +1,15 @@
 [cache]
 search_history_path = "cache/.search_history"
 
-[data]
-vocab_path = "data/vocab.txt"
+[dataset]
 val_csv_path = "data/val.csv"
+
+[vocab]
 min_freq = 1000
+vocab_path = "data/vocab.txt"
+use_stop_words = true
+stop_words_path = "stopwords/baidu_stopwords.txt"
+
 
 [evaluate]
 test_data_path = "性能测试原材料.json"

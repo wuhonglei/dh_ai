@@ -7,10 +7,17 @@ class CacheConfig(BaseModel):
     search_history_path: str
 
 
-class DataConfig(BaseModel):
+class DataSetConfig(BaseModel):
     vocab_path: str
     val_csv_path: str
     min_freq: int
+    use_stop_words: bool
+    stop_words_path: str
+
+
+class VocabConfig(BaseModel):
+    min_freq: int
+    vocab_path: str
 
 
 class MilvusConfig(BaseModel):
@@ -29,9 +36,10 @@ class EvaluateConfig(BaseModel):
 
 class AppConfig(BaseModel):
     cache: CacheConfig
-    data: DataConfig
+    dataset: DataSetConfig
     milvus: MilvusConfig
     evaluate: EvaluateConfig
+    vocab: VocabConfig
 
 
 # 加载 Dynaconf 配置
@@ -50,6 +58,7 @@ config: AppConfig = AppConfig.model_validate(_config_dict)
 
 # 导出为模块级变量，使其他模块可以直接导入
 CACHE_CONFIG = config.cache
-DATA_CONFIG = config.data
+DATASET_CONFIG = config.dataset
 MILVUS_CONFIG = config.milvus
 EVALUATE_CONFIG = config.evaluate
+VOCAB_CONFIG = config.vocab

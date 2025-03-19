@@ -1,6 +1,6 @@
 import os
 import readline
-from config import DATA_CONFIG, CACHE_CONFIG, MILVUS_CONFIG
+from config import CACHE_CONFIG, MILVUS_CONFIG, VOCAB_CONFIG
 import time
 import json
 from type_definitions import CategoryItem
@@ -10,7 +10,7 @@ from typing import Any
 def init_dir():
     dir_path = [
         MILVUS_CONFIG.db_name,
-        DATA_CONFIG.vocab_path,
+        VOCAB_CONFIG.vocab_path,
         CACHE_CONFIG.search_history_path,
     ]
     for path in dir_path:

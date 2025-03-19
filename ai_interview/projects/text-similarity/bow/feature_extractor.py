@@ -4,7 +4,7 @@ from dataset import NewsDatasetCsv, NewsItem
 from torch.utils.data import DataLoader
 from typing import List
 from tqdm import tqdm
-from config import MILVUS_CONFIG, DATA_CONFIG
+from config import MILVUS_CONFIG, DATASET_CONFIG, VOCAB_CONFIG
 from util import init_dir
 import time
 from db import MilvusDB
@@ -25,10 +25,10 @@ def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
 def main():
     init_dir()
     vocab = Vocab()
-    vocab.load_vocab_from_txt(DATA_CONFIG.vocab_path,
-                              min_freq=DATA_CONFIG.min_freq)
+    vocab.load_vocab_from_txt(VOCAB_CONFIG.vocab_path,
+                              min_freq=VOCAB_CONFIG.min_freq)
     vector = Vector(vocab)
-    dataset = NewsDatasetCsv(DATA_CONFIG.val_csv_path)
+    dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))
 
