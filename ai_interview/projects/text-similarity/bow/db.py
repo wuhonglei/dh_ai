@@ -12,7 +12,7 @@ class DataItem(TypedDict):
     content_embedding: NDArray[np.float16]
 
 
-class SearchResult(TypedDict):
+class DbResult(TypedDict):
     id: int
     distance: float
 
@@ -62,15 +62,15 @@ class MilvusDB:
         self.client.insert(collection_name=self.config.collection_name,
                            data=data)  # type: ignore
 
-    def search(self, embedding: NDArray[np.float16], limit: int = 10) -> List[SearchResult]:
+    def search(self, embedding: list[NDArray[np.float16]], limit: int = 10) -> list[list[DbResult]]:
         results = self.client.search(
             collection_name=self.config.collection_name,
-            data=[embedding],
+            data=embedding,
             limit=limit,
             anns_field=self.config.embedding_name,
             search_params={"metric_type": self.config.metric_type},
         )
-        return results[0]  # type: ignore
+        return results  # type: ignore
 
 
 if __name__ == "__main__":

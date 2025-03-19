@@ -39,6 +39,9 @@ class Vector:
         embeddings = self.l2_normalize(embeddings)
         return embeddings
 
+    def batch_vectorize_text(self, texts: List[str]) -> List[NDArray[np.float16]]:
+        return [self.vectorize_text(text) for text in texts]
+
 
 if __name__ == "__main__":
     vocab = Vocab()
