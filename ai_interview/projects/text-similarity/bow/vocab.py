@@ -1,16 +1,8 @@
 import jieba
 from tqdm import tqdm
 from typing import Dict, List
-import sys
-from collections import UserDict, Counter
-import pandas as pd
-from tqdm import tqdm
-import os
-
-# fmt: off
-sys.path.append("..")
+from collections import Counter
 from dataset import NewsDatasetCsv
-# fmt: on
 
 
 class Vocab:

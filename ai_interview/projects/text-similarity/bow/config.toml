@@ -1,0 +1,22 @@
+[cache]
+search_history_path = "cache/.search_history"
+
+[data]
+vocab_path = "data/vocab.txt"
+val_csv_path = "data/val.csv"
+min_freq = 1000
+
+[milvus]
+version = "milvus.bow.v1"
+metric_type = "COSINE"
+embedding_name = "content_embedding"
+
+[milvus.bow.v1]
+db_name = "database/milvus_v1.db"
+collection_name = "bow_title_content_collection_v1"
+description = "content embedding use bow without stop words"
+
+[milvus.bow.v2]
+db_name = "database/milvus_v2.db"
+collection_name = "bow_title_content_collection_v2"
+description = "content embedding use bow with stop words"

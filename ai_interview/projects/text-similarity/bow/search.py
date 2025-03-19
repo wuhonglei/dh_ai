@@ -1,22 +1,20 @@
-from torch import embedding
 from vocab import Vocab
 from vector import Vector
 from db import MilvusDB
 import pandas as pd
-from config import BowConfig
+from config import DATA_CONFIG, MILVUS_CONFIG
 from util import setup_readline, get_input
 
 
 def search():
     vocab = Vocab()
-    vocab.load_vocab_from_txt(BowConfig.vocab_path,
-                              min_freq=BowConfig.min_freq)
+    vocab.load_vocab_from_txt(DATA_CONFIG.vocab_path,
+                              min_freq=DATA_CONFIG.min_freq)
     vector = Vector(vocab)
 
-    db = MilvusDB(db_name=BowConfig.db_name,
-                  collection_name=BowConfig.collection_name, dimension=len(vocab))
+    db = MilvusDB(dimension=len(vocab), milvus_config=MILVUS_CONFIG)
 
-    df = pd.read_csv(BowConfig.val_csv_path)
+    df = pd.read_csv(DATA_CONFIG.val_csv_path)
 
     # 在主循环之前调用
     setup_readline()

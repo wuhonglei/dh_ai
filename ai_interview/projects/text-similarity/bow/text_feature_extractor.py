@@ -7,7 +7,7 @@ from dataset import NewsDatasetCsv, NewsItem
 from torch.utils.data import DataLoader
 from typing import List
 from tqdm import tqdm
-from config import BowConfig
+from config import MILVUS_CONFIG, DATA_CONFIG, CacheConfig
 
 
 def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
@@ -22,9 +22,9 @@ def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
 
 def init():
     dir_path = [
-        BowConfig.db_name,
-        BowConfig.vocab_path,
-        BowConfig.search_history_path,
+        MILVUS_CONFIG.db_name,
+        DATA_CONFIG.vocab_path,
+        CacheConfig.search_history_path,
     ]
     for path in dir_path:
         dir = os.path.dirname(path)
@@ -35,14 +35,13 @@ def init():
 def main():
     init()
     vocab = Vocab()
-    vocab.load_vocab_from_txt(BowConfig.vocab_path,
-                              min_freq=BowConfig.min_freq)
+    vocab.load_vocab_from_txt(DATA_CONFIG.vocab_path,
+                              min_freq=DATA_CONFIG.min_freq)
     vector = Vector(vocab)
 
-    db = MilvusDB(db_name=BowConfig.db_name,
-                  collection_name=BowConfig.collection_name, dimension=len(vocab))
+    db = MilvusDB(dimension=len(vocab), milvus_config=MILVUS_CONFIG)
 
-    dataset = NewsDatasetCsv(BowConfig.val_csv_path)
+    dataset = NewsDatasetCsv(DATA_CONFIG.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))
 

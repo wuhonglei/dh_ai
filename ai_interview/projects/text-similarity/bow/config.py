@@ -1,22 +1,48 @@
-import os
-from dataclasses import dataclass
-from pathlib import Path
-from typing import TypedDict
-
-current_dir = Path(__file__).parent
-parent_dir = current_dir.parent
+from dynaconf import Dynaconf
+from pydantic import BaseModel
+from typing import Dict, Any, Optional, Union, List
 
 
-@dataclass
-class BowConfig:
-    search_history_path: str = os.path.join(
-        current_dir, "cache",  ".search_history")
+class CacheConfig(BaseModel):
+    search_history_path: str
 
-    vocab_path: str = os.path.join(parent_dir, "data", "vocab.txt")
-    val_csv_path: str = os.path.join(parent_dir, "data", "val.csv")
-    min_freq: int = 1000
 
-    db_name: str = os.path.join(current_dir, "database", "milvus_demo.db")
-    collection_name: str = "bow_title_content_collection"
-    metric_type: str = "COSINE"
-    embedding_name: str = "content_embedding"
+class DataConfig(BaseModel):
+    vocab_path: str
+    val_csv_path: str
+    min_freq: int
+
+
+class MilvusConfig(BaseModel):
+    version: str
+    db_name: str
+    collection_name: str
+    description: str
+    metric_type: str
+    embedding_name: str
+
+
+class AppConfig(BaseModel):
+    cache: CacheConfig
+    data: DataConfig
+    milvus: MilvusConfig
+
+
+# 加载 Dynaconf 配置
+_config = Dynaconf(
+    settings_files=["config.toml"],
+    lowercase_read=True,  # 添加这个参数，使读取时保持小写键名
+)
+
+# 处理版本配置
+version = _config.milvus.version
+_config.milvus.update(_config[version])
+
+# 转换为带类型的配置对象
+_config_dict = {k.lower(): v for k, v in _config.items()}  # 手动转换
+config: AppConfig = AppConfig.model_validate(_config_dict)
+
+# 导出为模块级变量，使其他模块可以直接导入
+CACHE_CONFIG = config.cache
+DATA_CONFIG = config.data
+MILVUS_CONFIG = config.milvus
