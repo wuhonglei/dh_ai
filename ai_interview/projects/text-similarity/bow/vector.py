@@ -1,9 +1,7 @@
 from vocab import Vocab
-import jieba
 from typing import List, Tuple
 import pandas as pd
 import time
-from collections import Counter
 import numpy as np
 from numpy.typing import NDArray
 
@@ -33,7 +31,7 @@ class Vector:
         return title_embeddings, content_embeddings
 
     def vectorize_text(self, text: str) -> NDArray[np.float16]:
-        words = jieba.lcut(text)
+        words = self.vocab.tokenize(text, use_stop_words=True)
         indices = self.vocab.batch_encoder(words)
         embeddings = self.indices_to_embeddings(indices)
         embeddings = self.l2_normalize(embeddings)
@@ -46,7 +44,7 @@ class Vector:
 if __name__ == "__main__":
     vocab = Vocab()
     start_time = time.time()
-    vocab.load_vocab_from_txt("../data/vocab.txt", min_freq=90)
+    vocab.load_vocab_from_txt()
     end_time = time.time()
     print(f"Vocab loading time: {end_time - start_time} seconds")
     vector = Vector(vocab)

@@ -11,8 +11,7 @@ from type_definitions import CsvRow, DbResultWithContent, DbResult
 class SearchResult:
     def __init__(self):
         self.vocab = Vocab()
-        self.vocab.load_vocab_from_txt(VOCAB_CONFIG.vocab_path,
-                                       min_freq=VOCAB_CONFIG.min_freq)
+        self.vocab.load_vocab_from_txt()
         self.vector = Vector(self.vocab)
         self.db = MilvusDB(dimension=len(self.vocab),
                            milvus_config=MILVUS_CONFIG)

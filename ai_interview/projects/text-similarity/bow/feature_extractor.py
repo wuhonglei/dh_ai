@@ -25,8 +25,7 @@ def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
 def main():
     init_dir()
     vocab = Vocab()
-    vocab.load_vocab_from_txt(VOCAB_CONFIG.vocab_path,
-                              min_freq=VOCAB_CONFIG.min_freq)
+    vocab.load_vocab_from_txt()
     vector = Vector(vocab)
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,

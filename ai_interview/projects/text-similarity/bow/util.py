@@ -72,6 +72,14 @@ def timer_decorator(func):
     return wrapper
 
 
+def load_txt_file(file_path: str) -> list[str]:
+    if not os.path.exists(file_path):
+        return []
+
+    with open(file_path, 'r') as f:
+        return [line.strip() for line in f if line.strip()]
+
+
 def load_json_file(file_path: str) -> Any:
     if not os.path.exists(file_path):
         return None

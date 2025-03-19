@@ -1,5 +1,4 @@
 from torch.utils.data import Dataset
-from memory_profiler import profile
 import pandas as pd
 import json
 from typing import TypedDict

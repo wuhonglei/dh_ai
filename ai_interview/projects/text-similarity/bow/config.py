@@ -1,6 +1,5 @@
 from dynaconf import Dynaconf
 from pydantic import BaseModel
-from typing import Dict, Any, Optional, Union, List
 
 
 class CacheConfig(BaseModel):
@@ -8,16 +7,14 @@ class CacheConfig(BaseModel):
 
 
 class DataSetConfig(BaseModel):
-    vocab_path: str
     val_csv_path: str
-    min_freq: int
-    use_stop_words: bool
-    stop_words_path: str
 
 
 class VocabConfig(BaseModel):
     min_freq: int
     vocab_path: str
+    use_stop_words: bool
+    stop_words_paths: list[str]
 
 
 class MilvusConfig(BaseModel):
