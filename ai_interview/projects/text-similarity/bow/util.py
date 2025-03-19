@@ -16,23 +16,42 @@ def init_dir():
 
 
 def setup_readline():
-    # 设置历史文件路径
-    readline.parse_and_bind('tab: complete')
-    # 设置历史记录长度
-    readline.set_history_length(1000)
+    # 确保历史文件目录存在
+    os.makedirs(os.path.dirname(
+        CACHE_CONFIG.search_history_path), exist_ok=True)
+
+    # 设置历史文件
     try:
-        # 尝试从历史文件加载
         readline.read_history_file(CACHE_CONFIG.search_history_path)
     except FileNotFoundError:
-        pass
+        # 如果历史文件不存在，则创建一个空文件
+        with open(CACHE_CONFIG.search_history_path, 'w') as f:
+            pass
+
+    # 设置历史长度限制，避免文件过大
+    readline.set_history_length(1000)
+
+    # 启用自动补全功能
+    readline.parse_and_bind('tab: complete')
 
 
 def get_input() -> str | None:
     try:
-        context = input('请输入搜索内容: ')
-        # 保存到历史文件
-        readline.write_history_file(CACHE_CONFIG.search_history_path)
-        return context.strip()
+        # 确保输入缓冲区清空
+        import sys
+        sys.stdout.flush()
+
+        # 直接读取输入
+        context = input('请输入搜索内容(输入q退出): ')
+
+        # 只有在有效输入时才写入历史文件
+        if context and context.strip():
+            readline.write_history_file(CACHE_CONFIG.search_history_path)
+
+        return context.strip() if context else ""
     except KeyboardInterrupt:
         print('\n已取消输入')
+        return None
+    except EOFError:
+        print('\n检测到EOF')
         return None

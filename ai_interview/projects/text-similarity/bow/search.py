@@ -24,6 +24,7 @@ def search():
         if context == 'q':
             break
         if context is None or len(context) == 0:
+            print("输入为空，请重新输入")
             continue
 
         print('开始搜索...')
