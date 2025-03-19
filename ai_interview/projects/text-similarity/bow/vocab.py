@@ -20,9 +20,9 @@ class Vocab:
         self.counter = Counter()
         progress = tqdm(range(len(dataset)), desc="Building vocab")
         for i in progress:
-            title, content = dataset[i]
-            self.counter.update(jieba.lcut(title))
-            self.counter.update(jieba.lcut(content))
+            item = dataset[i]
+            self.counter.update(jieba.lcut(item['title']))
+            self.counter.update(jieba.lcut(item['content']))
         return self.counter
 
     def load_vocab_from_txt(self, path: str, min_freq):
