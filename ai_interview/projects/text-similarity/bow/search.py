@@ -1,3 +1,4 @@
+import time
 from vocab import Vocab
 from vector import Vector
 from db import MilvusDB
@@ -28,6 +29,7 @@ def search():
             continue
 
         print('开始搜索...')
+        start_time = time.time()
         embedding = vector.vectorize_text(context)
         results = db.search(embedding, limit=3)
         for item in results:
@@ -40,6 +42,8 @@ def search():
             print(f'distance: {item["distance"]:.4f}')
             print(f'content: {content}')
             print()
+        end_time = time.time()
+        print(f'搜索时间: {end_time - start_time:.2f}秒')
         print('-' * 100)
 
         # 替换原来的输入
