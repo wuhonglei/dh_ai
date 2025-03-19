@@ -3,6 +3,7 @@ from tqdm import tqdm
 from typing import Dict, List
 from collections import Counter
 from dataset import NewsDatasetCsv
+from config import DATA_CONFIG
 
 
 class Vocab:
@@ -24,7 +25,7 @@ class Vocab:
             self.counter.update(jieba.lcut(content))
         return self.counter
 
-    def load_vocab_from_txt(self, path: str, min_freq: int = 90):
+    def load_vocab_from_txt(self, path: str, min_freq):
         with open(path, 'r') as f:
             for line in f:
                 if line.strip() == '':
@@ -59,22 +60,21 @@ class Vocab:
     def batch_decoder(self, indices: List[int]):
         return [self.decoder(index) for index in indices]
 
-    def save_vocab_set(self, path: str, min_freq: int = 1):
-        total_words = 0
-        ignored_words = 0
+    def save_vocab_set(self, path: str, min_freq: int):
         with open(path, 'w') as f:
+            used = 0
             for word, freq in self.counter.most_common():
-                total_words += 1
                 if freq >= min_freq:
                     f.write(f"{word} {freq}\n")
+                    used += 1
                 else:
-                    ignored_words += 1
+                    break
 
-        print(f"Total words: {total_words}, Ignored words: {ignored_words}")
+        print(f"Total words: {self.counter.total()}, Used words: {used}")
 
 
 if __name__ == "__main__":
     vocab = Vocab()
-    vocab.load_vocab_from_txt("../data/vocab.txt", min_freq=90)
-    print(vocab.word_to_index)
-    print(vocab.index_to_word)
+    dataset = NewsDatasetCsv(DATA_CONFIG.val_csv_path)
+    vocab.build_vocab_from_dataset(dataset)
+    # vocab.save_vocab_set(DATA_CONFIG.vocab_path, DATA_CONFIG.min_freq)

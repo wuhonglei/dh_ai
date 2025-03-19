@@ -1,5 +1,4 @@
-data/origin/
-data/*.csv
-database/
-bow/data/
+bow/data/origin/
+bow/data/*.csv
+bow/database/
 .env
