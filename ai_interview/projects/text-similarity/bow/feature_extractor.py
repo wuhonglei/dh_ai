@@ -40,7 +40,7 @@ def main():
         db.insert(batch)
         total += len(batch)
     end_time = time.time()
-    print(f"处理完成，共插入{total}条记录，耗时{end_time-start_time:.2f}秒")
+    print(f"处理完成，共插入 {total} 条记录，耗时{end_time-start_time:.2f}秒")
 
 
 if __name__ == "__main__":
