@@ -47,6 +47,10 @@ class Evaluate:
                 news_item['content']
                 for news_item in category_item['news_list']
             ]
+            if not content_list:
+                print(f"no content: {category_item['category']}")
+                continue
+
             print('search category: ', category_item['category'])
             search_results = self.search.search_with_content(content_list)
             for news_item, search_result in zip(category_item['news_list'], search_results):

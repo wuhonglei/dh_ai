@@ -82,4 +82,4 @@ def load_json_file(file_path: str) -> Any:
 
 def write_json_file(file_path: str, data: Any):
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False)
+        json.dump(data, f, ensure_ascii=False, indent=4)

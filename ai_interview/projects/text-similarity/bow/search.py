@@ -21,6 +21,13 @@ class SearchResult:
     @timer_decorator
     def search(self, context: list[str]) -> list[list[DbResult]]:
         embeddings = self.vector.batch_vectorize_text(context)
+        # 添加维度检查
+        expected_dim = len(self.vocab)
+        actual_dim = len(embeddings[0])
+        if expected_dim != actual_dim:
+            raise ValueError(
+                f"Dimension mismatch: expected {expected_dim}, got {actual_dim}")
+
         results = self.db.search(embeddings, limit=3)
         return results
 
