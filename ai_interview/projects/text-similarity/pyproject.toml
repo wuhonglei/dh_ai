@@ -9,6 +9,7 @@ dependencies = [
     "jieba>=0.42.1",
     "memory-profiler>=0.61.0",
     "milvus-lite>=2.4.11",
+    "playwright>=1.51.0",
     "pydantic>=2.10.6",
     "pymilvus>=2.5.5",
     "scipy>=1.13.1",
