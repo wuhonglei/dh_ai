@@ -23,7 +23,7 @@ def search():
         context = get_input()
         if context == 'q':
             break
-        if context is None:
+        if context is None or len(context) == 0:
             continue
 
         print('开始搜索...')
@@ -39,6 +39,7 @@ def search():
             print(f'distance: {item["distance"]:.4f}')
             print(f'content: {content}')
             print()
+        print('-' * 100)
 
         # 替换原来的输入
         context = get_input()
