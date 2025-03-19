@@ -42,7 +42,7 @@ def main():
     db = MilvusDB(db_name=BowConfig.db_name,
                   collection_name=BowConfig.collection_name, dimension=len(vocab))
 
-    dataset = NewsDatasetCsv(BowConfig.val_csv_ptah)
+    dataset = NewsDatasetCsv(BowConfig.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))
 
@@ -51,7 +51,7 @@ def main():
     for batch in tqdm_dataloader:
         db.insert(batch)
         total += len(batch)
-        if total > 100000:
+        if total > 10:
             break
     print(f"Inserted {total} items into Milvus")
 

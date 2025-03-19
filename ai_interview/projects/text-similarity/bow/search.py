@@ -16,7 +16,7 @@ def search():
     db = MilvusDB(db_name=BowConfig.db_name,
                   collection_name=BowConfig.collection_name, dimension=len(vocab))
 
-    df = pd.read_csv(BowConfig.val_csv_ptah)
+    df = pd.read_csv(BowConfig.val_csv_path)
 
     # 在主循环之前调用
     setup_readline()

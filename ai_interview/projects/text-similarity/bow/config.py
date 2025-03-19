@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TypedDict
 
-from torch import embedding
 current_dir = Path(__file__).parent
 parent_dir = current_dir.parent
 
@@ -14,7 +13,7 @@ class BowConfig:
         current_dir, "cache",  ".search_history")
 
     vocab_path: str = os.path.join(parent_dir, "data", "vocab.txt")
-    val_csv_ptah: str = os.path.join(parent_dir, "data", "val.csv")
+    val_csv_path: str = os.path.join(parent_dir, "data", "val.csv")
     min_freq: int = 1000
 
     db_name: str = os.path.join(current_dir, "database", "milvus_demo.db")
