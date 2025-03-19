@@ -13,7 +13,7 @@ stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.tx
 
 [evaluate]
 test_data_path = "性能测试原材料.json"
-evaluate_result_path = "性能测试/milvus.bow.v1.json"
+evaluate_result_path = "性能测试/milvus.bow.v2.json"
 
 [milvus]
 version = "milvus.bow.v2"

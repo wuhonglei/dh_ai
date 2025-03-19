@@ -1,10 +1,10 @@
 {
   "meta": {
-    "cache": { "search_history_path": "cache/.search_history" },
-    "data": {
-      "vocab_path": "data/vocab.txt",
-      "val_csv_path": "data/val.csv",
-      "min_freq": 1000
+    "cache": {
+      "search_history_path": "cache/.search_history"
+    },
+    "dataset": {
+      "val_csv_path": "data/val.csv"
     },
     "milvus": {
       "version": "milvus.bow.v1",
@@ -17,6 +17,15 @@
     "evaluate": {
       "test_data_path": "性能测试原材料.json",
       "evaluate_result_path": "性能测试/milvus.bow.v1.json"
+    },
+    "vocab": {
+      "min_freq": 1000,
+      "vocab_path": "data/vocab.txt",
+      "use_stop_words": false,
+      "stop_words_paths": [
+        "stopwords/baidu_stopwords.txt",
+        "stopwords/hit_stopwords.txt"
+      ]
     }
   },
   "results": [

@@ -1,4 +1,5 @@
 import copy
+import time
 from search import SearchResult
 from util import load_json_file, write_json_file
 from type_definitions import EvaluateResult, CategoryItem, EvaluateResultItem, create_evaluate_result_item
@@ -35,6 +36,7 @@ class Evaluate:
         return category_item['category'] in cached_category_names
 
     def evaluate(self, save_cache: bool = False) -> EvaluateResult:
+        start_time = time.time()
         for _category_item in tqdm(self.test_data, desc="evaluate category"):
             if self.hit_cache(_category_item):
                 print(f"hit cache: {_category_item['category']}")
@@ -59,7 +61,8 @@ class Evaluate:
 
             if save_cache:
                 self.save_evaluate_result()
-
+        end_time = time.time()
+        print(f"evaluate time: {end_time - start_time:.2f} seconds")
         return self.evaluate_result
 
     def save_evaluate_result(self):

@@ -85,9 +85,13 @@ def load_json_file(file_path: str) -> Any:
         return None
 
     with open(file_path, 'r') as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except Exception as e:
+            print(f"加载文件 {file_path} 失败: {e}")
+            return None
 
 
 def write_json_file(file_path: str, data: Any):
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        json.dump(data, f, ensure_ascii=False, indent=2)
