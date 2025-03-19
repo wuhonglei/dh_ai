@@ -5,7 +5,7 @@ from db import MilvusDB
 import pandas as pd
 from config import DATA_CONFIG, MILVUS_CONFIG
 from util import setup_readline, get_input, timer_decorator
-from type_definitions import CsvRow, DbResultWithContent
+from type_definitions import CsvRow, DbResultWithContent, DbResult
 
 
 class SearchResult:
@@ -19,31 +19,28 @@ class SearchResult:
         self.df = pd.read_csv(DATA_CONFIG.val_csv_path)
 
     @timer_decorator
-    def search(self, context: str):
-        embedding = self.vector.vectorize_text(context)
-        results = self.db.search([embedding], limit=3)
-        return results[0]
+    def search(self, context: list[str]) -> list[list[DbResult]]:
+        embeddings = self.vector.batch_vectorize_text(context)
+        results = self.db.search(embeddings, limit=3)
+        return results
 
-    def search_with_content(self, context: str) -> list[DbResultWithContent]:
+    def search_with_content(self, context: list[str]) -> list[list[DbResultWithContent]]:
         search_results = self.search(context)  # type: ignore
-        ids = [item['id'] for item in search_results]
-        rows = self.get_rows_by_id(ids)
-        ans: list[DbResultWithContent] = []
-        for search_result, row in zip(search_results, rows):
-            ans.append(DbResultWithContent(
-                **search_result, content=row['content'] or ''))
+        ans: list[list[DbResultWithContent]] = []
+        for search_result in search_results:
+            temp: list[DbResultWithContent] = []
+            ids = [item['id'] for item in search_result]
+            rows = self.get_rows_by_id(ids)
+            for search_result, row in zip(search_result, rows):
+                temp.append(DbResultWithContent(
+                    **search_result, content=row['content'] or ''))
+            ans.append(temp)
         return ans
 
     @timer_decorator
     def get_rows_by_id(self, ids: list[int]) -> list[CsvRow]:
         new_df = self.df[self.df['index'].isin(ids)]
         return new_df.to_dict(orient='records')  # type: ignore
-
-    @timer_decorator
-    def batch_search(self, context: list[str]):
-        embeddings = self.vector.batch_vectorize_text(context)
-        results = self.db.search(embeddings, limit=3)
-        return results
 
     def user_input(self):
         setup_readline()
@@ -55,8 +52,8 @@ class SearchResult:
                 print("输入为空，请重新输入")
                 continue
 
-            results = self.search_with_content(context)
-            for item in results:
+            results = self.search_with_content([context])
+            for item in results[0]:
                 print()
                 print(f'distance: {item["distance"]:.4f}')
                 print(f'content: {item["content"]}')

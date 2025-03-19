@@ -13,7 +13,7 @@ class Evaluate:
         self.search = SearchResult()
         self.test_data = self.load_test_data()
         self.evaluate_result: EvaluateResult = {
-            "meta": config,
+            "meta": config.model_dump(),  # type: ignore
             "results": [],
         }
 
@@ -25,15 +25,15 @@ class Evaluate:
             category_item = create_evaluate_result_item(
                 **category_item)
 
-            progress = tqdm(category_item['news_list'], desc="evaluate news")
-            for news_item in progress:
-                progress.write(f"evaluate news: {news_item['content']}")
-                search_result = self.search.search_with_content(
-                    news_item['content'])
+            content_list: list[str] = [
+                news_item['content']
+                for news_item in category_item['news_list']
+            ]
+            print('search category: ', category_item['category'])
+            search_results = self.search.search_with_content(content_list)
+            for news_item, search_result in zip(category_item['news_list'], search_results):
                 news_item['search_result'].extend(search_result)
-                break
             self.evaluate_result['results'].append(category_item)
-            break
         return self.evaluate_result
 
     def save_evaluate_result(self):
