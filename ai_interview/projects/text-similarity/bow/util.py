@@ -72,9 +72,9 @@ def timer_decorator(func):
     return wrapper
 
 
-def load_json_file(file_path: str) -> list[CategoryItem]:
+def load_json_file(file_path: str) -> Any:
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"文件 {file_path} 不存在")
+        return None
 
     with open(file_path, 'r') as f:
         return json.load(f)

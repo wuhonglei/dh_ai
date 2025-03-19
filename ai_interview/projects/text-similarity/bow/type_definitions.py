@@ -44,7 +44,7 @@ class EvaluateResultItem(CategoryItem):
 
 
 class EvaluateResult(TypedDict):
-    meta: AppConfig
+    meta: dict  # AppConfig
     results: list[EvaluateResultItem]
 
 
