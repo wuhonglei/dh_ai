@@ -8,3 +8,4 @@
 | --- | --- | --- | --- | --- | --- |
 | milvus.bow.v1 | 0.0926 | `sohu_data.csv` | 21968 | 1000 | 否 |
 | milvus.bow.v2 | 0.1674 | `sohu_data.csv` | 21243 | 1000 | 是 |
+| milvus.bow.v3 | 0.0893 | `val.csv` | 4439 | 1000 | 是 |

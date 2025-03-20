@@ -26,6 +26,7 @@ def main():
     init_dir()
     vocab = Vocab()
     vocab.load_vocab_from_txt()
+    print('embedding size:', len(vocab.word_to_index))
     vector = Vector(vocab)
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
