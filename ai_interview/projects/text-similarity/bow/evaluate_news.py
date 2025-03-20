@@ -8,7 +8,7 @@ from tqdm import tqdm
 from config import EVALUATE_CONFIG, EvaluateConfig, config
 
 
-class Evaluate:
+class EvaluateNews:
     def __init__(self, evaluate_config: EvaluateConfig | None = None):
         self.evaluate_config = evaluate_config or EVALUATE_CONFIG
         self.search = SearchResult()
@@ -71,5 +71,5 @@ class Evaluate:
 
 
 if __name__ == "__main__":
-    evaluate = Evaluate()
+    evaluate = EvaluateNews()
     evaluate.evaluate(save_cache=True)
