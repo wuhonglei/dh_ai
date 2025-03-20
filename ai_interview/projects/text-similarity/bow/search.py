@@ -4,7 +4,7 @@ from vector import Vector
 from db import MilvusDB
 import pandas as pd
 from config import DATASET_CONFIG, MILVUS_CONFIG, VOCAB_CONFIG
-from util import setup_readline, get_input, timer_decorator
+from utils.common import setup_readline, get_input, timer_decorator
 from type_definitions import CsvRow, DbResultWithContent, DbResult
 
 
@@ -18,7 +18,7 @@ class SearchResult:
         self.df = pd.read_csv(DATASET_CONFIG.val_csv_path)
 
     @timer_decorator
-    def search(self, context: list[str]) -> list[list[DbResult]]:
+    def search(self, context: list[str], limit: int = 3) -> list[list[DbResult]]:
         embeddings = self.vector.batch_vectorize_text(context)
         # 添加维度检查
         expected_dim = len(self.vocab)
@@ -27,7 +27,7 @@ class SearchResult:
             raise ValueError(
                 f"Dimension mismatch: expected {expected_dim}, got {actual_dim}")
 
-        results = self.db.search(embeddings, limit=3)
+        results = self.db.search(embeddings, limit=limit)
         return results
 
     def search_with_content(self, context: list[str]) -> list[list[DbResultWithContent]]:

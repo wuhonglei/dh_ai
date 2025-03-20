@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from typing import List
 from tqdm import tqdm
 from config import MILVUS_CONFIG, DATASET_CONFIG, VOCAB_CONFIG
-from util import init_dir
+from utils.common import init_dir
 import time
 from db import MilvusDB
 

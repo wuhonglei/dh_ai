@@ -27,6 +27,7 @@ class MilvusConfig(BaseModel):
 
 
 class EvaluateConfig(BaseModel):
+    limit: int
     test_data_path: str
     evaluate_result_path: str
 

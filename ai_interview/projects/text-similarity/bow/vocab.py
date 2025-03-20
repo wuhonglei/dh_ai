@@ -3,7 +3,7 @@ from tqdm import tqdm
 from typing import Dict, List
 from collections import Counter
 from dataset import NewsDatasetCsv
-from util import load_txt_file
+from utils.common import load_txt_file
 import re
 
 from config import DATASET_CONFIG, VOCAB_CONFIG, VocabConfig

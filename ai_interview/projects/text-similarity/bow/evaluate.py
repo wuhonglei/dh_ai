@@ -1,7 +1,7 @@
 import copy
 import time
 from search import SearchResult
-from util import load_json_file, write_json_file
+from utils.common import load_json_file, write_json_file
 from type_definitions import EvaluateResult, CategoryItem, EvaluateResultItem, create_evaluate_result_item
 from tqdm import tqdm
 
