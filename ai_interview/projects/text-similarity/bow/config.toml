@@ -5,7 +5,7 @@ search_history_path = "cache/.search_history"
 val_csv_path = "data/val.csv"
 
 [vocab]
-min_freq = 1000
+min_freq = 200
 vocab_path = "data/vocab_val.txt"
 use_stop_words = true
 stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.txt"]
@@ -22,7 +22,7 @@ test_data_path = "data/evaluate/标题测试原材料.csv"
 evaluate_result_path = "性能测试结果/title/milvus.bow.v3_1.csv"
 
 [milvus]
-version = "milvus.bow.v3_1"
+version = "milvus.bow.v3_2"
 metric_type = "COSINE"
 embedding_name = "content_embedding"
 
@@ -51,3 +51,8 @@ description = "content embedding use bow with stop words ,vocab_val.txt, min_fre
 db_name = "database/milvus_bow_v3_1.db"
 collection_name = "bow_title_content_collection_v3_1"
 description = "content embedding use bow with stop words ,vocab_val.txt, min_freq=350"
+
+[milvus.bow.v3_2]
+db_name = "database/milvus_bow_v3_2.db"
+collection_name = "bow_title_content_collection_v3_2"
+description = "content embedding use bow with stop words ,vocab_val.txt, min_freq=200"
