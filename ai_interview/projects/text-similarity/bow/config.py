@@ -26,7 +26,13 @@ class MilvusConfig(BaseModel):
     embedding_name: str
 
 
-class EvaluateConfig(BaseModel):
+class EvaluateNewsConfig(BaseModel):
+    limit: int
+    test_data_path: str
+    evaluate_result_path: str
+
+
+class EvaluateTitleConfig(BaseModel):
     limit: int
     test_data_path: str
     evaluate_result_path: str
@@ -36,7 +42,8 @@ class AppConfig(BaseModel):
     cache: CacheConfig
     dataset: DataSetConfig
     milvus: MilvusConfig
-    evaluate: EvaluateConfig
+    evaluate_news: EvaluateNewsConfig
+    evaluate_title: EvaluateTitleConfig
     vocab: VocabConfig
 
 
@@ -58,5 +65,6 @@ config: AppConfig = AppConfig.model_validate(_config_dict)
 CACHE_CONFIG = config.cache
 DATASET_CONFIG = config.dataset
 MILVUS_CONFIG = config.milvus
-EVALUATE_CONFIG = config.evaluate
+EVALUATE_NEWS_CONFIG = config.evaluate_news
+EVALUATE_TITLE_CONFIG = config.evaluate_title
 VOCAB_CONFIG = config.vocab

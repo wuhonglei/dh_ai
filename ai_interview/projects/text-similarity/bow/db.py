@@ -53,10 +53,10 @@ class MilvusDB:
         self.client.insert(collection_name=self.config.collection_name,
                            data=data)  # type: ignore
 
-    def search(self, embedding: list[NDArray[np.float16]], limit: int = 10) -> list[list[DbResult]]:
+    def search(self, embeddings: list[NDArray[np.float16]], limit: int = 10) -> list[list[DbResult]]:
         results = self.client.search(
             collection_name=self.config.collection_name,
-            data=embedding,
+            data=embeddings,
             limit=limit,
             anns_field=self.config.embedding_name,
             search_params={"metric_type": self.config.metric_type},

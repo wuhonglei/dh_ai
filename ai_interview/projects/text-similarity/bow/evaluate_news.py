@@ -5,12 +5,12 @@ from utils.common import load_json_file, write_json_file
 from type_definitions import EvaluateResult, CategoryItem, EvaluateResultItem, create_evaluate_result_item
 from tqdm import tqdm
 
-from config import EVALUATE_CONFIG, EvaluateConfig, config
+from config import EVALUATE_NEWS_CONFIG, EvaluateNewsConfig, config
 
 
 class EvaluateNews:
-    def __init__(self, evaluate_config: EvaluateConfig | None = None):
-        self.evaluate_config = evaluate_config or EVALUATE_CONFIG
+    def __init__(self, evaluate_config: EvaluateNewsConfig | None = None):
+        self.evaluate_config = evaluate_config or EVALUATE_NEWS_CONFIG
         self.search = SearchResult()
         self.test_data = self.load_test_data()
         self.evaluate_result = self.load_evaluate_result()

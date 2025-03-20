@@ -3,19 +3,22 @@ from vocab import Vocab
 from vector import Vector
 from db import MilvusDB
 import pandas as pd
-from config import DATASET_CONFIG, MILVUS_CONFIG, VOCAB_CONFIG
+from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig
 from utils.common import setup_readline, get_input, timer_decorator
 from type_definitions import CsvRow, DbResultWithContent, DbResult
 
 
 class SearchResult:
-    def __init__(self):
+    def __init__(self, milvus_config: MilvusConfig | None = None, dataset_config: DataSetConfig | None = None):
+        self.milvus_config = milvus_config or MILVUS_CONFIG
+        self.dataset_config = dataset_config or DATASET_CONFIG
+
         self.vocab = Vocab()
         self.vocab.load_vocab_from_txt()
         self.vector = Vector(self.vocab)
         self.db = MilvusDB(dimension=len(self.vocab),
-                           milvus_config=MILVUS_CONFIG)
-        self.df = pd.read_csv(DATASET_CONFIG.val_csv_path)
+                           milvus_config=self.milvus_config)
+        self.df = pd.read_csv(self.dataset_config.val_csv_path)
 
     @timer_decorator
     def search(self, context: list[str], limit: int = 3) -> list[list[DbResult]]:
