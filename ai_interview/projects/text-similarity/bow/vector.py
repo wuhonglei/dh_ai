@@ -12,7 +12,7 @@ class Vector:
         self.empty_embedding = [0] * len(vocab)
 
     def indices_to_embeddings(self, indices: List[int]):
-        """ 将索引转换为词向量 """
+        """ 将索引转换为词向量 (原始 tf 值)"""
         embeddings = self.empty_embedding.copy()
         for index in indices:
             embeddings[index] += 1
@@ -20,12 +20,9 @@ class Vector:
 
     def l2_normalize(self, embeddings: List[int]):
         np_embeddings = np.array(embeddings, dtype=np.float16)
-        total_words = np.sum(np_embeddings)
-        if total_words == 0:
-            return np_embeddings
-
-        np_embeddings = np_embeddings / total_words
         l2 = np.linalg.norm(np_embeddings)
+        if l2 == 0:
+            return np_embeddings
         return np_embeddings / l2
 
     def vectorize(self, title: str, content: str) -> Tuple[NDArray[np.float16], NDArray[np.float16]]:

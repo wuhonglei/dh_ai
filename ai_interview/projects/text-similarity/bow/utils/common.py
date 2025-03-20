@@ -1,10 +1,11 @@
 import os
 import readline
-from config import CACHE_CONFIG, MILVUS_CONFIG, VOCAB_CONFIG
 import time
 import json
-from type_definitions import CategoryItem
 from typing import Any
+import numpy as np
+import math
+from config import CACHE_CONFIG, MILVUS_CONFIG, VOCAB_CONFIG
 
 
 def init_dir():
@@ -95,3 +96,10 @@ def load_json_file(file_path: str) -> Any:
 def write_json_file(file_path: str, data: Any):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def word_idf(word_in_doc_count: int, total_doc_count: int):
+    """ 计算 idf 值 (加 1 平滑, 最小值 1) """
+    idf = math.log((total_doc_count + 1) /
+                   (word_in_doc_count + 1)) + 1
+    return idf

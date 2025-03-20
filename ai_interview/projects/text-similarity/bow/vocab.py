@@ -1,10 +1,13 @@
 import jieba
+import numpy as np
+from torch import nn
 from tqdm import tqdm
 from typing import Dict, List
-from collections import Counter
+from collections import Counter, defaultdict
 from dataset import NewsDatasetCsv
-from utils.common import load_txt_file
+from utils.common import load_txt_file, load_json_file, timer_decorator, write_json_file, word_idf
 import re
+
 
 from config import DATASET_CONFIG, VOCAB_CONFIG, VocabConfig
 
@@ -15,6 +18,8 @@ class Vocab:
         self.counter: Counter = Counter()
         self.word_to_index, self.index_to_word = self.initialize_word_and_index()
         self.stop_words = self.load_stop_words()
+        self.word_to_idf: Dict[str, float] = {}
+        self.idf_embedding: nn.Embedding | None = None
 
     def initialize_word_and_index(self):
         special_tokens = ['<unk>', '<pad>']
@@ -94,6 +99,20 @@ class Vocab:
     def batch_decoder(self, indices: List[int]):
         return [self.decoder(index) for index in indices]
 
+    @timer_decorator
+    def build_word_doc_counts(self, dataset: NewsDatasetCsv):
+        """ 构建单词在文档中的出现次数 """
+        word_doc_counts: Dict[str, int] = defaultdict(int)
+        total_doc_count = len(dataset)
+        progress = tqdm(range(total_doc_count),
+                        desc="Building word doc counts")
+        for i in progress:
+            content = dataset[i]['content']
+            words = set(self.tokenize(content, use_stop_words=False))
+            for word in words:
+                word_doc_counts[word] += 1
+        return word_doc_counts
+
     def save_vocab_set(self, path: str, min_freq: int):
         with open(path, 'w') as f:
             used = 0
@@ -107,8 +126,30 @@ class Vocab:
         print(f"Total words: {self.counter.total()}, Used words: {used}")
 
 
-if __name__ == "__main__":
+def save_vocab_txt():
+    """
+    构建词汇表，不过滤词频，并保存到 txt 文件中
+    """
     vocab = Vocab()
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     vocab.build_vocab_from_dataset(dataset)
     vocab.save_vocab_set(VOCAB_CONFIG.vocab_path, 0)
+
+
+def save_vocab_idf():
+    """
+    构建词汇表，并计算 idf 值，并保存到 txt 文件中
+    """
+
+    dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
+    word_doc_counts = load_json_file(
+        VOCAB_CONFIG.word_counts_path)
+    total_doc_count = len(dataset)
+    result: Dict[str, float] = {}
+    for word, count in word_doc_counts.items():
+        result[word] = word_idf(count, total_doc_count)
+    write_json_file(VOCAB_CONFIG.word_idf_path, result)
+
+
+if __name__ == "__main__":
+    save_vocab_idf()
