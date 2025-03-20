@@ -31,9 +31,9 @@ class EvaluateTitle:
         return pd.DataFrame(columns=head)
 
     def evaluate(self):
-        total_count = len(self.test_data)
         batch_size = 100
         result_list = []
+        total_count = len(self.test_data)
         progress_bar = tqdm(total=total_count, desc="Evaluating")
 
         for i in range(0, total_count, batch_size):
