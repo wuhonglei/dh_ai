@@ -19,7 +19,7 @@ evaluate_result_path = "性能测试结果/news/milvus.bow.v2.json"
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bow.v3_1.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bow.v3_2.csv"
 
 [milvus]
 version = "milvus.bow.v3_2"

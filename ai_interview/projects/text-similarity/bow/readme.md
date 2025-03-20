@@ -12,3 +12,4 @@
 | milvus.bow.v2 | 0.1674 | `sohu_data.csv` | 21243 | 1000 | 是 |
 | milvus.bow.v3 | 0.0893 | `val.csv` | 4439 | 1000 | 是 |
 | milvus.bow.v3_1 | 0.1322 | `val.csv` | 10634 | 350 | 是 |
+| milvus.bow.v3_2 | 0.1560 | `val.csv` | 16439 | 200 | 是 |
