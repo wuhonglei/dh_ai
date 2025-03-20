@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from typing import List
 from tqdm import tqdm
 from config import MILVUS_CONFIG, DATASET_CONFIG, VOCAB_CONFIG
-from utils.common import init_dir
+from utils.common import init_dir, load_json_file
 import time
 from db import MilvusDB
 
@@ -26,8 +26,9 @@ def main():
     init_dir()
     vocab = Vocab()
     vocab.load_vocab_from_txt()
+    idf_dict = load_json_file(VOCAB_CONFIG.word_idf_path)
     print('embedding size:', len(vocab.word_to_index))
-    vector = Vector(vocab)
+    vector = Vector(vocab, idf_dict)
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))

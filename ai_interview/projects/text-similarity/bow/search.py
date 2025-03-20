@@ -3,19 +3,21 @@ from vocab import Vocab
 from vector import Vector
 from db import MilvusDB
 import pandas as pd
-from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig
-from utils.common import setup_readline, get_input, timer_decorator
+from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig, VocabConfig, VOCAB_CONFIG
+from utils.common import setup_readline, get_input, timer_decorator, load_json_file
 from type_definitions import CsvRow, DbResultWithContent, DbResult
 
 
 class SearchResult:
-    def __init__(self, milvus_config: MilvusConfig | None = None, dataset_config: DataSetConfig | None = None):
+    def __init__(self, milvus_config: MilvusConfig | None = None, dataset_config: DataSetConfig | None = None, vocab_config: VocabConfig | None = None):
         self.milvus_config = milvus_config or MILVUS_CONFIG
         self.dataset_config = dataset_config or DATASET_CONFIG
+        self.vocab_config = vocab_config or VOCAB_CONFIG
 
         self.vocab = Vocab()
         self.vocab.load_vocab_from_txt()
-        self.vector = Vector(self.vocab)
+        idf_dict = load_json_file(self.vocab_config.word_idf_path)
+        self.vector = Vector(self.vocab, idf_dict)
         self.db = MilvusDB(dimension=len(self.vocab),
                            milvus_config=self.milvus_config)
         self.df = pd.read_csv(self.dataset_config.val_csv_path)
