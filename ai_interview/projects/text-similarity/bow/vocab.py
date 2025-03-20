@@ -77,11 +77,6 @@ class Vocab:
     def __len__(self):
         return len(self.word_to_index)
 
-    def __getattribute__(self, name: str):
-        if name == 'vocab_size':
-            return len(self.word_to_index)
-        return super().__getattribute__(name)
-
     def __getitem__(self, word: str):
         return self.word_to_index[word]
 
@@ -116,3 +111,4 @@ if __name__ == "__main__":
     vocab = Vocab()
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     vocab.build_vocab_from_dataset(dataset)
+    vocab.save_vocab_set(VOCAB_CONFIG.vocab_path, 0)

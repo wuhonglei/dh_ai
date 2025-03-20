@@ -6,5 +6,5 @@
 
 | 版本 | MRR | 词汇表 | 向量维度 | min_freq | 停用词 |
 | --- | --- | --- | --- | --- | --- |
-| milvus.bow.v1 | 0.1010 | `sohu_data.csv` | 21968 | 1000 | 否 |
-| milvus.bow.v2 | 0.1747 | `sohu_data.csv` | 21243 | 1000 | 是 |
+| milvus.bow.v1 | 0.0926 | `sohu_data.csv` | 21968 | 1000 | 否 |
+| milvus.bow.v2 | 0.1674 | `sohu_data.csv` | 21243 | 1000 | 是 |

@@ -47,7 +47,7 @@ class EvaluateTitle:
             for idx, (index, row) in enumerate(batch_data.iterrows()):
                 search_result: list[DbResult] = search_results[idx]
 
-                rank = 100  # rank = 1 表示最高的排名
+                rank = 10000  # rank = 1 表示最高的排名
                 score = 0
                 # 遍历每个样本的 tok_k 个结果
                 for rank_index, result in enumerate(search_result):
