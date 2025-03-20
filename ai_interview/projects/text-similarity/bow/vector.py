@@ -36,11 +36,6 @@ class Vector:
             return embeddings
         return embeddings / l2
 
-    def vectorize(self, title: str, content: str) -> Tuple[NDArray[np.float16], NDArray[np.float16]]:
-        title_embeddings = self.vectorize_text(title)
-        content_embeddings = self.vectorize_text(content)
-        return title_embeddings, content_embeddings
-
     def vectorize_text(self, text: str, use_idf: bool = True) -> NDArray[np.float16]:
         words = self.vocab.tokenize(text, use_stop_words=True)
         indices = self.vocab.batch_encoder(words)
@@ -66,10 +61,3 @@ if __name__ == "__main__":
     print(f"Vocab loading time: {end_time - start_time} seconds")
     vector = Vector(vocab, {})
     df = pd.read_csv("../data/val.csv")
-    for i in range(1):
-        row = df.iloc[i]
-        title = row["title"]
-        content = row["content"]
-        title_embeddings, content_embeddings = vector.vectorize(title, content)
-        print(len(title_embeddings))
-        print(len(content_embeddings))
