@@ -1,4 +1,11 @@
-bow/data/origin/
-bow/data/*.csv
-bow/database/
+/bow/data/origin/
+/bow/data/*.csv
+/bow/database/
+/bow/cache/
 .env
+.DS_Store
+
+/word2vector/data/origin/
+/word2vector/data/*.csv
+/word2vector/database/
+/word2vector/cache/
