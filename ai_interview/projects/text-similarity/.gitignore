@@ -10,3 +10,9 @@
 /word2vector/database/
 /word2vector/cache/
 /word2vector/checkpoint/
+
+/bert/data/origin/
+/bert/data/*.csv
+/bert/database/
+/bert/cache/
+/bert/checkpoint/

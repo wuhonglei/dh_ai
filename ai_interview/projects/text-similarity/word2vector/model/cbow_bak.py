@@ -35,10 +35,7 @@ class CBOWModel(nn.Module):
         # [batch_size, vocab_size]
         out = self.linear(context_mean)
         if target_idx is not None:
-            # 创建掩码，忽略目标中的 pad_index
-            non_pad_mask = (target_idx != self.embedding.padding_idx)
-            # 使用掩码计算损失
-            loss = F.cross_entropy(out[non_pad_mask], target_idx[non_pad_mask])
+            loss = F.cross_entropy(out, target_idx)
             return loss
         return out
 
