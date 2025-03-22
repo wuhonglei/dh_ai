@@ -53,6 +53,10 @@ class CBOWDataset(Dataset):
 
     def __getitem__(self, index) -> tuple[list[int], int]:
         context_idxs, target_idx = self.data[index]
+        # 确保上下文窗口大小一致
+        if len(context_idxs) < self.window_size * 2:
+            context_idxs = [self.vocab.pad_idx] * \
+                (self.window_size * 2 - len(context_idxs)) + context_idxs
         return context_idxs, target_idx
 
 

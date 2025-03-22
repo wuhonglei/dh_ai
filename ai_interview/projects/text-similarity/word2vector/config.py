@@ -11,6 +11,7 @@ class CacheConfig(BaseModel):
 
 class DataSetConfig(BaseModel):
     val_csv_path: str
+    test_csv_path: str
 
 
 class VocabConfig(BaseModel):

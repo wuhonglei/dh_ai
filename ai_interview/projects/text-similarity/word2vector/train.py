@@ -12,21 +12,58 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import os
 from torch.utils.data.distributed import DistributedSampler
-from torch.nn.parallel import DistributedDataParallel
+from torch.nn.parallel import DistributedDataParallel as DDP
 import wandb
-
-
-def collate_fn(batch: list[tuple[list[int], int]],  pad_idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-    context_idxs, target_idx = zip(*batch)
-    context_idxs_tensor = [torch.tensor(idx, dtype=torch.long)
-                           for idx in context_idxs]
-    new_context_idxs_tensor = pad_sequence(
-        context_idxs_tensor, padding_value=pad_idx, batch_first=True)
-    return new_context_idxs_tensor, torch.tensor(target_idx, dtype=torch.long)
+from typing import Union
+import torch.distributed as dist
 
 
 def save_model(model: CBOWModel, path: str):
     torch.save(model.state_dict(), path)
+
+
+def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, batch_size: int, cache_path: str = ''):
+    dataset = CBOWDataset(csv_dataset, vocab, window_size, cache_path)
+
+    # 添加 DistributedSampler
+    sampler = DistributedSampler(
+        dataset) if is_enable_distributed() else None
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False if sampler else True,
+        sampler=sampler,
+    )
+    return dataloader, sampler
+
+
+def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch.device):
+    model.eval()
+    total_loss = 0.0
+    local_batches = 0
+    with torch.no_grad():
+        for i, (context_idxs, target_idx) in enumerate(val_loader):
+            context_idxs = context_idxs.to(device)
+            target_idx = target_idx.to(device)
+            loss = model(context_idxs, target_idx)
+            total_loss += loss.item()
+            local_batches += 1  # 当前进程的批次数
+
+    if is_enable_distributed():
+        # 同步总损失
+        total_loss_tensor = torch.tensor(total_loss).to(device)
+        dist.all_reduce(total_loss_tensor)
+        global_total_loss = total_loss_tensor.item()
+
+        # 同步全局批次数
+        batch_tensor = torch.tensor(local_batches).to(device)
+        dist.all_reduce(batch_tensor)
+        global_batches = batch_tensor.item()
+
+        # 返回全局平均批次损失
+        return global_total_loss / global_batches
+
+    return total_loss / len(val_loader)
 
 
 def train():
@@ -61,19 +98,13 @@ def train():
     vocab = Vocab(VOCAB_CONFIG)
     vocab.load_vocab_from_txt()
     vocab_size = len(vocab)
-    dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
-    cbow_dataset = CBOWDataset(
-        dataset, vocab, VOCAB_CONFIG.window_size, CACHE_CONFIG.val_cbow_dataset_cache_path)
-
-    # 添加 DistributedSampler
-    train_sampler = DistributedSampler(
-        cbow_dataset) if is_enable_distributed() else None
-    dataloader = DataLoader(
-        cbow_dataset,
-        batch_size=batch_size,
-        shuffle=False if train_sampler else True,
-        sampler=train_sampler,
-        collate_fn=lambda batch: collate_fn(batch, vocab.pad_idx))
+    window_size = VOCAB_CONFIG.window_size
+    train_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
+    val_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.test_csv_path)
+    train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
+                                               batch_size, CACHE_CONFIG.val_cbow_dataset_cache_path)
+    val_loader, val_sampler = build_loader(
+        val_csv_dataset, vocab, window_size, batch_size)
 
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     model = model.to(device)
@@ -86,7 +117,7 @@ def train():
 
     origin_model = model
     if is_enable_distributed():
-        model = DistributedDataParallel(model, device_ids=[local_rank])
+        model = DDP(model, device_ids=[local_rank])
 
     optimizer = optim.SGD(model.parameters(),
                           lr=learning_rate,  momentum=0.9)  # type: ignore
@@ -98,8 +129,9 @@ def train():
             train_sampler.set_epoch(epoch)
         total_loss = 0
         batch_bar = tqdm(
-            dataloader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
+            train_loader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
 
+        model.train()
         for i, (context_idxs, target_idx) in enumerate(batch_bar):
             context_idxs = context_idxs.to(device)
             target_idx = target_idx.to(device)
@@ -113,13 +145,21 @@ def train():
                 total_loss += loss.item()
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
-                          step=epoch * len(dataloader) + i)
+                          step=epoch * len(train_loader) + i)
 
-        if is_main_process:  # 只在主进程记录 epoch 级别的指标
-            avg_loss = total_loss / len(dataloader)
+        val_loss = evaluate(model, val_loader, device)
+
+        if is_main_process:
+            """
+            只在主进程记录 epoch 级别的指标
+            在分布式环境下，total_loss 计算的是主进程的损失
+            len(train_loader) 计算的主进程的批次数
+            """
+            avg_loss = total_loss / len(train_loader)
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
+            wandb.log({"val_loss": val_loss})
             save_model(origin_model, CACHE_CONFIG.val_cbow_model_checkpoint_path.replace(
                 '.pth', f'_{epoch}.pth'))
 
