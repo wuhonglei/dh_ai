@@ -12,7 +12,7 @@ class CBOWDataset(Dataset):
     生成 CBOW 的训练数据
     """
 
-    def __init__(self, dataset: NewsDatasetCsv, vocab: Vocab, window_size: int = 2, cache_path: str = ''):
+    def __init__(self, dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, cache_path: str = ''):
         self.dataset = dataset
         self.window_size = window_size
         self.vocab = vocab
@@ -57,10 +57,12 @@ class CBOWDataset(Dataset):
 
 
 if __name__ == "__main__":
+    window_size = 8
+    cache_path = 'cache/val_cbow_5.pkl'
+
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     vocab = Vocab(VOCAB_CONFIG)
     vocab.load_vocab_from_txt()
-    cbow_dataset = CBOWDataset(
-        dataset, vocab, cache_path=CACHE_CONFIG.val_cbow_dataset_cache_path)
+    cbow_dataset = CBOWDataset(dataset, vocab, window_size, cache_path)
     print(len(cbow_dataset))
     print(cbow_dataset[0])
