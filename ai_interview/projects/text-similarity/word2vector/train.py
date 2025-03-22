@@ -1,7 +1,7 @@
 from model.cbow import CBOWModel
-from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG
+from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG, config
 from utils.common import load_pickle_file, save_pickle_file, get_device
-from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed
+from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb
 from cbow_dataset import CBOWDataset
 from vocab import Vocab
 from dataset import NewsDatasetCsv
@@ -42,22 +42,19 @@ def train():
     is_main_process = local_rank == 0
 
     epoch = 10
-    batch_size = 100
+    batch_size = 10000
     learning_rate = 0.01
 
     # 只在主进程初始化 wandb
     if is_main_process:
-        wandb.init(
-            project="text-similarity-word2vec",
-            config={
-                "embedding_dim": VOCAB_CONFIG.embedding_dim,
-                "window_size": VOCAB_CONFIG.window_size,
+        init_wandb(config={
+            **config.model_dump(),
+            "train": {
+                "epoch": epoch,
                 "batch_size": batch_size,
                 "learning_rate": learning_rate,
-                "epochs": epoch,
-                "version": MILVUS_CONFIG.version
             }
-        )
+        })
 
     vocab = Vocab(VOCAB_CONFIG)
     vocab.load_vocab_from_txt()
@@ -79,6 +76,7 @@ def train():
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     # 将模型转换为 DDP 模型
     model = model.to(device)
+    origin_model = model
     if is_enable_distributed():
         model = DistributedDataParallel(
             model, device_ids=[local_rank])
@@ -113,12 +111,12 @@ def train():
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-            save_model(model.module, CACHE_CONFIG.val_cbow_model_checkpoint_path.replace(
+            save_model(origin_model, CACHE_CONFIG.val_cbow_model_checkpoint_path.replace(
                 '.pth', f'_{epoch}.pth'))
 
     # 保存最终模型并关闭 wandb（只在主进程）
     if is_main_process:
-        save_model(model.module, CACHE_CONFIG.val_cbow_model_cache_path)
+        save_model(origin_model, CACHE_CONFIG.val_cbow_model_cache_path)
         wandb.finish()
 
     # 清理分布式进程组

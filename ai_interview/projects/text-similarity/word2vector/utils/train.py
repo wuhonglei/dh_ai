@@ -1,6 +1,7 @@
 import os
 import torch
 import torch.distributed as dist
+import wandb
 
 
 def is_enable_distributed():
@@ -27,3 +28,10 @@ def cleanup_distributed():
     """
     if dist.is_initialized():
         dist.destroy_process_group()
+
+
+def init_wandb(config: dict):
+    wandb.init(
+        project="text-similarity-word2vec",
+        config=config
+    )

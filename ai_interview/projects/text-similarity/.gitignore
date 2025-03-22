@@ -9,3 +9,4 @@
 /word2vector/data/*.csv
 /word2vector/database/
 /word2vector/cache/
+/word2vector/checkpoint/

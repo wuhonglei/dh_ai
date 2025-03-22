@@ -114,7 +114,7 @@ def load_pickle_file(file_path: str) -> Any:
         return None
 
     with open(file_path, 'rb') as f:
-        print(f"加载数据从 {file_path}")
+        print(f"load cache data from: {file_path}")
         return pickle.load(f)
 
 
