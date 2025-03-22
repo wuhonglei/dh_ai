@@ -124,11 +124,14 @@ def save_pickle_file(file_path: str, data: Any):
         pickle.dump(data, f)
 
 
-def get_device():
+def get_device(enable_distributed: bool = False, local_rank: int = 0):
     if torch.backends.mps.is_available():
         return torch.device("mps")
     elif torch.cuda.is_available():
-        return torch.device("cuda")
+        if enable_distributed:
+            return torch.device(f"cuda:{local_rank}")
+        else:
+            return torch.device("cuda")
     else:
         return torch.device("cpu")
 

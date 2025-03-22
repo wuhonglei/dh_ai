@@ -15,8 +15,6 @@ class DataSetConfig(BaseModel):
 class VocabConfig(BaseModel):
     min_freq: int
     vocab_path: str
-    word_counts_path: str
-    word_idf_path: str
     use_stop_words: bool
     embedding_dim: int
     window_size: int

@@ -1,6 +1,7 @@
 from model.cbow import CBOWModel
 from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG
 from utils.common import load_pickle_file, save_pickle_file, get_device
+from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed
 from cbow_dataset import CBOWDataset
 from vocab import Vocab
 from dataset import NewsDatasetCsv
@@ -29,20 +30,30 @@ def save_model(model: CBOWModel, path: str):
 
 def train():
     # 初始化分布式训练
-    torch.distributed.init_process_group(backend="nccl")
-    local_rank = int(os.environ["LOCAL_RANK"])
-    torch.cuda.set_device(local_rank)
+    if is_enable_distributed():
+        rank = int(os.environ["RANK"])
+        world_size = int(os.environ["WORLD_SIZE"])
+        local_rank = int(os.environ["LOCAL_RANK"])
+        setup_distributed(local_rank, rank, world_size)
+    else:
+        local_rank = 0
+    device = get_device(is_enable_distributed(), local_rank)
+    is_main_process = local_rank == 0
+
+    epoch = 10
+    batch_size = 100
+    learning_rate = 0.01
 
     # 只在主进程初始化 wandb
-    if local_rank == 0:
+    if is_main_process:
         wandb.init(
             project="text-similarity-word2vec",
             config={
                 "embedding_dim": VOCAB_CONFIG.embedding_dim,
                 "window_size": VOCAB_CONFIG.window_size,
-                "batch_size": 100,
-                "learning_rate": 0.01,
-                "epochs": 10,
+                "batch_size": batch_size,
+                "learning_rate": learning_rate,
+                "epochs": epoch,
                 "version": MILVUS_CONFIG.version
             }
         )
@@ -59,18 +70,18 @@ def train():
         cbow_dataset)
     dataloader = DataLoader(
         cbow_dataset,
-        batch_size=100,
+        batch_size=batch_size,
         shuffle=False,  # 使用 DistributedSampler 时需要设置为 False
         sampler=train_sampler,
         collate_fn=lambda batch: collate_fn(batch, vocab.pad_idx))
 
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     # 将模型转换为 DDP 模型
-    model = model.cuda(local_rank)
+    model = model.to(device)
     model = torch.nn.parallel.DistributedDataParallel(
         model, device_ids=[local_rank])
 
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate)  # type: ignore
 
     epoch_bar = tqdm(range(10), desc="训练", disable=local_rank != 0)
     for epoch in epoch_bar:
@@ -80,21 +91,21 @@ def train():
             dataloader, desc=f"训练第{epoch}轮", disable=local_rank != 0)
 
         for i, (context_idxs, target_idx) in enumerate(batch_bar):
-            context_idxs = context_idxs.cuda(local_rank)
-            target_idx = target_idx.cuda(local_rank)
+            context_idxs = context_idxs.to(device)
+            target_idx = target_idx.to(device)
             optimizer.zero_grad()
             loss = model(context_idxs, target_idx)
             loss.backward()
             optimizer.step()
 
-            if local_rank == 0:  # 只在主进程记录日志
+            if is_main_process:  # 只在主进程记录日志
                 batch_bar.set_postfix(loss=loss.item())
                 total_loss += loss.item()
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(dataloader) + i)
 
-        if local_rank == 0:  # 只在主进程记录 epoch 级别的指标
+        if is_main_process:  # 只在主进程记录 epoch 级别的指标
             avg_loss = total_loss / len(dataloader)
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
@@ -103,12 +114,12 @@ def train():
                 '.pth', f'_{epoch}.pth'))
 
     # 保存最终模型并关闭 wandb（只在主进程）
-    if local_rank == 0:
+    if is_main_process:
         save_model(model.module, CACHE_CONFIG.val_cbow_model_cache_path)
         wandb.finish()
 
     # 清理分布式进程组
-    torch.distributed.destroy_process_group()
+    cleanup_distributed()
 
 
 if __name__ == "__main__":

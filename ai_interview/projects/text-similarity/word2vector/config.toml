@@ -8,21 +8,24 @@ val_csv_path = "data/val.csv"
 
 
 [milvus]
-version = "milvus.bow.v5"
+version = "milvus.bow.v5_1"
 metric_type = "COSINE"
 embedding_name = "content_embedding"
 
 [milvus.bow.v5]
 db_name = "database/milvus_bow_v5.db"
 collection_name = "bow_title_content_collection_v5"
-description = "content embedding use bow(tf-idf) with stop words ,vocab_val.txt, min_freq=200"
+description = "content embedding use CBOW, epoch=4, window_size=2, min_freq=200"
+
+[milvus.bow.v5_1]
+db_name = "database/milvus_bow_v5_1.db"
+collection_name = "bow_title_content_collection_v5_1"
+description = "content embedding use CBOW, epoch=10, window_size=2, min_freq=200"
 
 [vocab]
 window_size = 2
 min_freq = 200
 vocab_path = "data/vocab_val.txt"
-word_counts_path = "data/idf/word_counts.json"
-word_idf_path = "data/idf/word_idf.json"
 use_stop_words = true
 embedding_dim = 100
 stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.txt"]
