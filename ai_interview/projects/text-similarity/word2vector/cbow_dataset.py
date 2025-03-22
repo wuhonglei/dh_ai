@@ -51,13 +51,13 @@ class CBOWDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, index) -> tuple[list[int], int]:
+    def __getitem__(self, index):
         context_idxs, target_idx = self.data[index]
         # 确保上下文窗口大小一致
         if len(context_idxs) < self.window_size * 2:
             context_idxs = [self.vocab.pad_idx] * \
                 (self.window_size * 2 - len(context_idxs)) + context_idxs
-        return context_idxs, target_idx
+        return torch.tensor(context_idxs), torch.tensor(target_idx)
 
 
 if __name__ == "__main__":

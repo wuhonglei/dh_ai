@@ -9,7 +9,6 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from tqdm import tqdm
 import torch
-from torch.nn.utils.rnn import pad_sequence
 import os
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -81,19 +80,8 @@ def train():
     is_main_process = local_rank == 0
 
     epoch = 15
-    batch_size = 256
-    learning_rate = 0.01
-
-    # 只在主进程初始化 wandb
-    if is_main_process:
-        init_wandb(config={
-            **config.model_dump(),
-            "train": {
-                "epoch": epoch,
-                "batch_size": batch_size,
-                "learning_rate": learning_rate,
-            }
-        })
+    batch_size = 128
+    learning_rate = 0.001
 
     vocab = Vocab(VOCAB_CONFIG)
     vocab.load_vocab_from_txt()
@@ -106,6 +94,19 @@ def train():
     val_loader, val_sampler = build_loader(
         val_csv_dataset, vocab, window_size, batch_size)
 
+    # 只在主进程初始化 wandb
+    if is_main_process:
+        init_wandb(config={
+            **config.model_dump(),
+            "train": {
+                "epoch": epoch,
+                "batch_size": batch_size,
+                "learning_rate": learning_rate,
+                "vocab_size": vocab_size,
+                "window_size": window_size,
+            }
+        })
+
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     model = model.to(device)
     if os.path.exists(CACHE_CONFIG.val_cbow_model_cache_path):
@@ -114,13 +115,15 @@ def train():
             map_location=device
         )
         model.load_state_dict(state_dict)
+        print(f"加载模型参数: {CACHE_CONFIG.val_cbow_model_cache_path}")
 
     origin_model = model
     if is_enable_distributed():
         model = DDP(model, device_ids=[local_rank])
 
-    optimizer = optim.SGD(model.parameters(),
-                          lr=learning_rate,  momentum=0.9)  # type: ignore
+    optimizer = optim.AdamW(
+        model.parameters(), lr=learning_rate, weight_decay=0.01)  # 添加适当的权重衰减
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
     epoch_bar = tqdm(range(epoch), desc="训练",
                      disable=local_rank != 0, position=0)
@@ -130,6 +133,7 @@ def train():
         total_loss = 0
         batch_bar = tqdm(
             train_loader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
+        val_loss = 0.0
 
         model.train()
         for i, (context_idxs, target_idx) in enumerate(batch_bar):
@@ -141,14 +145,18 @@ def train():
             optimizer.step()
 
             if is_main_process:  # 只在主进程记录日志
-                batch_bar.set_postfix(loss=loss.item())
+                batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
                 total_loss += loss.item()
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(train_loader) + i)
 
-        val_loss = evaluate(model, val_loader, device)
+                if (i + 1) % 2000 == 0:
+                    val_loss = evaluate(model, val_loader, device)
+                    wandb.log({"val_loss": val_loss})
 
+        # 在每个 epoch 末尾调用
+        # scheduler.step()
         if is_main_process:
             """
             只在主进程记录 epoch 级别的指标
@@ -159,7 +167,6 @@ def train():
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-            wandb.log({"val_loss": val_loss})
             save_model(origin_model, CACHE_CONFIG.val_cbow_model_checkpoint_path.replace(
                 '.pth', f'_{epoch}.pth'))
 

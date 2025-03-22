@@ -6,7 +6,7 @@ val_cbow_model_checkpoint_path = "checkpoint/val_cbow_2.pth"
 
 [dataset]
 val_csv_path = "data/val.csv"
-test_csv_path = "data/test.csv"
+test_csv_path = "data/test_1000.csv"
 
 
 [milvus]
@@ -36,4 +36,4 @@ stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.tx
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bow.v5.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bow.v5_1.csv"
