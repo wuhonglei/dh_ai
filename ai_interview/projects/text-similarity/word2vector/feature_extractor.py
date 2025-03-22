@@ -27,10 +27,12 @@ def main():
     vocab = Vocab()
     vocab.load_vocab_from_txt()
     device = get_device()
+    vocab_size = len(vocab)
+    pad_idx = vocab.pad_idx
     embedding_dim = VOCAB_CONFIG.embedding_dim
     print('embedding size:', len(vocab.word_to_index))
     model = load_model(
-        vocab, CACHE_CONFIG.val_cbow_model_cache_path, embedding_dim)
+        vocab_size, pad_idx, embedding_dim, CACHE_CONFIG.val_cbow_model_cache_path)
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)
