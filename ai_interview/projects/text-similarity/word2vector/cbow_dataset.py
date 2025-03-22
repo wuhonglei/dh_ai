@@ -61,8 +61,8 @@ class CBOWDataset(Dataset):
 
 
 if __name__ == "__main__":
-    window_size = 8
-    cache_path = 'cache/val_cbow_5.pkl'
+    window_size = VOCAB_CONFIG.window_size
+    cache_path = CACHE_CONFIG.val_cbow_dataset_cache_path
 
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     vocab = Vocab(VOCAB_CONFIG)
