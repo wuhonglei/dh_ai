@@ -89,6 +89,7 @@ def train():
         model = DistributedDataParallel(model, device_ids=[local_rank])
 
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)  # type: ignore
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epoch)
 
     epoch_bar = tqdm(range(10), desc="训练", disable=local_rank != 0, position=0)
     for epoch in epoch_bar:
@@ -113,6 +114,7 @@ def train():
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(dataloader) + i)
 
+        scheduler.step()
         if is_main_process:  # 只在主进程记录 epoch 级别的指标
             avg_loss = total_loss / len(dataloader)
             epoch_bar.set_postfix(loss=avg_loss)
