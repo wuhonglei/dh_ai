@@ -8,7 +8,6 @@ dependencies = [
     "dynaconf>=3.2.10",
     "jieba>=0.42.1",
     "memory-profiler>=0.61.0",
-    "milvus-lite>=2.4.11",
     "mypy>=1.15.0",
     "playwright>=1.51.0",
     "pydantic>=2.10.6",

@@ -1,6 +1,6 @@
 from model.cbow import CBOWModel
 from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG, config
-from utils.common import load_pickle_file, save_pickle_file, get_device
+from utils.common import get_device
 from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb
 from cbow_dataset import CBOWDataset
 from vocab import Vocab
@@ -35,15 +35,17 @@ def train():
         rank = int(os.environ["RANK"])
         world_size = int(os.environ["WORLD_SIZE"])
         local_rank = int(os.environ["LOCAL_RANK"])
+        print(
+            f"rank: {rank}, world_size: {world_size}, local_rank: {local_rank}")
         setup_distributed(local_rank, rank, world_size)
     else:
         local_rank = 0
     device = get_device(is_enable_distributed(), local_rank)
     is_main_process = local_rank == 0
 
-    epoch = 10
+    epoch = 15
     batch_size = 10000
-    learning_rate = 0.01
+    learning_rate = 0.025
 
     # 只在主进程初始化 wandb
     if is_main_process:
@@ -74,22 +76,27 @@ def train():
         collate_fn=lambda batch: collate_fn(batch, vocab.pad_idx))
 
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
-    # 将模型转换为 DDP 模型
     model = model.to(device)
+    if os.path.exists(CACHE_CONFIG.val_cbow_model_cache_path):
+        state_dict = torch.load(
+            CACHE_CONFIG.val_cbow_model_cache_path,
+            map_location=device
+        )
+        model.load_state_dict(state_dict)
+
     origin_model = model
     if is_enable_distributed():
-        model = DistributedDataParallel(
-            model, device_ids=[local_rank])
+        model = DistributedDataParallel(model, device_ids=[local_rank])
 
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)  # type: ignore
 
-    epoch_bar = tqdm(range(10), desc="训练", disable=local_rank != 0)
+    epoch_bar = tqdm(range(10), desc="训练", disable=local_rank != 0, position=0)
     for epoch in epoch_bar:
         if train_sampler:
             train_sampler.set_epoch(epoch)
         total_loss = 0
         batch_bar = tqdm(
-            dataloader, desc=f"训练第{epoch}轮", disable=local_rank != 0)
+            dataloader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
 
         for i, (context_idxs, target_idx) in enumerate(batch_bar):
             context_idxs = context_idxs.to(device)
