@@ -81,7 +81,8 @@ def train():
 
     epoch = 15
     batch_size = 1280
-    learning_rate = 0.001
+    learning_rate = 1e-3
+    weight_decay = 1e-4
 
     vocab = Vocab(VOCAB_CONFIG)
     vocab.load_vocab_from_txt()
@@ -122,7 +123,7 @@ def train():
         model = DDP(model, device_ids=[local_rank])
 
     optimizer = optim.AdamW(
-        model.parameters(), lr=learning_rate, weight_decay=0.01)  # 添加适当的权重衰减
+        model.parameters(), lr=learning_rate, weight_decay=weight_decay)  # 添加适当的权重衰减
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
     epoch_bar = tqdm(range(epoch), desc="训练",
