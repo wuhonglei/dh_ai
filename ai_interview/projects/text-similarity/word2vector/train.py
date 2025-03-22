@@ -12,6 +12,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import os
 from torch.utils.data.distributed import DistributedSampler
+from torch.nn.parallel import DistributedDataParallel
 import wandb
 
 
@@ -67,25 +68,27 @@ def train():
 
     # 添加 DistributedSampler
     train_sampler = DistributedSampler(
-        cbow_dataset)
+        cbow_dataset) if is_enable_distributed() else None
     dataloader = DataLoader(
         cbow_dataset,
         batch_size=batch_size,
-        shuffle=False,  # 使用 DistributedSampler 时需要设置为 False
+        shuffle=False if train_sampler else True,
         sampler=train_sampler,
         collate_fn=lambda batch: collate_fn(batch, vocab.pad_idx))
 
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     # 将模型转换为 DDP 模型
     model = model.to(device)
-    model = torch.nn.parallel.DistributedDataParallel(
-        model, device_ids=[local_rank])
+    if is_enable_distributed():
+        model = DistributedDataParallel(
+            model, device_ids=[local_rank])
 
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)  # type: ignore
 
     epoch_bar = tqdm(range(10), desc="训练", disable=local_rank != 0)
     for epoch in epoch_bar:
-        train_sampler.set_epoch(epoch)
+        if train_sampler:
+            train_sampler.set_epoch(epoch)
         total_loss = 0
         batch_bar = tqdm(
             dataloader, desc=f"训练第{epoch}轮", disable=local_rank != 0)
@@ -110,7 +113,7 @@ def train():
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-            save_model(model.module, CACHE_CONFIG.val_cbow_model_cache_path.replace(
+            save_model(model.module, CACHE_CONFIG.val_cbow_model_checkpoint_path.replace(
                 '.pth', f'_{epoch}.pth'))
 
     # 保存最终模型并关闭 wandb（只在主进程）

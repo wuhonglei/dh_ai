@@ -2,6 +2,7 @@
 search_history_path = "cache/.search_history"
 val_cbow_dataset_cache_path = "cache/val_cbow_2.pkl"
 val_cbow_model_cache_path = "cache/val_cbow_2_model_4.pth"
+val_cbow_model_checkpoint_path = "checkpoint/val_cbow_2.pth"
 
 [dataset]
 val_csv_path = "data/val.csv"
