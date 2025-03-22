@@ -80,7 +80,7 @@ def train():
     is_main_process = local_rank == 0
 
     epoch = 15
-    batch_size = 128
+    batch_size = 1280
     learning_rate = 0.001
 
     vocab = Vocab(VOCAB_CONFIG)
@@ -142,6 +142,8 @@ def train():
             optimizer.zero_grad()
             loss = model(context_idxs, target_idx)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(), max_norm=1.0)  # 防止梯度爆炸
             optimizer.step()
 
             if is_main_process:  # 只在主进程记录日志
