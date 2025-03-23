@@ -112,12 +112,13 @@ def train():
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     model = model.to(device)
     if os.path.exists(CACHE_CONFIG.val_cbow_model_cache_path):
-        state_dict = torch.load(
-            CACHE_CONFIG.val_cbow_model_cache_path,
-            map_location=device
-        )
-        model.load_state_dict(state_dict)
-        print(f"加载模型参数: {CACHE_CONFIG.val_cbow_model_cache_path}")
+        pass
+        # state_dict = torch.load(
+        #     CACHE_CONFIG.val_cbow_model_cache_path,
+        #     map_location=device
+        # )
+        # model.load_state_dict(state_dict)
+        # print(f"加载模型参数: {CACHE_CONFIG.val_cbow_model_cache_path}")
 
     origin_model = model
     if is_enable_distributed():
@@ -138,7 +139,7 @@ def train():
             train_loader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
         val_loss = 0.0
         batch_len = len(train_loader)
-        batch_len_10 = batch_len // 10
+        batch_len_10 = batch_len // 10 or 1
 
         model.train()
         for i, (context_idxs, target_idx) in enumerate(batch_bar):
@@ -150,10 +151,10 @@ def train():
             torch.nn.utils.clip_grad_norm_(
                 model.parameters(), max_norm=1.0)  # 防止梯度爆炸
             optimizer.step()
+            total_loss += loss.item()
 
             if is_main_process:  # 只在主进程记录日志
                 batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
-                total_loss += loss.item()
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(train_loader) + i)
@@ -163,13 +164,23 @@ def train():
                     wandb.log({"val_loss": val_loss})
 
         scheduler.step()
+
+        if is_enable_distributed():
+            total_loss_tensor = torch.tensor(total_loss).to(device)
+            # 收集所有进程的总损失
+            dist.all_reduce(total_loss_tensor)
+            total_loss = total_loss_tensor.item()
+
+            # 收集所有进程的批次数
+            batch_len_tensor = torch.tensor(batch_len).to(device)
+            dist.all_reduce(batch_len_tensor)
+            global_batch_len = batch_len_tensor.item()
+        else:
+            global_batch_len = batch_len
+            avg_loss = total_loss / global_batch_len
+
         if is_main_process:
-            """
-            只在主进程记录 epoch 级别的指标
-            在分布式环境下，total_loss 计算的是主进程的损失
-            len(train_loader) 计算的主进程的批次数
-            """
-            avg_loss = total_loss / len(train_loader)
+            # 使用全局总损失除以全局总批次数
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
