@@ -1,3 +1,5 @@
+version = "milvus.bow.v5_3"
+
 [cache]
 search_history_path = "cache/.search_history"
 val_cbow_dataset_cache_path = "cache/val_cbow_5_350.pkl"
@@ -10,7 +12,6 @@ test_csv_path = "data/test_1000.csv"
 
 
 [milvus]
-version = "milvus.bow.v5_3"
 metric_type = "COSINE"
 embedding_name = "content_embedding"
 

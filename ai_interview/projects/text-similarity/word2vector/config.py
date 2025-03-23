@@ -24,7 +24,6 @@ class VocabConfig(BaseModel):
 
 
 class MilvusConfig(BaseModel):
-    version: str
     db_name: str
     collection_name: str
     description: str
@@ -39,6 +38,7 @@ class EvaluateTitleConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
+    version: str
     cache: CacheConfig
     dataset: DataSetConfig
     milvus: MilvusConfig
@@ -49,11 +49,10 @@ class AppConfig(BaseModel):
 # 加载 Dynaconf 配置
 _config = Dynaconf(
     settings_files=["config.toml"],
-    lowercase_read=True,  # 添加这个参数，使读取时保持小写键名
 )
 
 # 处理版本配置
-version = _config.milvus.version
+version = _config.version
 _config.milvus.update(_config[version])
 
 # 转换为带类型的配置对象
@@ -61,6 +60,7 @@ _config_dict = {k.lower(): v for k, v in _config.items()}  # 手动转换
 config: AppConfig = AppConfig.model_validate(_config_dict)
 
 # 导出为模块级变量，使其他模块可以直接导入
+VERSION = config.version
 CACHE_CONFIG = config.cache
 DATASET_CONFIG = config.dataset
 MILVUS_CONFIG = config.milvus

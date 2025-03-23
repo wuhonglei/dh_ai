@@ -9,7 +9,7 @@ from tqdm import tqdm
 from vocab import Vocab
 from db import MilvusDB
 from vectory import Vector
-from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, MilvusConfig, MILVUS_CONFIG
+from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, VERSION, MILVUS_CONFIG
 
 
 class EvaluateTitle:
@@ -87,6 +87,6 @@ if __name__ == "__main__":
     model.eval()
     vector = Vector(vocab, model, device)
     evaluate = EvaluateTitle(
-        vector, db, df, EVALUATE_TITLE_CONFIG, MILVUS_CONFIG.version)
+        vector, db, df, EVALUATE_TITLE_CONFIG, VERSION)
     evaluate.evaluate()
     evaluate.save_evaluate_result()
