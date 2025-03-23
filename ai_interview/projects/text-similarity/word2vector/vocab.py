@@ -39,25 +39,25 @@ class Vocab:
             item = dataset[i]
             # 这里构建的是原始词汇表，所以不使用停用词
             self.counter.update(self.tokenize(
-                item['title'], use_stop_words=False))
+                item['title'], filter_word=False))
             self.counter.update(self.tokenize(
-                item['content'], use_stop_words=True))
+                item['content'], filter_word=True))
         return self.counter
 
-    def tokenize(self, text: str, use_stop_words: bool = True) -> List[str]:
+    def tokenize(self, text: str, filter_word: bool = True) -> List[str]:
         token_list = jieba.lcut(text)
-        if not use_stop_words or not self.stop_words:
+        if not filter_word:
             return token_list
 
-        token_list = []
+        filtered_token_list = []
         for token in token_list:
             """
             过滤 停用词、低频词和超高频词
             """
             if token in self.stop_words or token in self.high_freq_words or token in self.low_freq_words:
                 continue
-            token_list.append(token)
-        return token_list
+            filtered_token_list.append(token)
+        return filtered_token_list
 
     def load_stop_words(self):
         if not self.vocab_config.use_stop_words:
@@ -68,12 +68,14 @@ class Vocab:
         return list(stop_words)
 
     def load_vocab_from_txt(self):
+        total_words = 0
         with open(self.vocab_config.vocab_path, 'r') as f:
             for line in f:
                 if line.strip() == '':
                     continue
 
                 word, freq = line.rsplit(' ', 1)  # 避免空格词汇被错误分割
+                total_words += 1
                 if word in self.stop_words:
                     continue
 
@@ -86,7 +88,8 @@ class Vocab:
                     self.index_to_word.append(word)
                 else:
                     self.low_freq_words.append(word)
-
+        print(
+            f"Total words: {total_words}, Used words: {len(self.index_to_word)}, low freq words: {len(self.low_freq_words)}, high freq words: {len(self.high_freq_words)}")
         self.vocab = set(self.index_to_word)
 
     def __len__(self):

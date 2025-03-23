@@ -32,7 +32,6 @@ def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, ba
         batch_size=batch_size,
         shuffle=False if sampler else True,
         sampler=sampler,
-        num_workers=4,
     )
     return dataloader, sampler
 
@@ -69,16 +68,12 @@ def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch
 def train():
     # 初始化分布式训练
     if is_enable_distributed():
-        rank = int(os.environ["RANK"])
-        world_size = int(os.environ["WORLD_SIZE"])
         local_rank = int(os.environ["LOCAL_RANK"])
-        print(
-            f"rank: {rank}, world_size: {world_size}, local_rank: {local_rank}")
-        setup_distributed(local_rank, rank, world_size)
+        setup_distributed(local_rank)
     else:
         local_rank = 0
-    device = get_device(is_enable_distributed(), local_rank)
     is_main_process = local_rank == 0
+    device = get_device(is_enable_distributed(), local_rank)
 
     # 只在主进程初始化 wandb
     if is_main_process:
@@ -110,6 +105,7 @@ def train():
         min_freq, max_freq, window_size)
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
                                                batch_size, train_dataset_cache)
+    return
     val_loader, val_sampler = build_loader(
         val_csv_dataset, vocab, window_size, batch_size)
 
@@ -215,7 +211,7 @@ def main():
         }
         sweep_id = wandb.sweep(
             sweep_config, project="text-similarity-word2vec_v2")
-        wandb.agent(sweep_id, function=train, count=20)
+        wandb.agent(sweep_id, function=train, count=2000)
     else:
         train()
 

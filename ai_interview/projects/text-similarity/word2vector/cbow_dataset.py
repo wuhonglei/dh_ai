@@ -40,36 +40,22 @@ class CBOWDataset(Dataset):
     @timer_decorator
     def load_data(self):
         if self.cache_path:
-            data = load_pickle_file(self.cache_path)
-            if data:
-                return data
+            sentences = load_pickle_file(self.cache_path)
+            if sentences:
+                return sentences
 
         if self.dataset is None or self.vocab is None:
             raise ValueError("dataset 和 vocab 不能为 None")
 
-        # 使用CPU核心数量的进程
-        num_processes = cpu_count()
-
         # 准备数据
-        sentences = [self.dataset[i] for i in range(len(self.dataset))]
-
-        # 创建进程池并处理数据
-        with Pool(num_processes) as pool:
-            results = list(tqdm(
-                pool.imap(self.process_sentence, sentences),
-                total=len(sentences),
-                desc="生成 CBOW 训练数据"
-            ))
-
-        # 合并所有结果
-        data: list[tuple[list[int], int]] = []
-        for result in results:
-            data.extend(result)
+        sentences = []
+        for i in tqdm(range(len(self.dataset)), desc="生成 CBOW 训练数据"):
+            sentences.extend(self.process_sentence(self.dataset[i]))
 
         if self.cache_path:
-            save_pickle_file(self.cache_path, data)
+            save_pickle_file(self.cache_path, sentences)
 
-        return data
+        return sentences
 
     def __len__(self) -> int:
         return len(self.data)

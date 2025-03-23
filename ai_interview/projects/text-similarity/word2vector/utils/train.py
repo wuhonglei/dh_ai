@@ -17,10 +17,13 @@ def is_enable_distributed():
     return "WORLD_SIZE" in os.environ
 
 
-def setup_distributed(local_rank, rank, world_size):
+def setup_distributed(local_rank):
     """
     设置分布式训练环境
     """
+    rank = int(os.environ["RANK"])
+    world_size = int(os.environ["WORLD_SIZE"])
+
     # 初始化进程组
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
