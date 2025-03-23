@@ -64,12 +64,7 @@ def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch
 
 
 def train():
-    # 初始化分布式训练
-    if is_enable_distributed():
-        local_rank = int(os.environ["LOCAL_RANK"])
-        setup_distributed(local_rank)
-    else:
-        local_rank = 0
+    local_rank = int(os.environ.get('LOCAL_RANK', 0))
     is_main_process = local_rank == 0
     device = get_device(is_enable_distributed(), local_rank)
 
@@ -99,6 +94,7 @@ def train():
 
     train_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     val_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.test_csv_path)
+
     train_dataset_cache = get_train_dataset_cache_path(
         min_freq, max_freq, window_size)
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
@@ -181,13 +177,11 @@ def train():
         save_model(origin_model, get_checkpoint_path_final(hyperparams))
         wandb.finish()
 
-    # 清理分布式进程组
-    cleanup_distributed()
-
 
 def main():
     if is_enable_distributed():
-        local_rank = int(os.environ["LOCAL_RANK"])
+        local_rank = int(os.environ['LOCAL_RANK'])
+        setup_distributed(local_rank)
     else:
         local_rank = 0
     is_main_process = local_rank == 0
@@ -212,6 +206,9 @@ def main():
         wandb.agent(sweep_id, function=train, count=30)
     else:
         train()
+
+    # 清理分布式进程组
+    cleanup_distributed()
 
 
 if __name__ == "__main__":

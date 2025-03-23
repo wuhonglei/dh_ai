@@ -84,6 +84,11 @@ def load_txt_file(file_path: str) -> list[str]:
         return [line.strip() for line in f if line.strip()]
 
 
+def write_txt_file(file_path: str, content: str, mode: str = 'a'):
+    with open(file_path, mode, encoding='utf-8') as f:
+        f.write(content + '\n')
+
+
 def load_json_file(file_path: str) -> Any:
     if not os.path.exists(file_path):
         return None
