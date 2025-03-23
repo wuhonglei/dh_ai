@@ -112,13 +112,12 @@ def train():
     model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
     model = model.to(device)
     if os.path.exists(CACHE_CONFIG.val_cbow_model_cache_path):
-        pass
-        # state_dict = torch.load(
-        #     CACHE_CONFIG.val_cbow_model_cache_path,
-        #     map_location=device
-        # )
-        # model.load_state_dict(state_dict)
-        # print(f"加载模型参数: {CACHE_CONFIG.val_cbow_model_cache_path}")
+        state_dict = torch.load(
+            CACHE_CONFIG.val_cbow_model_cache_path,
+            map_location=device
+        )
+        model.load_state_dict(state_dict)
+        print(f"加载模型参数: {CACHE_CONFIG.val_cbow_model_cache_path}")
 
     origin_model = model
     if is_enable_distributed():
@@ -138,6 +137,8 @@ def train():
         batch_bar = tqdm(
             train_loader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
         val_loss = 0.0
+        batch_len = len(train_loader)
+        batch_len_10 = batch_len // 10
 
         model.train()
         for i, (context_idxs, target_idx) in enumerate(batch_bar):
@@ -157,7 +158,7 @@ def train():
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(train_loader) + i)
 
-                if (i + 1) % 2000 == 0:
+                if (i + 1) % batch_len_10 == 0:
                     val_loss = evaluate(model, val_loader, device)
                     wandb.log({"val_loss": val_loss})
 

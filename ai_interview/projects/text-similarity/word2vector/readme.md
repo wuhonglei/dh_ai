@@ -36,4 +36,5 @@
 | milvus.bow.v5 | 0.0676 | 6 | `val.csv` | 100 | 2 | 4 | 200 | 是 | - |
 | milvus.bow.v5_1 | 0.0603 | 5.19 | `val.csv` | 100 | 2 | 4 | 200 | 是 | - |
 | milvus.bow.v5_2 | 0.1364 | 4.2 | `val.csv` | 100 | 2 | 4 | 200 | 是 | adamW 优化器 |
+| milvus.bow.v5_3 | 0.1990 | 3.7 | `val.csv` | 200 | 5 | 10 | 350 | 是 | adamW 优化器 |
 
