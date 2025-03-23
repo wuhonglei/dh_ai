@@ -97,6 +97,7 @@ def train():
 
     train_dataset_cache = get_train_dataset_cache_path(
         min_freq, max_freq, window_size)
+    print(f'local_rank {local_rank}, train_dataset_cache', train_dataset_cache)
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
                                                batch_size, train_dataset_cache)
     val_loader, val_sampler = build_loader(
@@ -140,14 +141,14 @@ def train():
 
             if (i + 1) % batch_len_10 == 0:
                 val_loss = evaluate(model, val_loader, device)
+                if is_main_process:
+                    wandb.log({"val_loss": val_loss})
 
             if is_main_process:  # 只在主进程记录日志
                 batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(train_loader) + i)
-
-                wandb.log({"val_loss": val_loss})
 
         scheduler.step()
 
