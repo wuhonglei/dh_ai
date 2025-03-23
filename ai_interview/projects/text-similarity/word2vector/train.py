@@ -39,14 +39,12 @@ def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, ba
 def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch.device):
     model.eval()
     total_loss = 0.0
-    local_batches = 0
     with torch.no_grad():
         for i, (context_idxs, target_idx) in enumerate(val_loader):
             context_idxs = context_idxs.to(device)
             target_idx = target_idx.to(device)
             loss = model(context_idxs, target_idx)
             total_loss += loss.item()
-            local_batches += 1  # 当前进程的批次数
 
     if is_enable_distributed():
         # 同步总损失
@@ -55,7 +53,7 @@ def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch
         global_total_loss = total_loss_tensor.item()
 
         # 同步全局批次数
-        batch_tensor = torch.tensor(local_batches).to(device)
+        batch_tensor = torch.tensor(len(val_loader)).to(device)
         dist.all_reduce(batch_tensor)
         global_batches = batch_tensor.item()
 
@@ -95,7 +93,7 @@ def train():
     window_size = hyperparams['window_size']
 
     vocab = Vocab(VocabConfig(
-        **{**VOCAB_CONFIG.model_dump(), 'max_freq': max_freq}))
+        **{**VOCAB_CONFIG.model_dump(), 'min_freq': min_freq, 'max_freq': max_freq}))
     vocab.load_vocab_from_txt()
     vocab_size = len(vocab)
 
@@ -115,8 +113,8 @@ def train():
     if is_enable_distributed():
         model = DDP(model, device_ids=[local_rank])
 
-    optimizer = optim.AdamW(
-        model.parameters(), lr=learning_rate, weight_decay=weight_decay)  # 添加适当的权重衰减
+    optimizer = optim.AdamW(  # type: ignore
+        model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     # 余弦退火
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
@@ -144,15 +142,16 @@ def train():
             optimizer.step()
             total_loss += loss.item()
 
+            if (i + 1) % batch_len_10 == 0:
+                val_loss = evaluate(model, val_loader, device)
+
             if is_main_process:  # 只在主进程记录日志
                 batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(train_loader) + i)
 
-                if (i + 1) % batch_len_10 == 0:
-                    val_loss = evaluate(model, val_loader, device)
-                    wandb.log({"val_loss": val_loss})
+                wandb.log({"val_loss": val_loss})
 
         scheduler.step()
 
@@ -168,10 +167,10 @@ def train():
             global_batch_len = batch_len_tensor.item()
         else:
             global_batch_len = batch_len
-            avg_loss = total_loss / global_batch_len
 
         if is_main_process:
             # 使用全局总损失除以全局总批次数
+            avg_loss = total_loss / global_batch_len
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
@@ -210,7 +209,7 @@ def main():
         }
         sweep_id = wandb.sweep(
             sweep_config, project="text-similarity-word2vec_v2")
-        wandb.agent(sweep_id, function=train, count=2000)
+        wandb.agent(sweep_id, function=train, count=30)
     else:
         train()
 

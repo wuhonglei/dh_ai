@@ -73,7 +73,7 @@ def get_hyperparameters(is_main_process: bool, device: torch.device):
         ], device=device)
     else:
         # 非主进程创建空tensor来接收数据
-        hyperparam_tensor = torch.zeros(4, device=device)
+        hyperparam_tensor = torch.zeros(8, device=device)
 
     # 广播超参数
     if is_enable_distributed():
