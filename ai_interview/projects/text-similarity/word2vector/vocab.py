@@ -15,12 +15,12 @@ class Vocab:
         self.counter: Counter = Counter()
         self.word_to_index, self.index_to_word = self.initialize_word_and_index()
         self.pad_idx = self.word_to_index['<pad>']
+        # 将列表改为集合，提高查找效率
+        self.low_freq_words: set[str] = set()
+        self.high_freq_words: set[str] = set()
+        # 创建一个过滤词集合，包含所有需要过滤的词
+        self.ignored_words: set[str] = set()
         self.stop_words = self.load_stop_words()
-        self.word_to_idf: Dict[str, float] = {}
-
-        # 低频词和超高频词
-        self.low_freq_words = []
-        self.high_freq_words = []
 
     def initialize_word_and_index(self):
         special_tokens = ['<unk>', '<pad>']
@@ -51,21 +51,20 @@ class Vocab:
 
         filtered_token_list = []
         for token in token_list:
-            """
-            过滤 停用词、低频词和超高频词
-            """
-            if token in self.stop_words or token in self.high_freq_words or token in self.low_freq_words:
+            # 使用单次查找替代多次查找
+            if token in self.ignored_words:
                 continue
             filtered_token_list.append(token)
         return filtered_token_list
 
-    def load_stop_words(self):
+    def load_stop_words(self) -> set[str]:  # 返回类型改为 set
         if not self.vocab_config.use_stop_words:
-            return []
-        stop_words = set()
+            return set()
+        stop_words: set[str] = set()
         for path in self.vocab_config.stop_words_paths:
             stop_words.update(load_txt_file(path))
-        return list(stop_words)
+        self.ignored_words.update(stop_words)  # 更新过滤词集合
+        return stop_words
 
     def load_vocab_from_txt(self):
         total_words = 0
@@ -80,14 +79,16 @@ class Vocab:
                     continue
 
                 if self.vocab_config.max_freq and int(freq) >= self.vocab_config.max_freq:
-                    self.high_freq_words.append(word)
+                    self.high_freq_words.add(word)
+                    self.ignored_words.add(word)
                     continue
 
                 if int(freq) >= self.vocab_config.min_freq:
                     self.word_to_index[word] = len(self.word_to_index)
                     self.index_to_word.append(word)
                 else:
-                    self.low_freq_words.append(word)
+                    self.low_freq_words.add(word)
+                    self.ignored_words.add(word)
         print(
             f"Total words: {total_words}, Used words: {len(self.index_to_word)}, low freq words: {len(self.low_freq_words)}, high freq words: {len(self.high_freq_words)}")
         self.vocab = set(self.index_to_word)

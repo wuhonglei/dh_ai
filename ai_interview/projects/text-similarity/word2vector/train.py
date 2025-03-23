@@ -105,7 +105,6 @@ def train():
         min_freq, max_freq, window_size)
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
                                                batch_size, train_dataset_cache)
-    return
     val_loader, val_sampler = build_loader(
         val_csv_dataset, vocab, window_size, batch_size)
 
