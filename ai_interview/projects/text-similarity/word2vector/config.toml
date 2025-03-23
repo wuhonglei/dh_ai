@@ -3,7 +3,7 @@ version = "milvus.bow.v5_3"
 [cache]
 search_history_path = "cache/.search_history"
 val_cbow_dataset_cache_path = "cache/val_cbow_5_350.pkl"
-val_cbow_model_cache_path = "cache/val_cbow_5_350_model.pth"
+val_cbow_model_cache_path = "checkpoint/val_cbow_5_350_final.pth"
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_5_350.pth"
 
 [dataset]
@@ -38,6 +38,7 @@ description = "content embedding use CBOW, epoch=15, window_size=5, min_freq=350
 [vocab]
 window_size = 5
 min_freq = 350
+max_freq = 80501
 vocab_path = "data/vocab_val.txt"
 use_stop_words = true
 embedding_dim = 200

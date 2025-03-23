@@ -1,12 +1,9 @@
 import jieba
-import numpy as np
-from torch import nn
 from tqdm import tqdm
 from typing import Dict, List
-from collections import Counter, defaultdict
+from collections import Counter
 from dataset import NewsDatasetCsv
-from utils.common import load_txt_file, load_json_file, timer_decorator, write_json_file, word_idf
-import re
+from utils.common import load_txt_file
 
 
 from config import DATASET_CONFIG, VOCAB_CONFIG, VocabConfig
@@ -20,7 +17,10 @@ class Vocab:
         self.pad_idx = self.word_to_index['<pad>']
         self.stop_words = self.load_stop_words()
         self.word_to_idf: Dict[str, float] = {}
-        self.idf_embedding: nn.Embedding | None = None
+
+        # 低频词和超高频词
+        self.low_freq_words = []
+        self.high_freq_words = []
 
     def initialize_word_and_index(self):
         special_tokens = ['<unk>', '<pad>']
@@ -49,7 +49,15 @@ class Vocab:
         if not use_stop_words or not self.stop_words:
             return token_list
 
-        return [word for word in token_list if word not in self.stop_words]
+        token_list = []
+        for token in token_list:
+            """
+            过滤 停用词、低频词和超高频词
+            """
+            if token in self.stop_words or token in self.high_freq_words or token in self.low_freq_words:
+                continue
+            token_list.append(token)
+        return token_list
 
     def load_stop_words(self):
         if not self.vocab_config.use_stop_words:
@@ -58,9 +66,6 @@ class Vocab:
         for path in self.vocab_config.stop_words_paths:
             stop_words.update(load_txt_file(path))
         return list(stop_words)
-
-    def invalid_word(self, word: str) -> bool:
-        return re.match(r'^[\w\s]+$', word) is None
 
     def load_vocab_from_txt(self):
         with open(self.vocab_config.vocab_path, 'r') as f:
@@ -72,11 +77,15 @@ class Vocab:
                 if word in self.stop_words:
                     continue
 
+                if self.vocab_config.max_freq and int(freq) >= self.vocab_config.max_freq:
+                    self.high_freq_words.append(word)
+                    continue
+
                 if int(freq) >= self.vocab_config.min_freq:
                     self.word_to_index[word] = len(self.word_to_index)
                     self.index_to_word.append(word)
                 else:
-                    break
+                    self.low_freq_words.append(word)
 
         self.vocab = set(self.index_to_word)
 
@@ -99,20 +108,6 @@ class Vocab:
 
     def batch_decoder(self, indices: List[int]):
         return [self.decoder(index) for index in indices]
-
-    @timer_decorator
-    def build_word_doc_counts(self, dataset: NewsDatasetCsv):
-        """ 构建单词在文档中的出现次数 """
-        word_doc_counts: Dict[str, int] = defaultdict(int)
-        total_doc_count = len(dataset)
-        progress = tqdm(range(total_doc_count),
-                        desc="Building word doc counts")
-        for i in progress:
-            content = dataset[i]['content']
-            words = set(self.tokenize(content, use_stop_words=False))
-            for word in words:
-                word_doc_counts[word] += 1
-        return word_doc_counts
 
     def save_vocab_set(self, path: str, min_freq: int):
         with open(path, 'w') as f:
@@ -137,20 +132,5 @@ def save_vocab_txt():
     vocab.save_vocab_set(VOCAB_CONFIG.vocab_path, 0)
 
 
-def save_vocab_idf():
-    """
-    构建词汇表，并计算 idf 值，并保存到 txt 文件中
-    """
-
-    dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
-    word_doc_counts = load_json_file(
-        VOCAB_CONFIG.word_counts_path)
-    total_doc_count = len(dataset)
-    result: Dict[str, float] = {}
-    for word, count in word_doc_counts.items():
-        result[word] = word_idf(count, total_doc_count)
-    write_json_file(VOCAB_CONFIG.word_idf_path, result)
-
-
 if __name__ == "__main__":
-    save_vocab_idf()
+    save_vocab_txt()

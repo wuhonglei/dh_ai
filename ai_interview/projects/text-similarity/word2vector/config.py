@@ -1,5 +1,6 @@
 from dynaconf import Dynaconf
 from pydantic import BaseModel
+from typing import Optional
 
 
 class CacheConfig(BaseModel):
@@ -16,6 +17,7 @@ class DataSetConfig(BaseModel):
 
 class VocabConfig(BaseModel):
     min_freq: int
+    max_freq: int
     vocab_path: str
     use_stop_words: bool
     embedding_dim: int

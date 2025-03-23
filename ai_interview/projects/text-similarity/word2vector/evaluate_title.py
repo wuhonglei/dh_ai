@@ -1,10 +1,7 @@
-import copy
-import enum
-import time
 import pandas as pd
 from search import SearchResult
 from utils.common import load_json_file, write_json_file, get_device, load_model
-from type_definitions import EvaluateResult, CategoryItem, EvaluateResultItem, create_evaluate_result_item, DbResult
+from type_definitions import DbResult
 from tqdm import tqdm
 from vocab import Vocab
 from db import MilvusDB

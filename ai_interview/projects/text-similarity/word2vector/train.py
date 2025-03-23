@@ -1,7 +1,7 @@
 from model.cbow import CBOWModel
-from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG, config
+from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG, config, VocabConfig
 from utils.common import get_device
-from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb
+from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb, get_hyperparameters, get_checkpoint_path, get_checkpoint_path_final, get_train_dataset_cache_path
 from cbow_dataset import CBOWDataset
 from vocab import Vocab
 from dataset import NewsDatasetCsv
@@ -32,6 +32,7 @@ def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, ba
         batch_size=batch_size,
         shuffle=False if sampler else True,
         sampler=sampler,
+        num_workers=4,
     )
     return dataloader, sampler
 
@@ -79,46 +80,41 @@ def train():
     device = get_device(is_enable_distributed(), local_rank)
     is_main_process = local_rank == 0
 
-    epoch = 15
-    batch_size = 12800
-    learning_rate = 3e-3
-    weight_decay = 1e-4
+    # 只在主进程初始化 wandb
+    if is_main_process:
+        wandb.init(config={
+            "toml": config.model_dump(),
+        })
 
-    vocab = Vocab(VOCAB_CONFIG)
+    # 获取同步的超参数
+    hyperparams = get_hyperparameters(is_main_process, device)
+
+    # 使用超参数
+    min_freq = hyperparams['min_freq']
+    max_freq = hyperparams['max_freq']
+    embedding_dim = hyperparams['embedding_dim']
+    batch_size = hyperparams['batch_size']
+    learning_rate = hyperparams['learning_rate']
+    weight_decay = hyperparams['weight_decay']
+    epochs = hyperparams['epochs']
+    window_size = hyperparams['window_size']
+
+    vocab = Vocab(VocabConfig(
+        **{**VOCAB_CONFIG.model_dump(), 'max_freq': max_freq}))
     vocab.load_vocab_from_txt()
     vocab_size = len(vocab)
-    window_size = VOCAB_CONFIG.window_size
+
     train_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     val_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.test_csv_path)
+    train_dataset_cache = get_train_dataset_cache_path(
+        min_freq, max_freq, window_size)
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
-                                               batch_size, CACHE_CONFIG.val_cbow_dataset_cache_path)
+                                               batch_size, train_dataset_cache)
     val_loader, val_sampler = build_loader(
         val_csv_dataset, vocab, window_size, batch_size)
 
-    # 只在主进程初始化 wandb
-    if is_main_process:
-        init_wandb(config={
-            **config.model_dump(),
-            "train": {
-                "epoch": epoch,
-                "batch_size": batch_size,
-                "learning_rate": learning_rate,
-                "vocab_size": vocab_size,
-                "window_size": window_size,
-                "weight_decay": weight_decay
-            }
-        })
-
-    model = CBOWModel(vocab_size, VOCAB_CONFIG.embedding_dim, vocab.pad_idx)
+    model = CBOWModel(vocab_size, embedding_dim, vocab.pad_idx)
     model = model.to(device)
-    if os.path.exists(CACHE_CONFIG.val_cbow_model_cache_path):
-        pass
-        # state_dict = torch.load(
-        #     CACHE_CONFIG.val_cbow_model_cache_path,
-        #     map_location=device
-        # )
-        # model.load_state_dict(state_dict)
-        # print(f"加载模型参数: {CACHE_CONFIG.val_cbow_model_cache_path}")
 
     origin_model = model
     if is_enable_distributed():
@@ -127,9 +123,9 @@ def train():
     optimizer = optim.AdamW(
         model.parameters(), lr=learning_rate, weight_decay=weight_decay)  # 添加适当的权重衰减
     # 余弦退火
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epoch)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
-    epoch_bar = tqdm(range(epoch), desc="训练",
+    epoch_bar = tqdm(range(epochs), desc="训练",
                      disable=local_rank != 0, position=0)
     for epoch in epoch_bar:
         if train_sampler:
@@ -184,17 +180,45 @@ def train():
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-            save_model(origin_model, CACHE_CONFIG.val_cbow_model_checkpoint_path.replace(
-                '.pth', f'_{epoch}.pth'))
+            save_model(origin_model, get_checkpoint_path(hyperparams, epoch))
 
     # 保存最终模型并关闭 wandb（只在主进程）
     if is_main_process:
-        save_model(origin_model, CACHE_CONFIG.val_cbow_model_cache_path)
+        save_model(origin_model, get_checkpoint_path_final(hyperparams))
         wandb.finish()
 
     # 清理分布式进程组
     cleanup_distributed()
 
 
+def main():
+    if is_enable_distributed():
+        local_rank = int(os.environ["LOCAL_RANK"])
+    else:
+        local_rank = 0
+    is_main_process = local_rank == 0
+
+    if is_main_process:
+        sweep_config = {
+            'method': 'bayes',
+            'metric': {'name': 'val_loss', 'goal': 'minimize'},
+            'parameters': {
+                'min_freq': {'values': [350, 500]},
+                'max_freq': {'values': [80501, 105190]},
+                'embedding_dim': {'values': [100, 200, 300]},
+                'batch_size': {'values': [256, 512, 1024, 12800]},
+                'learning_rate': {'values': [1e-3, 3e-3, 1e-2]},
+                'weight_decay': {'values': [1e-4, 1e-3]},
+                'epochs': {'values': [5, 10]},
+                'window_size': {'values': [2, 5, 8]},
+            }
+        }
+        sweep_id = wandb.sweep(
+            sweep_config, project="text-similarity-word2vec_v2")
+        wandb.agent(sweep_id, function=train, count=20)
+    else:
+        train()
+
+
 if __name__ == "__main__":
-    train()
+    main()

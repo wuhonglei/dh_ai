@@ -2983,6 +2983,7 @@ dependencies = [
     { name = "torch" },
     { name = "torchaudio" },
     { name = "torchvision" },
+    { name = "wordcloud" },
 ]
 
 [package.metadata]
@@ -2998,6 +2999,7 @@ requires-dist = [
     { name = "torch", specifier = ">=2.6.0" },
     { name = "torchaudio", specifier = ">=2.6.0" },
     { name = "torchvision", specifier = ">=0.21.0" },
+    { name = "wordcloud", specifier = ">=1.9.4" },
 ]
 
 [[package]]
@@ -3437,6 +3439,55 @@ source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47/webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/f4/24/2a3e3df732393fed8b3ebf2ec078f05546de641fe1b667ee316ec1dcf3b7/webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78" },
+]
+
+[[package]]
+name = "wordcloud"
+version = "1.9.4"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "pillow" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/03/a1/0530b9001b05dcd13de21c2d4d821db5365dade5180242179fbc39372c57/wordcloud-1.9.4.tar.gz", hash = "sha256:b273d8a5ded97d3ead904046b49464dcb71119ee79df875072a4c105cadd347a" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/8a/b0/21ab9282e5922ccd23b67050151476a4a32a7678d59bad4aa46534615afa/wordcloud-1.9.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:61a84e7311fce8415943edcb7b2ba65b4bfec1dc6dff8fe5a8ea76e278447fb2" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/54/e5/7969f3b4a58bd4ac19e60e86f6a23925c19416ec065725b530f40c692e0e/wordcloud-1.9.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:8e8752750726f31385f364823d3ef1d9c8ec829e5c07706c36beb40679945c71" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/dc/2a/a6d5c03decbe145858e777e80dbbf92697da9728c9d0c71c1c81a2d68e35/wordcloud-1.9.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:990dfd6dd43a1c7fa156be865eb98aba167a986b65f56cbf50e24772107fcd70" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/e2/1e/663284794aedbaeb58939d3df391725de6d3966d4f742f6ff37ae7181a1b/wordcloud-1.9.4-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a70fe8999cd63aec64daa0377b720be6e5ff344963b828caeb4c2a081599a3a0" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/2f/76/971e2689430555fb1a04f148a4888f0b4d20873f19d1e04c02ff1e613b60/wordcloud-1.9.4-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:37dcd5500cc2ea02950739390e89e2efa6624c2f54b5e2df1ee961fce685b2d7" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/76/40/eb530e49348f8acac2351843f886f74ea6f17e99c349aad6d583029d60f7/wordcloud-1.9.4-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:f5cc5c902dc2492b9fc0e29a1f5c688422d7e6eb9e5c0e43f0331d1c8e1341ba" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/c5/56/ac3d6bab585ac2a9fc7d3aec4f25832188ad1d7d81815dbca9e7017709e6/wordcloud-1.9.4-cp310-cp310-win32.whl", hash = "sha256:c20fbb51af2046c940b4fead4bafffc30b4191f5fb477c3af844446d8956bfd4" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/79/59/7a85f2be948999e16b88574cc8341524a4042b4544d1904b08a652f7f415/wordcloud-1.9.4-cp310-cp310-win_amd64.whl", hash = "sha256:61a153e76d73c72f5cc6c89ee80ddad70758a207c3c6b1d86be8635ec70164f1" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/32/07/3d355f71fb32f9d780d0099ece83dd10f0b9b71a9359cd468f3c25c52bfc/wordcloud-1.9.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:af168eeaed67a675f35b5668a7804c4d64f8e4f62a273b909eb5cc39efc4c294" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/fa/5f/34a0c0be52dc95f96aa1197f03ad5d5c58a9901c74f050d21a3e1b21ebf9/wordcloud-1.9.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:3092bf85cb20158c8b90d78650dc0226985109ac6fe13a0086ac47b9581b62ce" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/ee/d3/67ccdab9d2756f8b30b0669015840cd5fdb5f062a2d621d67f033cf3dd54/wordcloud-1.9.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ddfb852f551681f5e33feb934505e060952b6aa98aaa48c781cdbf101f84e7cc" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/9b/a5/44f374424cceab8db931ea4bf48a78d9969e5fd3e6c47d84d0e2276c0bd6/wordcloud-1.9.4-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:57ad8064a634a4870fcd00a9694c0a7839c6dfbac3d32522c69d5e1e9cbfd911" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/fc/5f/2ab2ce735e4dc8775888ddb2fb12c91d2a4208cffb5861a49b3191da74e9/wordcloud-1.9.4-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:ea14858973ad8561a20a5475eb8d7ad33622bc5f27c60206fbb3e10a036cee26" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/94/3e/54fc6d268dc6404d878b2e49a587b6f92440d08cb5d6bb6b8f1b575efef3/wordcloud-1.9.4-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:b27759f12dd235468ff8c1df875b106b23dbf2c74aae05cdcdc3ccd8e23ea89c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/28/a7/ca3e02c86080332c3af55c581ba0a79c4c25b12bc49fcd2bbbbeeec7a490/wordcloud-1.9.4-cp311-cp311-win32.whl", hash = "sha256:0ac3d87627022fb8cce17297298be96c91185edd55ecf8906f89f981b55974f0" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/00/09/abb305dce85911b8fba382926cfc57f2f257729e25937fdcc63f3a1a67f9/wordcloud-1.9.4-cp311-cp311-win_amd64.whl", hash = "sha256:85368249df056527f1b64e80e68636abb61f0f6bd2d1c430894d2af1feea7f73" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/3d/5d/b51a970694ca5feda24cec7dbd37a63bcecd3e5735386840b0ed883bd3df/wordcloud-1.9.4-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:3910494ce5acb27731fd5678d146e8aa8f588d5fdb455810c817ff4b84ee0f67" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/c4/07/1a82829127bbf4f9d46de5c6009b7c095a450fa8f0fb466f788a62eeae11/wordcloud-1.9.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1b1c29a0089ee90778700cc96305fa830a6a5bbb342eaaa59d6ac8d37a9b232f" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/af/ad/9ec4ded660b95c265ec4de2688ac1d0940bb06e609193c200853ba0e7db6/wordcloud-1.9.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f369ae7bef16341c2bb208e658d5e4c56517046eb6176f89ac95525eaf8ace09" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/49/ef/a9aad2400d5f68fca8efd6b75fb5067b7c91abcf9f9cfd5cc4cd3dc955ba/wordcloud-1.9.4-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9ec6ffba61ca20123e7c09103a5692bbc3163f75ee0bdc7893e80e0e2786ccd2" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d1/b0/320b69ad1976a351649e778ccc1d899791010661736179614434f5229cdf/wordcloud-1.9.4-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:cdc4aac2bcce77fd91dbfe91db5a8c0cdc239e10d8954356d2ebf79a3b43646c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/7d/db/c9c3f2d6e1af3f8b2488da4d14d731ecaf8ba990bdaed1d0f9e3f9c6aa5e/wordcloud-1.9.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e4942fbed48a88a0c42c5b0a057651fc09d26b31be8b6c069adaaa5051836040" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/b3/be/307b2ba29f9502ea2fa5f8553d1674f0b811cc97f6d4f88a5ef374f91a75/wordcloud-1.9.4-cp312-cp312-win32.whl", hash = "sha256:96b801fe4b2aa39bb6c5e68b4a74c81fd8996dd5fb5cea31fda518dc5f77ad82" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/b9/74/6a15f68f59bc90032bfcf62eca796a5675be95e1aaf84f7861e1bfcfa8e5/wordcloud-1.9.4-cp312-cp312-win_amd64.whl", hash = "sha256:360977705d0808a1795fcbe98afb5dc4833cb4bb8e421cbb10e93ef0bce816ff" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/12/63/b9ae330ea5ce8cb1fd363290e39acd3440d66a111e22a388c71327dbfdd7/wordcloud-1.9.4-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:88c4c99f43b13df0e812fac0e4680cca2afd3ce16ade506812127ed7c7b9d132" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d2/81/f09fb4cd8a24abec8bbc86465dfaecea9f5f30dfe0936816fe7c0199b965/wordcloud-1.9.4-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:2367ec70b2f195c278f91caf4674871ee9218eb57250e01a02b986d34e55f88e" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/1a/f0/81624a86d570e2c72336b139be19923eeb35db584a5409fa0bb7077de506/wordcloud-1.9.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d6104a52936886dbc785844ab6986b5321a312238abb242ee4062c7b3fdcca7c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/9e/1d/dab7bfdd2fe4878b2bc36212ceab7392742278fd5970d281680fbbfebc95/wordcloud-1.9.4-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:81bbe75b2725730bf5cbabfe86a5c38960e7ce1166f76ba7001964d8de50b3a7" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/db/9b/27cd55561c615057931df10c399ab7976d89a79134f3e6a895c4fde33e0b/wordcloud-1.9.4-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:a936b8e03c32cc84c99ad8f1bdaf261dfef6c44d31ca5b0c7d0df147220dbb3c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/9f/9e/8d3cade7d9f18a8e406e3e9d701e721d1e41d1ac15bf292e71c817545a59/wordcloud-1.9.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:046300566df97b48640bd3efd94957a56941ada98cc23f811bc3f9b6a0ac1350" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/1d/d8/bdaf902471c3f0cc3538c8183cdd0ac61624c9552e5414d8d78ddedb6ce8/wordcloud-1.9.4-cp313-cp313-win32.whl", hash = "sha256:22357990a01d87579dbd38a06c2a5c7b601179c4e17517b1b8f73d25faa6a5ed" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/84/47/d482f7d2decc6e59e69e105b12c53d6d2967f0d703e664484c5f2f87fca8/wordcloud-1.9.4-cp313-cp313-win_amd64.whl", hash = "sha256:8c9a5af2fbcf029a19e827adbee58e86efe7536dca7a42380a8601113a86069b" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/63/6b/886a158a7ccc9c4c0a5ff2f3d45623b66da1af73c75584bc25113dff5e36/wordcloud-1.9.4-pp310-pypy310_pp73-macosx_10_15_x86_64.whl", hash = "sha256:f733cca468eae79af83cdda1de2434f1799cefef461ed892e7679d5a4c929fa1" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/4d/c5/180698e0f0e6bb42b3a173ce47d0474649dfcfa9bd60c902609e5707fde6/wordcloud-1.9.4-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3a99f96efe5983c6eed17abb8766ced713ddf18b26450da74addc91570922e62" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/a2/b9/94ca10d94b6f64ab55a7bacc3d9e30df339a8d3607d1919099d12da12024/wordcloud-1.9.4-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:80773ec6a9caa2048602bc347151e3b6e68e1d8fab148dfd0d2e7d4302ce5c01" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/e6/ed/35af241d0243ed82f5231a4e4dbabfdb421fba2b64fd4bdd66b413ad5c04/wordcloud-1.9.4-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:ca95392bba150190cca8df4a97854b554bdeb28007f28bf4698bd7e1af91b310" },
 ]
 
 [[package]]

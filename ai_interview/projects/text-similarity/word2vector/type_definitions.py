@@ -54,6 +54,17 @@ class CsvRow(TypedDict):
     content: Optional[str]
 
 
+class Hyperparameters(TypedDict):
+    min_freq: int
+    max_freq: int
+    embedding_dim: int
+    batch_size: int
+    learning_rate: float
+    weight_decay: float
+    epochs: int
+    window_size: int
+
+
 def create_category_item(category: str, url: str, news_list: list[NewsItem] | None = None) -> CategoryItem:
     return {
         "category": category,
