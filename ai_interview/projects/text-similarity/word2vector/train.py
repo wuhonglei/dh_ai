@@ -46,21 +46,10 @@ def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch
             loss = model(context_idxs, target_idx)
             total_loss += loss.item()
 
-    if is_enable_distributed():
-        # 同步总损失
-        total_loss_tensor = torch.tensor(total_loss).to(device)
-        dist.all_reduce(total_loss_tensor)
-        global_total_loss = total_loss_tensor.item()
-
-        # 同步全局批次数
-        batch_tensor = torch.tensor(len(val_loader)).to(device)
-        dist.all_reduce(batch_tensor)
-        global_batches = batch_tensor.item()
-
-        # 返回全局平均批次损失
-        return global_total_loss / global_batches
-
     return total_loss / len(val_loader)
+
+
+project = "text-similarity-word2vec_v2"
 
 
 def train():
@@ -70,7 +59,7 @@ def train():
 
     # 只在主进程初始化 wandb
     if is_main_process:
-        wandb.init(config={
+        wandb.init(project=project, config={
             "toml": config.model_dump(),
         })
 
@@ -100,8 +89,9 @@ def train():
     print(f'local_rank {local_rank}, train_dataset_cache', train_dataset_cache)
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
                                                batch_size, train_dataset_cache)
-    val_loader, val_sampler = build_loader(
-        val_csv_dataset, vocab, window_size, batch_size)
+    if is_main_process:
+        val_loader, val_sampler = build_loader(
+            val_csv_dataset, vocab, window_size, batch_size)
 
     model = CBOWModel(vocab_size, embedding_dim, vocab.pad_idx)
     model = model.to(device)
@@ -139,16 +129,15 @@ def train():
             optimizer.step()
             total_loss += loss.item()
 
-            if (i + 1) % batch_len_10 == 0:
-                val_loss = evaluate(model, val_loader, device)
-                if is_main_process:
-                    wandb.log({"val_loss": val_loss})
-
             if is_main_process:  # 只在主进程记录日志
                 batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
                 # 记录每个批次的损失
                 wandb.log({"batch_loss": loss.item()},
                           step=epoch * len(train_loader) + i)
+
+                if (i + 1) % batch_len_10 == 0:
+                    val_loss = evaluate(model, val_loader, device)
+                    wandb.log({"val_loss": val_loss})
 
         scheduler.step()
 
@@ -202,8 +191,12 @@ def main():
                 'window_size': {'values': [2, 5, 8]},
             }
         }
-        sweep_id = wandb.sweep(
-            sweep_config, project="text-similarity-word2vec_v2")
+        use_exist_sweep = True
+        if use_exist_sweep:
+            os.environ['WANDB_PROJECT'] = project
+            sweep_id = '47gmlelw'
+        else:
+            sweep_id = wandb.sweep(sweep_config, project=project)
         wandb.agent(sweep_id, function=train, count=30)
     else:
         train()
