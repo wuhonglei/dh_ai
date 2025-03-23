@@ -15,6 +15,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import wandb
 from typing import Union
 import torch.distributed as dist
+from shutdown import shutdown
 
 
 def save_model(model: CBOWModel, path: str):
@@ -203,6 +204,8 @@ def main():
 
     # 清理分布式进程组
     cleanup_distributed()
+
+    shutdown(10)
 
 
 if __name__ == "__main__":
