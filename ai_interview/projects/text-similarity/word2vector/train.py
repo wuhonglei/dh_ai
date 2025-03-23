@@ -16,6 +16,7 @@ import wandb
 from typing import Union
 import torch.distributed as dist
 from shutdown import shutdown
+import atexit
 
 
 def save_model(model: CBOWModel, path: str):
@@ -169,7 +170,15 @@ def train():
         wandb.finish()
 
 
+def clean_up():
+    shutdown(10)
+    print('start cleanup_distributed in clean_up')
+    cleanup_distributed()
+    print('end cleanup_distributed in clean_up')
+
+
 def main():
+    atexit.register(clean_up)
     if is_enable_distributed():
         local_rank = int(os.environ['LOCAL_RANK'])
         setup_distributed(local_rank)
@@ -204,8 +213,6 @@ def main():
 
     # 清理分布式进程组
     cleanup_distributed()
-
-    shutdown(10)
 
 
 if __name__ == "__main__":
