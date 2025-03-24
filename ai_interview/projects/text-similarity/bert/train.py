@@ -1,3 +1,4 @@
+import os
 from model import SiameseNetwork, compute_loss
 from dataset import NewsDatasetCsv
 from torch.utils.data import DataLoader
@@ -130,7 +131,7 @@ def main():
                     'values': [1e-4, 2e-5, 3e-5]
                 },
                 'weight_decay': {
-                    'values': [1e-4, 1e-5]
+                    'values': [1e-5, 1e-4]
                 },
                 'epochs': {
                     'values': [5, 10, 20]
@@ -140,7 +141,12 @@ def main():
                 }
             }
         }
-        sweep_id = wandb.sweep(sweep_config, project=project)
+        use_exist_sweep = True
+        if use_exist_sweep:
+            os.environ['WANDB_PROJECT'] = project
+            sweep_id = 'pjzlrrs3'
+        else:
+            sweep_id = wandb.sweep(sweep_config, project=project)
         wandb.agent(sweep_id, function=train, count=40)
     else:
         config = {
