@@ -16,3 +16,4 @@
 /bert/database/
 /bert/cache/
 /bert/checkpoint/
+train.log

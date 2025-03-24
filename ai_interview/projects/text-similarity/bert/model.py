@@ -38,10 +38,10 @@ def compute_loss(output_1: torch.Tensor, output_2: torch.Tensor, temperature: fl
     # 创建标签（对角线位置为正样本）
     labels = torch.arange(logits.shape[0], device=logits.device)
 
-    return F.cross_entropy(logits, labels)
+    # return F.cross_entropy(logits, labels)
 
-    # # 计算对称的loss
-    # loss = (F.cross_entropy(logits, labels) +
-    #         F.cross_entropy(logits.T, labels)) / 2
+    # 计算对称的loss
+    loss = (F.cross_entropy(logits, labels) +
+            F.cross_entropy(logits.T, labels)) / 2
 
-    # return loss
+    return loss

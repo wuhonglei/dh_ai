@@ -92,6 +92,11 @@ def train(_config: dict = {}):
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
     model = SiameseNetwork(bert_name, max_position_embeddings, use_projection)
+    # model_final_name = get_model_final_name(config)
+    # if os.path.exists(model_final_name):
+    #     model.load_state_dict(torch.load(model_final_name))
+    # else:
+    #     print(f"Model {model_final_name} not found, training from scratch")
     model.to(device)
     optimizer = AdamW(model.parameters(), lr=learning_rate,
                       weight_decay=weight_decay)
@@ -128,7 +133,7 @@ def main():
                     'values': [32]
                 },
                 'learning_rate': {
-                    'values': [1e-4, 2e-5, 3e-5]
+                    'values': [1e-5, 3e-5, 1e-4]
                 },
                 'weight_decay': {
                     'values': [1e-5, 1e-4]
@@ -137,24 +142,24 @@ def main():
                     'values': [5, 10, 20]
                 },
                 'use_projection': {
-                    'values': [False, True]
+                    'values': [True]
                 }
             }
         }
-        use_exist_sweep = True
+        use_exist_sweep = False
         if use_exist_sweep:
             os.environ['WANDB_PROJECT'] = project
             sweep_id = 'pjzlrrs3'
         else:
             sweep_id = wandb.sweep(sweep_config, project=project)
-        wandb.agent(sweep_id, function=train, count=40)
+        wandb.agent(sweep_id, function=train, count=9)
     else:
         config = {
-            'batch_size': 64,
-            'learning_rate': 2e-5,
-            'weight_decay': 0.01,
+            'batch_size': 32,
+            'learning_rate': 1e-5,
+            'weight_decay': 1e-5,
             'epochs': 10,
-            'use_projection': False
+            'use_projection': True
         }
         train(config)
 
