@@ -1,4 +1,4 @@
-from model import SiameseNetwork
+from model import SiameseNetwork, compute_loss
 from dataset import NewsDatasetCsv
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
@@ -37,8 +37,9 @@ def train_one_epoch(model: SiameseNetwork, dataloader: DataLoader, optimizer: Ad
         attention_mask1 = batch["attention_mask1"].to(device)
         inputs2 = batch["input_ids2"].to(device)
         attention_mask2 = batch["attention_mask2"].to(device)
-        logits, loss = model(inputs1, attention_mask1,
-                             inputs2, attention_mask2)
+        output_1, output_2 = model.forward_pair(inputs1, attention_mask1,
+                                                inputs2, attention_mask2)
+        loss = compute_loss(output_1, output_2)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -61,8 +62,9 @@ def valid_one_epoch(model: SiameseNetwork, dataloader: DataLoader, device: torch
         attention_mask2 = batch["attention_mask2"].to(device)
 
         with torch.no_grad():
-            logits, loss = model(inputs1, attention_mask1,
-                                 inputs2, attention_mask2)
+            output_1, output_2 = model.forward_pair(inputs1, attention_mask1,
+                                                    inputs2, attention_mask2)
+            loss = compute_loss(output_1, output_2)
         total_loss += loss.item()
     return total_loss / len(dataloader)
 
