@@ -91,9 +91,14 @@ def check_cbow_dataset_cache():
     for file in os.listdir('./cache/'):
         if file.endswith('.pkl') and file.startswith('train_dataset_'):
             files.append(file)
-
+    error_files = [
+        './cache/train_dataset_cache_350_105190_8.pkl'
+    ]
     for file in tqdm(files, desc="检查 CBOW 数据集缓存"):
         cache_path = os.path.join('./cache/', file)
+        if cache_path not in error_files:
+            continue
+
         filename = cache_path.split('.')[-2]
         window_size = int(filename.split('_')[-1])
         cbow_dataset = CBOWDataset(
