@@ -1,4 +1,3 @@
-from numpy import dtype
 from vocab import Vocab
 from dataset import NewsDatasetCsv, NewsItem
 from torch.utils.data import DataLoader
@@ -10,16 +9,15 @@ from vectory import Vector
 import time
 from db import MilvusDB
 from type_definitions import DataItem
-from transformers import BertTokenizer, BertModel
 from model import SiameseNetwork
 import torch
 
 
 def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
     data_items: List[DataItem] = []
-    for item in batch:
-        sentence = item['content']
-        content_embedding = vector.get_embedding(sentence)
+    content_list = [item['content'] for item in batch]
+    content_embeddings = vector.get_embeddings(content_list)
+    for item, content_embedding in zip(batch, content_embeddings):
         data_items.append(
             DataItem(index=item['index'], content_embedding=content_embedding))
     return data_items

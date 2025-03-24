@@ -15,3 +15,10 @@ class Vector:
             input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))  # type: ignore
         embedding_numpy = content_embedding.detach().cpu().numpy().astype('float32')
         return embedding_numpy.tolist()[0]
+
+    def get_embeddings(self, sentences: list[str]) -> list[list[float]]:
+        inputs = self.vocab.batch_encoder(sentences)
+        content_embeddings = self.model(
+            input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))  # type: ignore
+        embedding_numpy = content_embeddings.detach().cpu().numpy().astype('float32')
+        return embedding_numpy.tolist()
