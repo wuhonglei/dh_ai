@@ -33,7 +33,7 @@ def build_dataloader(csv_path: str, batch_size: int, vocab: Vocab, shuffle: bool
 def train_one_epoch(model: SiameseNetwork, dataloader: DataLoader, optimizer: AdamW, scheduler: CosineAnnealingLR, device: torch.device) -> float:
     model.train()
     total_loss = 0
-    for batch in dataloader:
+    for batch in tqdm(dataloader, desc="Training"):
         inputs1 = batch["input_ids1"].to(device)
         attention_mask1 = batch["attention_mask1"].to(device)
         inputs2 = batch["input_ids2"].to(device)
