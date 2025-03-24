@@ -11,7 +11,7 @@ class Vector:
 
     def get_embedding(self, sentence: str) -> list[float]:
         inputs = self.vocab.tokenize(sentence)
-        content_embedding = self.model.encode(
+        content_embedding = self.model(
             input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))  # type: ignore
         embedding_numpy = content_embedding.detach().cpu().numpy().astype('float32')
         return embedding_numpy.tolist()[0]

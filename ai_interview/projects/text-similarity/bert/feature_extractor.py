@@ -11,7 +11,8 @@ import time
 from db import MilvusDB
 from type_definitions import DataItem
 from transformers import BertTokenizer, BertModel
-from model import EmbeddingModel
+from model import SiameseNetwork
+import torch
 
 
 def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
@@ -32,7 +33,10 @@ def main():
 
     vocab = Vocab(bert_name, max_length=max_length)
     device = get_device()
-    model = EmbeddingModel(bert_name, max_position_embeddings=max_length)
+    model = SiameseNetwork(bert_name, max_position_embeddings=max_length,
+                           use_projection=VOCAB_CONFIG.use_projection)
+    model.load_state_dict(torch.load(
+        CACHE_CONFIG.val_cbow_model_cache_path, map_location=device))
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)

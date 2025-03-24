@@ -1,6 +1,6 @@
 import time
 from vocab import Vocab
-from model import EmbeddingModel
+from model import SiameseNetwork
 from db import MilvusDB
 import pandas as pd
 from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig, VocabConfig, VOCAB_CONFIG
@@ -69,12 +69,13 @@ if __name__ == "__main__":
     max_length = VOCAB_CONFIG.max_length
     embedding_dim = VOCAB_CONFIG.embedding_dim
     val_csv_path = DATASET_CONFIG.val_csv_path
+    use_projection = VOCAB_CONFIG.use_projection
 
     vocab = Vocab(bert_name, max_length)
     device = get_device()
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(val_csv_path)
-    model = EmbeddingModel(bert_name, max_length)
+    model = SiameseNetwork(bert_name, max_length, use_projection)
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)

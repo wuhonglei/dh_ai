@@ -1,7 +1,7 @@
 [cache]
 search_history_path = "cache/.search_history"
 val_cbow_dataset_cache_path = "cache/val_cbow_2.pkl"
-val_cbow_model_cache_path = "cache/val_cbow_2_model.pth"
+val_cbow_model_cache_path = "cache/batch_size32-epochs10-lr3e-05-wd1e-05-projectionTrue_final.pth"
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_2.pth"
 
 [dataset]
@@ -9,7 +9,7 @@ train_csv_path = "data/test_1000.csv"
 val_csv_path = "data/val_1000.csv"
 
 [milvus]
-version = "milvus.bert.v9"
+version = "milvus.bert.v9_1"
 metric_type = "COSINE"
 embedding_name = "content_embedding"
 
@@ -18,9 +18,15 @@ db_name = "database/milvus_bert_v9.db"
 collection_name = "bert_title_content_collection_v9"
 description = "content embedding use bert"
 
+[milvus.bert.v9_1]
+db_name = "database/milvus_bert_v9_1.db"
+collection_name = "bert_title_content_collection_v9_1"
+description = "content embedding use bert + siamese 孪生网络"
+
 [vocab]
 max_length = 512
 embedding_dim = 768
+use_projection = true
 bert_name = "bert-base-chinese"
 vocab_path = "data/vocab_val.txt"
 
@@ -28,4 +34,4 @@ vocab_path = "data/vocab_val.txt"
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bert.v9.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bert.v9_1.csv"

@@ -19,6 +19,7 @@ class VocabConfig(BaseModel):
     vocab_path: str
     embedding_dim: int
     max_length: int
+    use_projection: bool
 
 
 class MilvusConfig(BaseModel):

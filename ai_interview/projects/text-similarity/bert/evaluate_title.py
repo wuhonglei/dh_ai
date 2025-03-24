@@ -7,7 +7,8 @@ from vocab import Vocab
 from db import MilvusDB
 from vectory import Vector
 from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, MilvusConfig, MILVUS_CONFIG
-from model import EmbeddingModel
+from model import SiameseNetwork
+import torch
 
 
 class EvaluateTitle:
@@ -77,12 +78,16 @@ if __name__ == "__main__":
     max_length = VOCAB_CONFIG.max_length
     embedding_dim = VOCAB_CONFIG.embedding_dim
     val_csv_path = DATASET_CONFIG.val_csv_path
+    use_projection = VOCAB_CONFIG.use_projection
+    val_cbow_model_cache_path = CACHE_CONFIG.val_cbow_model_cache_path
 
     vocab = Vocab(bert_name, max_length)
     device = get_device()
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(val_csv_path)
-    model = EmbeddingModel(bert_name, max_length)
+    model = SiameseNetwork(bert_name, max_length, use_projection)
+    model.load_state_dict(torch.load(
+        val_cbow_model_cache_path, map_location=device))
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)
