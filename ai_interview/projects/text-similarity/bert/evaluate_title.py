@@ -3,13 +3,14 @@ import enum
 import time
 import pandas as pd
 from search import SearchResult
-from utils.common import load_json_file, write_json_file, get_device, load_model
+from utils.common import get_device
 from type_definitions import EvaluateResult, CategoryItem, EvaluateResultItem, create_evaluate_result_item, DbResult
 from tqdm import tqdm
 from vocab import Vocab
 from db import MilvusDB
 from vectory import Vector
 from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, MilvusConfig, MILVUS_CONFIG
+from model import EmbeddingModel
 
 
 class EvaluateTitle:
@@ -75,14 +76,16 @@ class EvaluateTitle:
 
 
 if __name__ == "__main__":
-    vocab = Vocab()
-    vocab.load_vocab_from_txt()
-    device = get_device()
+    bert_name = VOCAB_CONFIG.bert_name
+    max_length = VOCAB_CONFIG.max_length
     embedding_dim = VOCAB_CONFIG.embedding_dim
+    val_csv_path = DATASET_CONFIG.val_csv_path
+
+    vocab = Vocab(bert_name, max_length)
+    device = get_device()
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
-    df = pd.read_csv(DATASET_CONFIG.val_csv_path)
-    model = load_model(len(vocab), vocab.pad_idx, embedding_dim,
-                       CACHE_CONFIG.val_cbow_model_cache_path)
+    df = pd.read_csv(val_csv_path)
+    model = EmbeddingModel(bert_name, max_length)
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)

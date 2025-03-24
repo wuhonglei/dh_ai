@@ -37,9 +37,9 @@ collection_name = "bow_title_content_collection_v5_3"
 description = "content embedding use CBOW, epoch=15, window_size=5, min_freq=350"
 
 [vocab]
-window_size = 5
-min_freq = 350
-max_freq = 80501
+window_size = 8
+min_freq = 500
+max_freq = 105190
 vocab_path = "data/vocab_val.txt"
 use_stop_words = true
 embedding_dim = 200
