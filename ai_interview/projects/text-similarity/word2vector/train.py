@@ -41,7 +41,6 @@ def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, ba
         shuffle=False if sampler else True,
         sampler=sampler,
         drop_last=True,
-        collate_fn=collate_fn
     )
     return dataloader, sampler
 

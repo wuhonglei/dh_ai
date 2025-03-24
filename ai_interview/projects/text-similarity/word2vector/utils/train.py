@@ -60,6 +60,9 @@ def get_hyperparameters(is_main_process: bool, device: torch.device):
             'epochs': wandb.config.epochs,
             'window_size': wandb.config.window_size,
         }
+        if not is_enable_distributed():
+            return hyperparams
+
         # 将字典转换为tensor
         hyperparam_tensor = torch.tensor([
             hyperparams['min_freq'],
