@@ -1,3 +1,4 @@
+import os
 from torch.utils.data import Dataset
 from dataset import NewsDatasetCsv
 from vocab import Vocab
@@ -69,7 +70,7 @@ class CBOWDataset(Dataset):
         return torch.tensor(context_idxs), torch.tensor(target_idx)
 
 
-if __name__ == "__main__":
+def generate_cbow_dataset_cache():
     min_freq = VOCAB_CONFIG.min_freq
     max_freq = VOCAB_CONFIG.max_freq
     window_size = VOCAB_CONFIG.window_size
@@ -82,3 +83,29 @@ if __name__ == "__main__":
     cbow_dataset = CBOWDataset(dataset, vocab, window_size, cache_path)
     print(len(cbow_dataset))
     print(cbow_dataset[0])
+
+
+def check_cbow_dataset_cache():
+    files = []
+    vocab = Vocab(VOCAB_CONFIG)
+    for file in os.listdir('./cache/'):
+        if file.endswith('.pkl') and file.startswith('train_dataset_'):
+            files.append(file)
+
+    for file in tqdm(files, desc="检查 CBOW 数据集缓存"):
+        cache_path = os.path.join('./cache/', file)
+        filename = cache_path.split('.')[-2]
+        window_size = int(filename.split('_')[-1])
+        cbow_dataset = CBOWDataset(
+            None, vocab, window_size, cache_path)  # type: ignore
+        for i in tqdm(range(len(cbow_dataset)), desc=f"检查 CBOW 数据集缓存 {filename}"):
+            context, target = cbow_dataset[i]
+            if context.size(0) != 2 * window_size:
+                print(f"CBOW 数据集缓存 {file} 第 {i} 个样本的上下文窗口大小不一致")
+            if target is None or not target:
+                print(f"CBOW 数据集缓存 {file} 第 {i} 个样本的 target 为 None")
+
+
+if __name__ == "__main__":
+    # generate_cbow_dataset_cache()
+    check_cbow_dataset_cache()
