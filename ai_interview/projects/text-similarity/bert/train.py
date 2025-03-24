@@ -5,6 +5,8 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from config import DATASET_CONFIG, VOCAB_CONFIG
 from vocab import Vocab
+from type_definitions import WandbConfig
+from utils.model import get_model_final_name
 from tqdm import tqdm
 import torch
 from utils.common import get_device
@@ -70,7 +72,7 @@ project = 'bert-text-similarity'
 
 def train(_config: dict = {}):
     wandb.init(project=project, config={**_config})
-    config = wandb.config
+    config: WandbConfig = wandb.config  # type: ignore
     batch_size = config.batch_size
     epochs = config.epochs
     learning_rate = config.learning_rate
@@ -101,6 +103,9 @@ def train(_config: dict = {}):
         })
         print(
             f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
+
+    model_final_name = get_model_final_name(config)
+    torch.save(model.state_dict(), model_final_name)
 
 
 def main():

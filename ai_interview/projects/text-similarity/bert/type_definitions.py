@@ -3,6 +3,7 @@ from typing import TypedDict, Optional
 from numpy.typing import NDArray
 import numpy as np
 from config import AppConfig
+from dataclasses import dataclass
 
 
 class NewsItem(TypedDict):
@@ -52,6 +53,15 @@ class CsvRow(TypedDict):
     index: int
     title: str
     content: Optional[str]
+
+
+@dataclass
+class WandbConfig:
+    batch_size: int
+    epochs: int
+    learning_rate: float
+    weight_decay: float
+    use_projection: bool
 
 
 def create_category_item(category: str, url: str, news_list: list[NewsItem] | None = None) -> CategoryItem:
