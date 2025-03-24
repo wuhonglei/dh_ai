@@ -1,0 +1,90 @@
+from model import SiameseNetwork
+from dataset import NewsDatasetCsv
+from torch.utils.data import DataLoader
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR
+from config import DATASET_CONFIG, VOCAB_CONFIG
+from vocab import Vocab
+from tqdm import tqdm
+import torch
+from utils.common import get_device
+
+
+def collate_fn(batch: list[dict], vocab: Vocab) -> dict:
+    inputs1 = vocab.batch_encoder([item["title"] for item in batch])
+    inputs2 = vocab.batch_encoder([item["content"] for item in batch])
+    return {
+        "input_ids1": inputs1["input_ids"],
+        "attention_mask1": inputs1["attention_mask"],
+        "input_ids2": inputs2["input_ids"],
+        "attention_mask2": inputs2["attention_mask"]
+    }
+
+
+def build_dataloader(csv_path: str, batch_size: int, vocab: Vocab, shuffle: bool = True) -> DataLoader:
+    dataset = NewsDatasetCsv(csv_path)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=lambda x: collate_fn(x, vocab))
+
+
+def train_one_epoch(model: SiameseNetwork, dataloader: DataLoader, optimizer: AdamW, scheduler: CosineAnnealingLR, device: torch.device) -> float:
+    model.train()
+    total_loss = 0
+    for batch in dataloader:
+        inputs1 = batch["input_ids1"].to(device)
+        attention_mask1 = batch["attention_mask1"].to(device)
+        inputs2 = batch["input_ids2"].to(device)
+        attention_mask2 = batch["attention_mask2"].to(device)
+        logits, loss = model(inputs1, attention_mask1,
+                             inputs2, attention_mask2)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+        total_loss += loss.item()
+
+    return total_loss / len(dataloader)
+
+
+def valid_one_epoch(model: SiameseNetwork, dataloader: DataLoader, device: torch.device) -> float:
+    model.eval()
+    total_loss = 0
+    for batch in dataloader:
+        inputs1 = batch["input_ids1"].to(device)
+        attention_mask1 = batch["attention_mask1"].to(device)
+        inputs2 = batch["input_ids2"].to(device)
+        attention_mask2 = batch["attention_mask2"].to(device)
+
+        with torch.no_grad():
+            logits, loss = model(inputs1, attention_mask1,
+                                 inputs2, attention_mask2)
+        total_loss += loss.item()
+    return total_loss / len(dataloader)
+
+
+def train():
+    bert_name = VOCAB_CONFIG.bert_name
+    max_position_embeddings = VOCAB_CONFIG.max_length
+    vocab = Vocab(bert_name, max_position_embeddings)
+    device = torch.device('cpu')
+    batch_size = 64
+    epochs = 10
+
+    train_dataloader = build_dataloader(
+        DATASET_CONFIG.train_csv_path, batch_size, vocab)
+    val_dataloader = build_dataloader(
+        DATASET_CONFIG.val_csv_path, batch_size, vocab)
+
+    model = SiameseNetwork(bert_name, max_position_embeddings)
+    optimizer = AdamW(model.parameters(), lr=1e-4, weight_decay=0.01)
+    scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
+
+    for epoch in tqdm(range(epochs), desc="Epochs"):
+        train_loss = train_one_epoch(
+            model, train_dataloader, optimizer, scheduler, device)
+        val_loss = valid_one_epoch(model, val_dataloader, device)
+        print(
+            f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
+
+
+if __name__ == '__main__':
+    train()

@@ -1,10 +1,10 @@
 from vocab import Vocab
 import torch
-from model import EmbeddingModel
+from model import SiameseNetwork
 
 
 class Vector:
-    def __init__(self, vocab: Vocab, model: EmbeddingModel, device: torch.device):
+    def __init__(self, vocab: Vocab, model: SiameseNetwork, device: torch.device):
         self.vocab = vocab
         self.model = model
         self.device = device

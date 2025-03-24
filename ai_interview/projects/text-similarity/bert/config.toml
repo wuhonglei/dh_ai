@@ -5,8 +5,8 @@ val_cbow_model_cache_path = "cache/val_cbow_2_model.pth"
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_2.pth"
 
 [dataset]
-val_csv_path = "data/val.csv"
-
+train_csv_path = "data/test_1000.csv"
+val_csv_path = "data/val_1000.csv"
 
 [milvus]
 version = "milvus.bert.v9"

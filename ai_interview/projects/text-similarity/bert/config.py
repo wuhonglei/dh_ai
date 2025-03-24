@@ -10,6 +10,7 @@ class CacheConfig(BaseModel):
 
 
 class DataSetConfig(BaseModel):
+    train_csv_path: str
     val_csv_path: str
 
 
