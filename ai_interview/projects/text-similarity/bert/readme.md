@@ -8,4 +8,5 @@
 
 | 版本 | MRR | 词汇表 | 向量维度 | min_freq | 停用词 | 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
-| milvus.bow.v9 | 0.0059 | `val.csv` | 768 | - | 否 | - |
+| milvus.bow.v9 | 0.0059 | `val.csv` | 768 | - | 否 | 直接使用 bert 模型 last_hidden_state 的 [CLS] 位置的输出 |
+| milvus.bow.v9_1 | 0.2805 | `val.csv` | 768 | - | 否 | 使用 test_1000.csv 训练, 使用 val_1000.csv 评估 |
