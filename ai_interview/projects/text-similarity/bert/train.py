@@ -114,6 +114,7 @@ def train(_config: dict = {}):
             f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
     model_final_name = get_model_final_name(config)
+    print(f"Saving model to {model_final_name}")
     torch.save(model.state_dict(), model_final_name)
 
 
