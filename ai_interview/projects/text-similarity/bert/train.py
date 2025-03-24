@@ -8,6 +8,7 @@ from vocab import Vocab
 from tqdm import tqdm
 import torch
 from utils.common import get_device
+import wandb
 
 
 def collate_fn(batch: list[dict], vocab: Vocab) -> dict:
@@ -40,6 +41,9 @@ def train_one_epoch(model: SiameseNetwork, dataloader: DataLoader, optimizer: Ad
         loss.backward()
         optimizer.step()
         scheduler.step()
+        wandb.log({
+            'batch_loss': loss.item()
+        })
         total_loss += loss.item()
 
     return total_loss / len(dataloader)
@@ -61,13 +65,21 @@ def valid_one_epoch(model: SiameseNetwork, dataloader: DataLoader, device: torch
     return total_loss / len(dataloader)
 
 
-def train():
+project = 'bert-text-similarity'
+
+
+def train(_config: dict = {}):
+    wandb.init(project=project, config={**_config})
+    config = wandb.config
+    batch_size = config.batch_size
+    epochs = config.epochs
+    learning_rate = config.learning_rate
+    weight_decay = config.weight_decay
+
     bert_name = VOCAB_CONFIG.bert_name
     max_position_embeddings = VOCAB_CONFIG.max_length
     vocab = Vocab(bert_name, max_position_embeddings)
     device = torch.device('cpu')
-    batch_size = 64
-    epochs = 10
 
     train_dataloader = build_dataloader(
         DATASET_CONFIG.train_csv_path, batch_size, vocab)
@@ -75,16 +87,59 @@ def train():
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
     model = SiameseNetwork(bert_name, max_position_embeddings)
-    optimizer = AdamW(model.parameters(), lr=1e-4, weight_decay=0.01)
+    optimizer = AdamW(model.parameters(), lr=learning_rate,
+                      weight_decay=weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
     for epoch in tqdm(range(epochs), desc="Epochs"):
         train_loss = train_one_epoch(
             model, train_dataloader, optimizer, scheduler, device)
         val_loss = valid_one_epoch(model, val_dataloader, device)
+        wandb.log({
+            'train_loss': train_loss,
+            'val_loss': val_loss
+        })
         print(
             f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
 
+def main():
+    use_sweep = True
+
+    if use_sweep:
+        print('use sweep')
+        sweep_config = {
+            'method': 'bayes',
+            'metric': {
+                'name': 'val_loss',
+                'goal': 'minimize'
+            },
+            'parameters': {
+                'batch_size': {
+                    'values': [64, 128, 256]
+                },
+                'learning_rate': {
+                    'values': [1e-4, 2e-5, 3e-5]
+                },
+                'weight_decay': {
+                    'values': [0.01, 0.001, 0.0001]
+                },
+                'epochs': {
+                    'values': [5, 10, 20]
+                },
+            }
+        }
+        sweep_id = wandb.sweep(sweep_config, project=project)
+        wandb.agent(sweep_id, function=train)
+    else:
+        config = {
+            'batch_size': 64,
+            'learning_rate': 2e-5,
+            'weight_decay': 0.01,
+            'epochs': 10
+        }
+        train(config)
+
+
 if __name__ == '__main__':
-    train()
+    main()
