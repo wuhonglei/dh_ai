@@ -13,6 +13,16 @@ class CBOWModel(nn.Module):
             vocab_size, embedding_dim, padding_idx=pad_idx)
         self.linear = nn.Linear(embedding_dim, vocab_size)
 
+        # 初始化 embedding 层
+        nn.init.xavier_uniform_(self.embedding.weight)
+        # padding_idx 位置的嵌入向量设置为0
+        with torch.no_grad():
+            self.embedding.weight[pad_idx].fill_(0)
+
+        # 初始化线性层
+        nn.init.xavier_uniform_(self.linear.weight)
+        nn.init.zeros_(self.linear.bias)
+
     def encode(self, context_idxs: Annotated[Tensor, "batch_size, context_size"]) -> Annotated[Tensor, "batch_size, embedding_dim"]:
         # [batch_size, context_size, embedding_dim]
         embeds = self.embedding(context_idxs)

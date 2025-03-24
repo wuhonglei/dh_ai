@@ -92,10 +92,14 @@ def train():
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
                                                batch_size, train_dataset_cache)
     if is_main_process:
+        test_dataset_cache = CACHE_CONFIG.test_cbow_dataset_cache_path
         val_loader, val_sampler = build_loader(
-            val_csv_dataset, vocab, window_size, batch_size)
+            val_csv_dataset, vocab, window_size, batch_size, test_dataset_cache)
 
     model = CBOWModel(vocab_size, embedding_dim, vocab.pad_idx)
+    if os.path.exists(get_checkpoint_path_final(hyperparams)):
+        model.load_state_dict(torch.load(
+            get_checkpoint_path_final(hyperparams), map_location=device))
     model = model.to(device)
 
     origin_model = model
@@ -178,7 +182,7 @@ def clean_up():
 
 
 def main():
-    atexit.register(clean_up)
+    # atexit.register(clean_up)
     if is_enable_distributed():
         local_rank = int(os.environ['LOCAL_RANK'])
         setup_distributed(local_rank)
@@ -197,23 +201,22 @@ def main():
                 'batch_size': {'values': [256, 512, 1024, 12800]},
                 'learning_rate': {'values': [1e-3, 3e-3, 1e-2]},
                 'weight_decay': {'values': [1e-4, 1e-3]},
-                'epochs': {'values': [5, 10]},
+                'epochs': {'values': [5, 10, 15]},
                 'window_size': {'values': [2, 5, 8]},
             }
         }
-        use_exist_sweep = True
+        use_exist_sweep = False
         if use_exist_sweep:
             os.environ['WANDB_PROJECT'] = project
             sweep_id = '47gmlelw'
         else:
             sweep_id = wandb.sweep(sweep_config, project=project)
-        wandb.agent(sweep_id, function=train, count=30)
+        wandb.agent(sweep_id, function=train)  # 不指明 count
     else:
         train()
-
-    # 清理分布式进程组
-    cleanup_distributed()
 
 
 if __name__ == "__main__":
     main()
+    # 清理分布式进程组
+    cleanup_distributed()

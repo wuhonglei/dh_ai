@@ -8,6 +8,7 @@ class CacheConfig(BaseModel):
     val_cbow_dataset_cache_path: str
     val_cbow_model_cache_path: str
     val_cbow_model_checkpoint_path: str
+    test_cbow_dataset_cache_path: str
 
 
 class DataSetConfig(BaseModel):
