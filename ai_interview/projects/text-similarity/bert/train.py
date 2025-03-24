@@ -147,10 +147,10 @@ def main():
                 }
             }
         }
-        use_exist_sweep = False
+        use_exist_sweep = True
         if use_exist_sweep:
             os.environ['WANDB_PROJECT'] = project
-            sweep_id = 'pjzlrrs3'
+            sweep_id = 'tiszx0ei'
         else:
             sweep_id = wandb.sweep(sweep_config, project=project)
         wandb.agent(sweep_id, function=train, count=9)
