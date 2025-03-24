@@ -14,12 +14,10 @@ class DataSetConfig(BaseModel):
 
 
 class VocabConfig(BaseModel):
-    min_freq: int
+    bert_name: str
     vocab_path: str
-    use_stop_words: bool
     embedding_dim: int
-    window_size: int
-    stop_words_paths: list[str]
+    max_length: int
 
 
 class MilvusConfig(BaseModel):

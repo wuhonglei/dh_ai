@@ -11,6 +11,7 @@ import time
 from db import MilvusDB
 from type_definitions import DataItem
 from transformers import BertTokenizer, BertModel
+from model import EmbeddingModel
 
 
 def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
@@ -25,12 +26,15 @@ def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
 
 def main():
     init_dir()
-    vocab = Vocab()
-    device = get_device()
-    model = BertModel.from_pretrained('bert-base-chinese')
-    model.to(device)  # type: ignore
-    model.eval()
+    bert_name = VOCAB_CONFIG.bert_name
     embedding_dim = VOCAB_CONFIG.embedding_dim
+    max_length = VOCAB_CONFIG.max_length
+
+    vocab = Vocab(bert_name, max_length=max_length)
+    device = get_device()
+    model = EmbeddingModel(bert_name, max_position_embeddings=max_length)
+    model.to(device)
+    model.eval()
     vector = Vector(vocab, model, device)
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=False,

@@ -1,11 +1,12 @@
 import time
 from vocab import Vocab
+from model import EmbeddingModel
 from db import MilvusDB
 import pandas as pd
 from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig, VocabConfig, VOCAB_CONFIG
 from utils.common import setup_readline, get_input, timer_decorator, load_json_file
 from type_definitions import CsvRow, DbResultWithContent, DbResult
-from utils.common import get_device, load_model
+from utils.common import get_device
 from config import CACHE_CONFIG
 from vectory import Vector
 
@@ -64,14 +65,16 @@ class SearchResult:
 
 
 if __name__ == "__main__":
-    vocab = Vocab()
-    vocab.load_vocab_from_txt()
-    device = get_device()
+    bert_name = VOCAB_CONFIG.bert_name
+    max_length = VOCAB_CONFIG.max_length
     embedding_dim = VOCAB_CONFIG.embedding_dim
+    val_csv_path = DATASET_CONFIG.val_csv_path
+
+    vocab = Vocab(bert_name, max_length)
+    device = get_device()
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
-    df = pd.read_csv(DATASET_CONFIG.val_csv_path)
-    model = load_model(len(vocab), vocab.pad_idx, embedding_dim,
-                       CACHE_CONFIG.val_cbow_model_cache_path)
+    df = pd.read_csv(val_csv_path)
+    model = EmbeddingModel(bert_name, max_length)
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)
