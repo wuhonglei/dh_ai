@@ -5,7 +5,7 @@ from utils.train import is_enable_distributed, setup_distributed, cleanup_distri
 from cbow_dataset import CBOWDataset
 from vocab import Vocab
 from dataset import NewsDatasetCsv
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, default_collate
 import torch.optim as optim
 from tqdm import tqdm
 import torch
@@ -26,7 +26,7 @@ def save_model(model: CBOWModel, path: str):
 def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]):
     print('batch_len', len(batch))
     print('batch[0]', batch[0][0].shape, batch[0][1].shape)
-    return torch.stack(batch)
+    return default_collate(batch)
 
 
 def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, batch_size: int, cache_path: str = ''):
@@ -40,7 +40,7 @@ def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, ba
         batch_size=batch_size,
         shuffle=False if sampler else True,
         sampler=sampler,
-        drop_last=True,
+        # collate_fn=collate_fn
     )
     return dataloader, sampler
 
@@ -99,10 +99,9 @@ def train():
     train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
                                                batch_size, train_dataset_cache)
     if is_main_process:
-        test_dataset_cache = CACHE_CONFIG.test_cbow_dataset_cache_path
-        val_batch_size = len(val_csv_dataset)
+        val_batch_size = 32
         val_loader, val_sampler = build_loader(
-            val_csv_dataset, vocab, window_size, val_batch_size, test_dataset_cache)
+            val_csv_dataset, vocab, window_size, val_batch_size)
 
     if is_enable_distributed():
         dist.barrier()
