@@ -12,6 +12,7 @@ class DataSetConfig(BaseModel):
 
 class VocabConfig(BaseModel):
     min_freq: int
+    max_freq: int
     vocab_path: str
     word_counts_path: str
     word_idf_path: str

@@ -37,7 +37,7 @@ class Vector:
         return embeddings / l2
 
     def vectorize_text(self, text: str, use_idf: bool = True) -> NDArray[np.float16]:
-        words = self.vocab.tokenize(text, use_stop_words=True)
+        words = self.vocab.tokenize(text, filter_word=True)
         indices = self.vocab.batch_encoder(words)
         tf_embeddings = self.indices_to_tf_embeddings(indices)
         if use_idf:

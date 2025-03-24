@@ -17,9 +17,14 @@ class Vocab:
         self.vocab_config = vocab_config or VOCAB_CONFIG
         self.counter: Counter = Counter()
         self.word_to_index, self.index_to_word = self.initialize_word_and_index()
-        self.stop_words = self.load_stop_words()
         self.word_to_idf: Dict[str, float] = {}
         self.idf_embedding: nn.Embedding | None = None
+        # 将列表改为集合，提高查找效率
+        self.low_freq_words: set[str] = set()
+        self.high_freq_words: set[str] = set()
+        # 创建一个过滤词集合，包含所有需要过滤的词
+        self.ignored_words: set[str] = set()
+        self.stop_words = self.load_stop_words()
 
     def initialize_word_and_index(self):
         special_tokens = ['<unk>', '<pad>']
@@ -38,45 +43,61 @@ class Vocab:
             item = dataset[i]
             # 这里构建的是原始词汇表，所以不使用停用词
             self.counter.update(self.tokenize(
-                item['title'], use_stop_words=False))
+                item['title'], filter_word=False))
             self.counter.update(self.tokenize(
-                item['content'], use_stop_words=True))
+                item['content'], filter_word=True))
         return self.counter
 
-    def tokenize(self, text: str, use_stop_words: bool = True) -> List[str]:
+    def tokenize(self, text: str, filter_word: bool = True) -> List[str]:
         token_list = jieba.lcut(text)
-        if not use_stop_words or not self.stop_words:
+        if not filter_word:
             return token_list
 
-        return [word for word in token_list if word not in self.stop_words]
+        filtered_token_list = []
+        for token in token_list:
+            # 使用单次查找替代多次查找
+            if token in self.ignored_words:
+                continue
+            filtered_token_list.append(token)
+        return filtered_token_list
 
-    def load_stop_words(self):
+    def load_stop_words(self) -> set[str]:  # 返回类型改为 set
         if not self.vocab_config.use_stop_words:
-            return []
-        stop_words = set()
+            return set()
+        stop_words: set[str] = set()
         for path in self.vocab_config.stop_words_paths:
             stop_words.update(load_txt_file(path))
-        return list(stop_words)
+        self.ignored_words.update(stop_words)  # 更新过滤词集合
+        return stop_words
 
     def invalid_word(self, word: str) -> bool:
         return re.match(r'^[\w\s]+$', word) is None
 
     def load_vocab_from_txt(self):
+        total_words = 0
         with open(self.vocab_config.vocab_path, 'r') as f:
             for line in f:
                 if line.strip() == '':
                     continue
 
                 word, freq = line.rsplit(' ', 1)  # 避免空格词汇被错误分割
+                total_words += 1
                 if word in self.stop_words:
+                    continue
+
+                if self.vocab_config.max_freq and int(freq) >= self.vocab_config.max_freq:
+                    self.high_freq_words.add(word)
+                    self.ignored_words.add(word)
                     continue
 
                 if int(freq) >= self.vocab_config.min_freq:
                     self.word_to_index[word] = len(self.word_to_index)
                     self.index_to_word.append(word)
                 else:
-                    break
-
+                    self.low_freq_words.add(word)
+                    self.ignored_words.add(word)
+        print(
+            f"Total words: {total_words}, Used words: {len(self.index_to_word)}, low freq words: {len(self.low_freq_words)}, high freq words: {len(self.high_freq_words)}")
         self.vocab = set(self.index_to_word)
 
     def __len__(self):
@@ -108,7 +129,7 @@ class Vocab:
                         desc="Building word doc counts")
         for i in progress:
             content = dataset[i]['content']
-            words = set(self.tokenize(content, use_stop_words=False))
+            words = set(self.tokenize(content, filter_word=False))
             for word in words:
                 word_doc_counts[word] += 1
         return word_doc_counts
