@@ -23,6 +23,12 @@ def save_model(model: CBOWModel, path: str):
     torch.save(model.state_dict(), path)
 
 
+def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]):
+    print('batch_len', len(batch))
+    print('batch[0]', batch[0][0].shape, batch[0][1].shape)
+    return torch.stack(batch)
+
+
 def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, batch_size: int, cache_path: str = ''):
     dataset = CBOWDataset(csv_dataset, vocab, window_size, cache_path)
 
@@ -34,6 +40,8 @@ def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, ba
         batch_size=batch_size,
         shuffle=False if sampler else True,
         sampler=sampler,
+        drop_last=True,
+        collate_fn=collate_fn
     )
     return dataloader, sampler
 
@@ -93,8 +101,12 @@ def train():
                                                batch_size, train_dataset_cache)
     if is_main_process:
         test_dataset_cache = CACHE_CONFIG.test_cbow_dataset_cache_path
+        val_batch_size = len(val_csv_dataset)
         val_loader, val_sampler = build_loader(
-            val_csv_dataset, vocab, window_size, batch_size, test_dataset_cache)
+            val_csv_dataset, vocab, window_size, val_batch_size, test_dataset_cache)
+
+    if is_enable_distributed():
+        dist.barrier()
 
     model = CBOWModel(vocab_size, embedding_dim, vocab.pad_idx)
     if os.path.exists(get_checkpoint_path_final(hyperparams)):
@@ -205,10 +217,10 @@ def main():
                 'window_size': {'values': [2, 5, 8]},
             }
         }
-        use_exist_sweep = False
+        use_exist_sweep = True
         if use_exist_sweep:
             os.environ['WANDB_PROJECT'] = project
-            sweep_id = '47gmlelw'
+            sweep_id = 't4t1cue8'
         else:
             sweep_id = wandb.sweep(sweep_config, project=project)
         wandb.agent(sweep_id, function=train)  # 不指明 count
