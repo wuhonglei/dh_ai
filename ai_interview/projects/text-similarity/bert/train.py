@@ -81,7 +81,7 @@ def train(_config: dict = {}):
     bert_name = VOCAB_CONFIG.bert_name
     max_position_embeddings = VOCAB_CONFIG.max_length
     vocab = Vocab(bert_name, max_position_embeddings)
-    device = torch.device('cpu')
+    device = get_device()
 
     train_dataloader = build_dataloader(
         DATASET_CONFIG.train_csv_path, batch_size, vocab)
@@ -89,6 +89,7 @@ def train(_config: dict = {}):
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
     model = SiameseNetwork(bert_name, max_position_embeddings, use_projection)
+    model.to(device)
     optimizer = AdamW(model.parameters(), lr=learning_rate,
                       weight_decay=weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
@@ -121,7 +122,7 @@ def main():
             },
             'parameters': {
                 'batch_size': {
-                    'values': [64, 128, 256]
+                    'values': [32]
                 },
                 'learning_rate': {
                     'values': [1e-4, 2e-5, 3e-5]
