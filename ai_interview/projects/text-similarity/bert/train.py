@@ -75,7 +75,7 @@ def train(_config: dict = {}):
     epochs = config.epochs
     learning_rate = config.learning_rate
     weight_decay = config.weight_decay
-
+    use_projection = config.use_projection
     bert_name = VOCAB_CONFIG.bert_name
     max_position_embeddings = VOCAB_CONFIG.max_length
     vocab = Vocab(bert_name, max_position_embeddings)
@@ -86,7 +86,7 @@ def train(_config: dict = {}):
     val_dataloader = build_dataloader(
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
-    model = SiameseNetwork(bert_name, max_position_embeddings)
+    model = SiameseNetwork(bert_name, max_position_embeddings, use_projection)
     optimizer = AdamW(model.parameters(), lr=learning_rate,
                       weight_decay=weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
@@ -122,21 +122,25 @@ def main():
                     'values': [1e-4, 2e-5, 3e-5]
                 },
                 'weight_decay': {
-                    'values': [0.01, 0.001, 0.0001]
+                    'values': [1e-4, 1e-5]
                 },
                 'epochs': {
                     'values': [5, 10, 20]
                 },
+                'use_projection': {
+                    'values': [False, True]
+                }
             }
         }
         sweep_id = wandb.sweep(sweep_config, project=project)
-        wandb.agent(sweep_id, function=train)
+        wandb.agent(sweep_id, function=train, count=40)
     else:
         config = {
             'batch_size': 64,
             'learning_rate': 2e-5,
             'weight_decay': 0.01,
-            'epochs': 10
+            'epochs': 10,
+            'use_projection': False
         }
         train(config)
 
