@@ -5,11 +5,11 @@ val_cbow_model_cache_path = "cache/batch_size32-epochs10-lr3e-05-wd1e-05-project
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_2.pth"
 
 [dataset]
-train_csv_path = "data/val.csv"
+train_csv_path = "data/val_10000.csv"
 val_csv_path = "data/test_1000.csv"
 
 [milvus]
-version = "milvus.bert.v9_1"
+version = "milvus.bert.v9_3"
 metric_type = "COSINE"
 embedding_name = "content_embedding"
 
@@ -28,6 +28,11 @@ db_name = "database/milvus_bert_v9_2.db"
 collection_name = "bert_title_content_collection_v9_2"
 description = "content embedding use bert + siamese 孪生网络 + 对称loss + 大训练集"
 
+[milvus.bert.v9_3]
+db_name = "database/milvus_bert_v9_3.db"
+collection_name = "bert_title_content_collection_v9_3"
+description = "content embedding use bert + siamese 孪生网络 + 对称loss + val_10000.csv 训练集"
+
 [vocab]
 max_length = 512
 embedding_dim = 768
@@ -39,4 +44,4 @@ vocab_path = "data/vocab_val.txt"
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bert.v9_1.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bert.v9_3.csv"

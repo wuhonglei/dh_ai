@@ -92,7 +92,8 @@ def train(_config: dict = {}):
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
     model = SiameseNetwork(bert_name, max_position_embeddings, use_projection)
-    # model_final_name = get_model_final_name(config)
+    model_final_name = get_model_final_name(config)
+    print(f"model will save to {model_final_name}")
     # if os.path.exists(model_final_name):
     #     model.load_state_dict(torch.load(model_final_name))
     # else:
@@ -102,10 +103,15 @@ def train(_config: dict = {}):
                       weight_decay=weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
 
+    best_val_loss = float('inf')
     for epoch in tqdm(range(epochs), desc="Epochs"):
         train_loss = train_one_epoch(
             model, train_dataloader, optimizer, scheduler, device)
         val_loss = valid_one_epoch(model, val_dataloader, device)
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), model_final_name.replace(
+                '_final.pth', f'_best_val_loss_epoch.pth'))
         wandb.log({
             'train_loss': train_loss,
             'val_loss': val_loss
@@ -113,13 +119,11 @@ def train(_config: dict = {}):
         print(
             f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
-    model_final_name = get_model_final_name(config)
-    print(f"Saving model to {model_final_name}")
     torch.save(model.state_dict(), model_final_name)
 
 
 def main():
-    use_sweep = True
+    use_sweep = False
 
     if use_sweep:
         print('use sweep')
@@ -156,7 +160,7 @@ def main():
         wandb.agent(sweep_id, function=train, count=9)
     else:
         config = {
-            'batch_size': 32,
+            'batch_size': 64,
             'learning_rate': 1e-5,
             'weight_decay': 1e-5,
             'epochs': 10,
