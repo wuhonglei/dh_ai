@@ -18,8 +18,8 @@ class VocabConfig(BaseModel):
     bert_name: str
     vocab_path: str
     embedding_dim: int
+    projection_dim: int
     max_length: int
-    use_projection: bool
 
 
 class MilvusConfig(BaseModel):

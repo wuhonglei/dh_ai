@@ -18,10 +18,10 @@ def collate_fn(batch: list[dict], vocab: Vocab) -> dict:
     inputs1 = vocab.batch_encoder([item["title"] for item in batch])
     inputs2 = vocab.batch_encoder([item["content"] for item in batch])
     return {
-        "input_ids1": inputs1["input_ids"],
-        "attention_mask1": inputs1["attention_mask"],
-        "input_ids2": inputs2["input_ids"],
-        "attention_mask2": inputs2["attention_mask"]
+        "input_ids_title": inputs1["input_ids"],
+        "attention_mask_title": inputs1["attention_mask"],
+        "input_ids_content": inputs2["input_ids"],
+        "attention_mask_content": inputs2["attention_mask"]
     }
 
 
@@ -34,13 +34,13 @@ def train_one_epoch(model: SiameseNetwork, dataloader: DataLoader, optimizer: Ad
     model.train()
     total_loss = 0
     for batch in tqdm(dataloader, desc="Training"):
-        inputs1 = batch["input_ids1"].to(device)
-        attention_mask1 = batch["attention_mask1"].to(device)
-        inputs2 = batch["input_ids2"].to(device)
-        attention_mask2 = batch["attention_mask2"].to(device)
-        output_1, output_2 = model.forward_pair(inputs1, attention_mask1,
-                                                inputs2, attention_mask2)
-        loss = compute_loss(output_1, output_2)
+        inputs_title = batch["input_ids_title"].to(device)
+        attention_mask_title = batch["attention_mask_title"].to(device)
+        inputs_content = batch["input_ids_content"].to(device)
+        attention_mask_content = batch["attention_mask_content"].to(device)
+        output_title, output_content = model.forward_pair(inputs_title, attention_mask_title,
+                                                          inputs_content, attention_mask_content)
+        loss = compute_loss(output_title, output_content)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -57,15 +57,15 @@ def valid_one_epoch(model: SiameseNetwork, dataloader: DataLoader, device: torch
     model.eval()
     total_loss = 0
     for batch in dataloader:
-        inputs1 = batch["input_ids1"].to(device)
-        attention_mask1 = batch["attention_mask1"].to(device)
-        inputs2 = batch["input_ids2"].to(device)
-        attention_mask2 = batch["attention_mask2"].to(device)
+        inputs_title = batch["input_ids_title"].to(device)
+        attention_mask_title = batch["attention_mask_title"].to(device)
+        inputs_content = batch["input_ids_content"].to(device)
+        attention_mask_content = batch["attention_mask_content"].to(device)
 
         with torch.no_grad():
-            output_1, output_2 = model.forward_pair(inputs1, attention_mask1,
-                                                    inputs2, attention_mask2)
-            loss = compute_loss(output_1, output_2)
+            output_title, output_content = model.forward_pair(inputs_title, attention_mask_title,
+                                                              inputs_content, attention_mask_content)
+            loss = compute_loss(output_title, output_content)
         total_loss += loss.item()
     return total_loss / len(dataloader)
 
@@ -81,7 +81,7 @@ def train(_config: dict = {}):
     epochs = config.epochs
     learning_rate = config.learning_rate
     weight_decay = config.weight_decay
-    use_projection = config.use_projection
+    projection_dim = config.projection_dim
     bert_name = VOCAB_CONFIG.bert_name
     max_position_embeddings = VOCAB_CONFIG.max_length
     vocab = Vocab(bert_name, max_position_embeddings)
@@ -93,7 +93,7 @@ def train(_config: dict = {}):
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
     print(f'use bert model {bert_name}')
-    model = SiameseNetwork(bert_name, max_position_embeddings, use_projection)
+    model = SiameseNetwork(bert_name, max_position_embeddings, projection_dim)
     model_final_name = get_model_final_name(config)
     print(f"model will save to {model_final_name}")
     # if os.path.exists(model_final_name):
@@ -127,7 +127,7 @@ def train(_config: dict = {}):
 
 
 def main():
-    use_sweep = False
+    use_sweep = True
 
     if use_sweep:
         print('use sweep')
@@ -142,33 +142,33 @@ def main():
                     'values': [32]
                 },
                 'learning_rate': {
-                    'values': [1e-5, 3e-5, 1e-4]
+                    'values': [3e-5]
                 },
                 'weight_decay': {
-                    'values': [1e-5, 1e-4]
+                    'values': [1e-5]
                 },
                 'epochs': {
-                    'values': [5, 10, 20]
+                    'values': [10]
                 },
-                'use_projection': {
-                    'values': [True]
+                'projection_dim': {
+                    'values': [256, 512, 768]
                 }
             }
         }
-        use_exist_sweep = True
+        use_exist_sweep = False
         if use_exist_sweep:
             os.environ['WANDB_PROJECT'] = project
             sweep_id = 'tiszx0ei'
         else:
             sweep_id = wandb.sweep(sweep_config, project=project)
-        wandb.agent(sweep_id, function=train, count=9)
+        wandb.agent(sweep_id, function=train, count=3)
     else:
         config = {
             'batch_size': 32,
-            'learning_rate': 2e-5,
+            'learning_rate': 3e-5,
             'weight_decay': 1e-5,
             'epochs': 10,
-            'use_projection': True
+            'projection_dim': 256
         }
         train(config)
 

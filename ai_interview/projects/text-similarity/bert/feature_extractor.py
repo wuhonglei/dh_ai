@@ -28,17 +28,18 @@ def main():
     bert_name = VOCAB_CONFIG.bert_name
     embedding_dim = VOCAB_CONFIG.embedding_dim
     max_length = VOCAB_CONFIG.max_length
+    projection_dim = VOCAB_CONFIG.projection_dim
 
     vocab = Vocab(bert_name, max_length=max_length)
     device = get_device()
-    model = SiameseNetwork(bert_name, max_position_embeddings=max_length,
-                           use_projection=VOCAB_CONFIG.use_projection)
+    model = SiameseNetwork(
+        bert_name, max_position_embeddings=max_length, projection_dim=projection_dim)
     print(f'load model from {CACHE_CONFIG.val_cbow_model_cache_path}')
     model.load_state_dict(torch.load(
         CACHE_CONFIG.val_cbow_model_cache_path, map_location=device))
     model.to(device)
     model.eval()
-    vector = Vector(vocab, model, device)
+    vector = Vector(type="content", vocab=vocab, model=model, device=device)
     dataset = NewsDatasetCsv(DATASET_CONFIG.train_csv_path)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))

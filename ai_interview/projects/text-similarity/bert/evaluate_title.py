@@ -6,7 +6,7 @@ from tqdm import tqdm
 from vocab import Vocab
 from db import MilvusDB
 from vectory import Vector
-from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, MilvusConfig, MILVUS_CONFIG
+from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, MILVUS_CONFIG
 from model import SiameseNetwork
 import torch
 
@@ -71,7 +71,7 @@ class EvaluateTitle:
     def save_evaluate_result(self):
         self.evaluate_result.to_csv(
             self.evaluate_config.evaluate_result_path, index=False)
-        
+
     def print_performance(self):
         df = pd.read_csv(self.evaluate_config.evaluate_result_path)
         df['rank'] = 1 / df['rank']
@@ -83,19 +83,19 @@ if __name__ == "__main__":
     max_length = VOCAB_CONFIG.max_length
     embedding_dim = VOCAB_CONFIG.embedding_dim
     val_csv_path = DATASET_CONFIG.val_csv_path
-    use_projection = VOCAB_CONFIG.use_projection
+    projection_dim = VOCAB_CONFIG.projection_dim
     val_cbow_model_cache_path = CACHE_CONFIG.val_cbow_model_cache_path
 
     vocab = Vocab(bert_name, max_length)
     device = get_device()
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(val_csv_path)
-    model = SiameseNetwork(bert_name, max_length, use_projection)
+    model = SiameseNetwork(bert_name, max_length, projection_dim)
     model.load_state_dict(torch.load(
         val_cbow_model_cache_path, map_location=device))
     model.to(device)
     model.eval()
-    vector = Vector(vocab, model, device)
+    vector = Vector(type="title", vocab=vocab, model=model, device=device)
     evaluate = EvaluateTitle(
         vector, db, df, EVALUATE_TITLE_CONFIG, MILVUS_CONFIG.version)
     evaluate.evaluate()

@@ -61,7 +61,7 @@ class WandbConfig:
     epochs: int
     learning_rate: float
     weight_decay: float
-    use_projection: bool
+    projection_dim: int
 
 
 def create_category_item(category: str, url: str, news_list: list[NewsItem] | None = None) -> CategoryItem:
