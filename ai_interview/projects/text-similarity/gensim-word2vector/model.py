@@ -1,3 +1,4 @@
+from cv2 import accumulate
 from gensim.models import Word2Vec
 from git import Union
 from typing import TypedDict
@@ -7,30 +8,6 @@ import wandb
 from tqdm import tqdm
 from cbow_dataset import CBOWDataset
 import numpy as np
-
-
-class EpochLogger(CallbackAny2Vec):
-    def __init__(self, epochs: int):
-        self.epoch = 0
-        self.loss = 0
-        self.epochs = epochs
-        self.epoch_bar = tqdm(range(epochs), desc="Epoch")
-
-    def on_epoch_begin(self, model):
-        pass
-
-    def on_epoch_end(self, model):
-        loss = model.get_latest_training_loss()
-        loss_delta = loss - self.loss
-        self.loss = loss
-        self.epoch_bar.set_postfix(loss=loss_delta)
-        # 可以添加 wandb 记录
-        wandb.log({
-            'epoch': self.epoch,
-            'loss': loss_delta
-        })
-        self.epoch += 1
-        self.epoch_bar.update(1)
 
 
 class CBOWModelConfig(TypedDict):
@@ -52,6 +29,29 @@ class ModelConfig(TypedDict):
     vocab_size: int
 
 
+class EpochLogger(CallbackAny2Vec):
+    def __init__(self, epochs: int, total_samples: int):
+        self.epoch = 0
+        self.total_loss = 0
+        self.total_samples = total_samples
+        self.epochs = epochs
+        self.epoch_bar = tqdm(range(epochs), desc="Epoch")
+
+    def on_epoch_end(self, model):
+        accumulate_loss = model.get_latest_training_loss()
+        current_loss = accumulate_loss - self.total_loss
+        self.total_loss = accumulate_loss
+        avg_loss = current_loss / self.total_samples  # 计算平均损失
+        self.epoch_bar.set_postfix(avg_loss=avg_loss)
+        # 可以添加 wandb 记录
+        wandb.log({
+            'epoch': self.epoch,
+            'avg_loss': avg_loss
+        })
+        self.epoch += 1
+        self.epoch_bar.update(1)
+
+
 class CBOWModel:
     @timer_decorator
     def __init__(self, config: CBOWModelConfig | None = None):
@@ -67,7 +67,9 @@ class CBOWModel:
                               vector_size=self.config['embedding_dim'],
                               workers=self.config['workers'],
                               epochs=self.config['epochs'],
-                              callbacks=[EpochLogger(self.config['epochs'])]
+                              compute_loss=True,
+                              callbacks=[EpochLogger(
+                                  self.config['epochs'], len(self.config['sentences']))]
                               )
 
     def get_config(self) -> ModelConfig:
