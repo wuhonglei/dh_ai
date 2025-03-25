@@ -39,7 +39,7 @@ def main():
     model.eval()
     vector = Vector(vocab, model, device)
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
-    dataloader = DataLoader(dataset, batch_size=100, shuffle=False,
+    dataloader = DataLoader(dataset, batch_size=32, shuffle=False,
                             num_workers=0, collate_fn=lambda batch: collate_fn(batch, vector))
 
     total = 0

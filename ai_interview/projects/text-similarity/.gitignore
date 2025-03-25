@@ -10,10 +10,14 @@
 /word2vector/database/
 /word2vector/cache/
 /word2vector/checkpoint/
+/word2vector/core
 
 /bert/data/origin/
 /bert/data/*.csv
 /bert/database/
 /bert/cache/
 /bert/checkpoint/
+/bert/core
+
 train.log
+extractor.log
