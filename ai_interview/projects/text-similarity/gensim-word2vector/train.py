@@ -71,7 +71,7 @@ def main():
             'sg': {'values': [0, 1]},
         }
     }
-    use_exist_sweep = False
+    use_exist_sweep = True
     if use_exist_sweep:
         os.environ['WANDB_PROJECT'] = project
         sweep_id = '72q7y2ud'
