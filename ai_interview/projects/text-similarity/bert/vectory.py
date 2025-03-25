@@ -13,8 +13,9 @@ class Vector:
 
     def get_embedding(self, sentence: str) -> list[float]:
         inputs = self.vocab.tokenize(sentence)
-        content_embedding = self.model(
-            input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))  # type: ignore
+        forward = self.model.forward_title if self.type == "title" else self.model.forward_content
+        content_embedding = forward(
+            input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))
         embedding_numpy = content_embedding.detach().cpu().numpy().astype('float32')
         return embedding_numpy.tolist()[0]
 
@@ -22,6 +23,6 @@ class Vector:
         inputs = self.vocab.batch_encoder(sentences)
         forward = self.model.forward_title if self.type == "title" else self.model.forward_content
         content_embeddings = forward(
-            input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))  # type: ignore
+            input_ids=inputs["input_ids"].to(self.device), attention_mask=inputs["attention_mask"].to(self.device))
         embedding_numpy = content_embeddings.detach().cpu().numpy().astype('float32')
         return embedding_numpy.tolist()

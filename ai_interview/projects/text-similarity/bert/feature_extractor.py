@@ -26,7 +26,6 @@ def collate_fn(batch: List[NewsItem], vector: Vector) -> List[DataItem]:
 def main():
     init_dir()
     bert_name = VOCAB_CONFIG.bert_name
-    embedding_dim = VOCAB_CONFIG.embedding_dim
     max_length = VOCAB_CONFIG.max_length
     projection_dim = VOCAB_CONFIG.projection_dim
 
@@ -47,7 +46,7 @@ def main():
     total = 0
     start_time = time.time()
     tqdm_dataloader = tqdm(dataloader)
-    db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
+    db = MilvusDB(dimension=projection_dim, milvus_config=MILVUS_CONFIG)
     for batch in tqdm_dataloader:
         db.insert(batch)
         total += len(batch)
