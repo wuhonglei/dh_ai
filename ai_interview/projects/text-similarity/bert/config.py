@@ -60,6 +60,7 @@ _config_dict = {k.lower(): v for k, v in _config.items()}  # 手动转换
 config: AppConfig = AppConfig.model_validate(_config_dict)
 
 # 导出为模块级变量，使其他模块可以直接导入
+CONFIG = config
 CACHE_CONFIG = config.cache
 DATASET_CONFIG = config.dataset
 MILVUS_CONFIG = config.milvus

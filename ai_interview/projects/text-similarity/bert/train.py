@@ -4,7 +4,7 @@ from dataset import NewsDatasetCsv
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from config import DATASET_CONFIG, VOCAB_CONFIG
+from config import DATASET_CONFIG, VOCAB_CONFIG, CONFIG
 from vocab import Vocab
 from type_definitions import WandbConfig
 from utils.model import get_model_final_name
@@ -74,7 +74,8 @@ project = 'bert-text-similarity'
 
 
 def train(_config: dict = {}):
-    wandb.init(project=project, config={**_config})
+    wandb.init(project=project, config={
+               "toml": CONFIG.model_dump(), **_config})
     config: WandbConfig = wandb.config  # type: ignore
     batch_size = config.batch_size
     epochs = config.epochs
@@ -114,7 +115,9 @@ def train(_config: dict = {}):
                 '_final.pth', f'_best_val_loss_epoch.pth'))
         wandb.log({
             'train_loss': train_loss,
-            'val_loss': val_loss
+            'val_loss': val_loss,
+            'epoch': epoch + 1,
+            'best_val_loss': best_val_loss
         })
         print(
             f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
