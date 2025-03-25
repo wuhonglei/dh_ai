@@ -71,6 +71,11 @@ class EvaluateTitle:
     def save_evaluate_result(self):
         self.evaluate_result.to_csv(
             self.evaluate_config.evaluate_result_path, index=False)
+        
+    def print_performance(self):
+        df = pd.read_csv(self.evaluate_config.evaluate_result_path)
+        df['rank'] = 1 / df['rank']
+        print(f'MRR', df['rank'].mean())
 
 
 if __name__ == "__main__":
@@ -95,3 +100,4 @@ if __name__ == "__main__":
         vector, db, df, EVALUATE_TITLE_CONFIG, MILVUS_CONFIG.version)
     evaluate.evaluate()
     evaluate.save_evaluate_result()
+    evaluate.print_performance()
