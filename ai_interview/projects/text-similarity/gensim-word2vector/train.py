@@ -42,7 +42,7 @@ def train(_config: dict = {}):
     model.train()
     # 保存最终模型并关闭 wandb
     model_file_path = get_checkpoint_path_final(config)
-    wandb.log({"model_file_path": model_file_path})
+    wandb.run.summary["model_path"] = model_file_path  # type: ignore 作为摘要信息记录
     model.save(model_file_path)
     wandb.finish()
 
@@ -60,14 +60,14 @@ def main():
         }
     }
 
-    use_exist_sweep = False
+    use_exist_sweep = True
     if use_exist_sweep:
         os.environ['WANDB_PROJECT'] = project
-        sweep_id = 't4t1cue8'
+        sweep_id = '6osyxyqb'
     else:
         sweep_id = wandb.sweep(sweep_config, project=project)
 
-    wandb.agent(sweep_id, function=train, count=1)
+    wandb.agent(sweep_id, function=train, count=80)
 
 
 if __name__ == "__main__":
