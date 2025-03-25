@@ -77,7 +77,7 @@ def main():
         sweep_id = '6osyxyqb'
     else:
         sweep_id = wandb.sweep(sweep_config, project=project)
-    wandb.agent(sweep_id, function=train, count=1)
+    wandb.agent(sweep_id, function=train, count=150)
 
 
 if __name__ == "__main__":
