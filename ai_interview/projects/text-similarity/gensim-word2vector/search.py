@@ -5,9 +5,10 @@ import pandas as pd
 from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig, VocabConfig, VOCAB_CONFIG
 from utils.common import setup_readline, get_input, timer_decorator, load_json_file
 from type_definitions import CsvRow, DbResultWithContent, DbResult
-from utils.common import get_device, load_model
+from utils.common import get_device
 from config import CACHE_CONFIG
 from vectory import Vector
+from model import CBOWModel
 
 
 class SearchResult:
@@ -70,10 +71,9 @@ if __name__ == "__main__":
     embedding_dim = VOCAB_CONFIG.embedding_dim
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(DATASET_CONFIG.val_csv_path)
-    model = load_model(len(vocab), vocab.pad_idx, embedding_dim,
-                       CACHE_CONFIG.val_cbow_model_cache_path)
-    model.to(device)
-    model.eval()
-    vector = Vector(vocab, model, device)
+    model = CBOWModel()
+    model.load(CACHE_CONFIG.val_cbow_model_cache_path)
+    model_config = model.get_config()
+    vector = Vector(vocab, model)
     search = SearchResult(vector, db, df)
     search.user_input()

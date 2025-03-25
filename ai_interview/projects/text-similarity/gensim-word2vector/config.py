@@ -1,6 +1,6 @@
 from dynaconf import Dynaconf
 from pydantic import BaseModel
-from typing import Optional
+from dataclasses import dataclass
 
 
 class CacheConfig(BaseModel):
@@ -12,8 +12,8 @@ class CacheConfig(BaseModel):
 
 
 class DataSetConfig(BaseModel):
+    train_csv_dataset: str
     val_csv_path: str
-    test_csv_path: str
 
 
 class VocabConfig(BaseModel):
@@ -22,7 +22,7 @@ class VocabConfig(BaseModel):
     vocab_path: str
     use_stop_words: bool
     embedding_dim: int
-    window_size: int
+    window: int
     stop_words_paths: list[str]
 
 
@@ -49,6 +49,15 @@ class AppConfig(BaseModel):
     vocab: VocabConfig
 
 
+@dataclass
+class WandbConfig:
+    min_freq: int
+    embedding_dim: int
+    epochs: int
+    window: int
+    sg: int
+
+
 # 加载 Dynaconf 配置
 _config = Dynaconf(
     settings_files=["config.toml"],
@@ -69,3 +78,4 @@ DATASET_CONFIG = config.dataset
 MILVUS_CONFIG = config.milvus
 EVALUATE_TITLE_CONFIG = config.evaluate_title
 VOCAB_CONFIG = config.vocab
+CONFIG = config

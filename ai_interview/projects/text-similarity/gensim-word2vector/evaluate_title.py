@@ -1,12 +1,12 @@
 import pandas as pd
 from search import SearchResult
-from utils.common import load_json_file, write_json_file, get_device, load_model
 from type_definitions import DbResult
 from tqdm import tqdm
 from vocab import Vocab
 from db import MilvusDB
 from vectory import Vector
 from config import EVALUATE_TITLE_CONFIG, EvaluateTitleConfig, CACHE_CONFIG, VOCAB_CONFIG, DATASET_CONFIG, VERSION, MILVUS_CONFIG
+from model import CBOWModel
 
 
 class EvaluateTitle:
@@ -70,20 +70,25 @@ class EvaluateTitle:
         self.evaluate_result.to_csv(
             self.evaluate_config.evaluate_result_path, index=False)
 
+    def print_performance(self):
+        df = pd.read_csv(self.evaluate_config.evaluate_result_path)
+        df['rank'] = 1 / df['rank']
+        print(f'MRR', df['rank'].mean())
+
 
 if __name__ == "__main__":
     vocab = Vocab()
-    vocab.load_vocab_from_txt()
-    device = get_device()
-    embedding_dim = VOCAB_CONFIG.embedding_dim
-    db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
+
+    model = CBOWModel()
+    model.load(CACHE_CONFIG.val_cbow_model_cache_path)
+    model_config = model.get_config()
+
+    vector = Vector(vocab, model)
+    db = MilvusDB(dimension=model_config['embedding_dim'],
+                  milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(DATASET_CONFIG.val_csv_path)
-    model = load_model(len(vocab), vocab.pad_idx, embedding_dim,
-                       CACHE_CONFIG.val_cbow_model_cache_path)
-    model.to(device)
-    model.eval()
-    vector = Vector(vocab, model, device)
     evaluate = EvaluateTitle(
         vector, db, df, EVALUATE_TITLE_CONFIG, VERSION)
     evaluate.evaluate()
     evaluate.save_evaluate_result()
+    evaluate.print_performance()

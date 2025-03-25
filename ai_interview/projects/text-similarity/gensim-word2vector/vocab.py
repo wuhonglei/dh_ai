@@ -1,3 +1,4 @@
+import os
 import jieba
 from tqdm import tqdm
 from typing import Dict, List
@@ -130,10 +131,15 @@ def save_vocab_txt():
     """
     构建词汇表，不过滤词频，并保存到 txt 文件中
     """
+    train_csv_dataset = DATASET_CONFIG.train_csv_dataset
+    vocab_path = VOCAB_CONFIG.vocab_path
+    train_csv_name = os.path.basename(train_csv_dataset).split('.')[0]
+    vocab_path = vocab_path.replace('.txt', f'_{train_csv_name}.txt')
+
     vocab = Vocab()
-    dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
+    dataset = NewsDatasetCsv(DATASET_CONFIG.train_csv_dataset)
     vocab.build_vocab_from_dataset(dataset)
-    vocab.save_vocab_set(VOCAB_CONFIG.vocab_path, 0)
+    vocab.save_vocab_set(vocab_path, 0)
 
 
 if __name__ == "__main__":
