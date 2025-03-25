@@ -9,7 +9,7 @@ train_csv_path = "data/val_10000.csv"
 val_csv_path = "data/test_1000.csv"
 
 [milvus]
-version = "milvus.bert.v9_3"
+version = "milvus.bert.v9_4"
 metric_type = "COSINE"
 embedding_name = "content_embedding"
 
@@ -33,15 +33,20 @@ db_name = "database/milvus_bert_v9_3.db"
 collection_name = "bert_title_content_collection_v9_3"
 description = "content embedding use bert + siamese 孪生网络 + 对称loss + val_10000.csv 训练集"
 
+[milvus.bert.v9_4]
+db_name = "database/milvus_bert_v9_4.db"
+collection_name = "bert_title_content_collection_v9_4"
+description = "content embedding use hfl/chinese-bert-wwm + siamese 孪生网络 + 对称loss + val_10000.csv 训练集"
+
 [vocab]
 max_length = 512
 embedding_dim = 768
 use_projection = true
-bert_name = "bert-base-chinese"
+bert_name = "hfl/chinese-bert-wwm"
 vocab_path = "data/vocab_val.txt"
 
 
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bert.v9_3.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bert.v9_4.csv"

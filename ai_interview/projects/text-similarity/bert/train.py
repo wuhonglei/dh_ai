@@ -164,7 +164,7 @@ def main():
     else:
         config = {
             'batch_size': 32,
-            'learning_rate': 1e-5,
+            'learning_rate': 2e-5,
             'weight_decay': 1e-5,
             'epochs': 10,
             'use_projection': True
