@@ -92,6 +92,7 @@ def train(_config: dict = {}):
     val_dataloader = build_dataloader(
         DATASET_CONFIG.val_csv_path, batch_size, vocab)
 
+    print(f'use bert model {bert_name}')
     model = SiameseNetwork(bert_name, max_position_embeddings, use_projection)
     model_final_name = get_model_final_name(config)
     print(f"model will save to {model_final_name}")
