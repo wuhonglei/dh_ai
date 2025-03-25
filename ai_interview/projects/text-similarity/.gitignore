@@ -12,6 +12,13 @@
 /word2vector/checkpoint/
 /word2vector/core
 
+/gensim-word2vector/data/origin/
+/gensim-word2vector/data/*.csv
+/gensim-word2vector/database/
+/gensim-word2vector/cache/
+/gensim-word2vector/checkpoint/
+/gensim-word2vector/core
+
 /bert/data/origin/
 /bert/data/*.csv
 /bert/database/
