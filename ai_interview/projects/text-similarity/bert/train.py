@@ -160,7 +160,7 @@ def main():
         wandb.agent(sweep_id, function=train, count=9)
     else:
         config = {
-            'batch_size': 64,
+            'batch_size': 32,
             'learning_rate': 1e-5,
             'weight_decay': 1e-5,
             'epochs': 10,
