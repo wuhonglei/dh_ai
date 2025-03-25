@@ -8,7 +8,7 @@ val_cbow_model_cache_path = "checkpoint/10_5_5_100_final.pth"
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_5_350.pth"
 
 [dataset]
-train_csv_dataset = "data/val_10000.csv"
+train_csv_dataset = "data/val.csv"
 val_csv_path = "data/test_1000.csv"
 
 

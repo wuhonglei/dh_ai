@@ -48,7 +48,7 @@ def train(_config: dict = {}):
 
 
 def main():
-    use_sweep = False
+    use_sweep = True
     if not use_sweep:
         _config = {
             'min_freq': 5,
@@ -64,14 +64,14 @@ def main():
         'method': 'bayes',
         'metric': {'name': 'avg_loss', 'goal': 'minimize'},
         'parameters': {
-            'min_freq': {'values': [5, 10, 20]},
+            'min_freq': {'values': [200, 350, 500]},
             'embedding_dim': {'values': [100, 200, 300]},
-            'epochs': {'values': [5, 10]},
+            'epochs': {'values': [5, 10, 15]},
             'window': {'values': [2, 5, 8]},
             'sg': {'values': [0, 1]},
         }
     }
-    use_exist_sweep = False
+    use_exist_sweep = True
     if use_exist_sweep:
         os.environ['WANDB_PROJECT'] = project
         sweep_id = '6osyxyqb'
