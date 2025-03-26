@@ -101,6 +101,10 @@ def get_checkpoint_path(hyperparams: Hyperparameters, epoch: int):
     return f'checkpoint1/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_{epoch}.pth'
 
 
+def get_best_checkpoint_path(hyperparams: Hyperparameters, epoch: int):
+    return f'checkpoint1/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_{epoch}_best.pth'
+
+
 def get_checkpoint_path_final(hyperparams: Hyperparameters):
     return f'checkpoint1/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_final.pth'
 

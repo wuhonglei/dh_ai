@@ -1,7 +1,7 @@
 from model.cbow import CBOWModel
 from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG, config, VocabConfig
 from utils.common import get_device
-from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb, get_hyperparameters, get_checkpoint_path, get_checkpoint_path_final, get_train_dataset_cache_path
+from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb, get_hyperparameters, get_checkpoint_path, get_checkpoint_path_final, get_train_dataset_cache_path, get_best_checkpoint_path
 from cbow_dataset import CBOWDataset
 from vocab import Vocab
 from dataset import NewsDatasetCsv
@@ -127,6 +127,8 @@ def train():
 
     epoch_bar = tqdm(range(epochs), desc="训练",
                      disable=local_rank != 0, position=0)
+
+    best_avg_loss = float('inf')
     for epoch in epoch_bar:
         if train_sampler:
             train_sampler.set_epoch(epoch)
@@ -181,7 +183,11 @@ def train():
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-            # save_model(origin_model, get_checkpoint_path(hyperparams, epoch))
+
+            if avg_loss < best_avg_loss:
+                best_avg_loss = avg_loss
+                save_model(origin_model, get_best_checkpoint_path(
+                    hyperparams, epoch))
 
     # 保存最终模型并关闭 wandb（只在主进程）
     if is_main_process:
@@ -212,14 +218,14 @@ def main():
             'method': 'bayes',
             'metric': {'name': 'val_loss', 'goal': 'minimize'},
             'parameters': {
-                'min_freq': {'values': [350, 500]},
+                'min_freq': {'values': [350]},
                 'max_freq': {'values': [15000000]},
-                'embedding_dim': {'values': [100, 200, 300]},
-                'batch_size': {'values': [512, 1024]},
-                'learning_rate': {'values': [1e-3, 3e-3]},
-                'weight_decay': {'values': [1e-4, 1e-3]},
-                'epochs': {'values': [10, 15]},
-                'window_size': {'values': [5, 8]},
+                'embedding_dim': {'values': [200]},
+                'batch_size': {'values': [512]},
+                'learning_rate': {'values': [3e-3]},
+                'weight_decay': {'values': [1e-4]},
+                'epochs': {'values': [10]},
+                'window_size': {'values': [5]},
             }
         }
         use_exist_sweep = False
@@ -228,7 +234,7 @@ def main():
             sweep_id = 't4t1cue8'
         else:
             sweep_id = wandb.sweep(sweep_config, project=project)
-        wandb.agent(sweep_id, function=train)  # 不指明 count
+        wandb.agent(sweep_id, function=train, count=1)  # 不指明 count 会无限运行
     else:
         train()
 
