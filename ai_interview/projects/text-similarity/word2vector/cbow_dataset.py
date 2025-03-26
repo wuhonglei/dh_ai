@@ -71,15 +71,15 @@ class CBOWDataset(Dataset):
 
 
 def generate_cbow_dataset_cache():
-    min_freq = VOCAB_CONFIG.min_freq
-    max_freq = VOCAB_CONFIG.max_freq
-    window_size = VOCAB_CONFIG.window_size
-    cache_path = CACHE_CONFIG.val_cbow_dataset_cache_path
+    min_freq = 350
+    max_freq = 15000000
+    window_size = 5
 
     dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
     vocab = Vocab(VOCAB_CONFIG)
     vocab.load_vocab_from_txt()
     cache_path = get_train_dataset_cache_path(min_freq, max_freq, window_size)
+    print(f'generating cache {cache_path}')
     cbow_dataset = CBOWDataset(dataset, vocab, window_size, cache_path)
     print(len(cbow_dataset))
     print(cbow_dataset[0])
@@ -112,5 +112,5 @@ def check_cbow_dataset_cache():
 
 
 if __name__ == "__main__":
-    # generate_cbow_dataset_cache()
-    check_cbow_dataset_cache()
+    generate_cbow_dataset_cache()
+    # check_cbow_dataset_cache()
