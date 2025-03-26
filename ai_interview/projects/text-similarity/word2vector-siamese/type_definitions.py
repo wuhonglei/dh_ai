@@ -1,4 +1,4 @@
-
+from dataclasses import dataclass
 from typing import TypedDict, Optional
 from numpy.typing import NDArray
 import numpy as np
@@ -54,15 +54,19 @@ class CsvRow(TypedDict):
     content: Optional[str]
 
 
-class Hyperparameters(TypedDict):
+@dataclass
+class WandbConfig:
     min_freq: int
     max_freq: int
     embedding_dim: int
+    projection_dim: int
     batch_size: int
     learning_rate: float
     weight_decay: float
     epochs: int
-    window_size: int
+    temperature: float
+    max_title_length: int
+    max_content_length: int
 
 
 def create_category_item(category: str, url: str, news_list: list[NewsItem] | None = None) -> CategoryItem:

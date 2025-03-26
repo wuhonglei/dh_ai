@@ -5,15 +5,13 @@ from typing import Optional
 
 class CacheConfig(BaseModel):
     search_history_path: str
-    val_cbow_dataset_cache_path: str
-    val_cbow_model_cache_path: str
-    val_cbow_model_checkpoint_path: str
-    test_cbow_dataset_cache_path: str
+    best_model_path: str
 
 
 class DataSetConfig(BaseModel):
-    val_csv_path: str
-    test_csv_path: str
+    train_csv_path: str  # 训练数据集
+    val_csv_path: str  # 验证数据集
+    test_csv_path: str  # 测试数据集
 
 
 class VocabConfig(BaseModel):
@@ -22,7 +20,14 @@ class VocabConfig(BaseModel):
     vocab_path: str
     use_stop_words: bool
     embedding_dim: int
-    window_size: int
+    projection_dim: int
+    batch_size: int
+    learning_rate: float
+    weight_decay: float
+    epochs: int
+    temperature: float
+    max_title_length: int
+    max_content_length: int
     stop_words_paths: list[str]
 
 
@@ -42,6 +47,7 @@ class EvaluateTitleConfig(BaseModel):
 
 class AppConfig(BaseModel):
     version: str
+    project: str
     cache: CacheConfig
     dataset: DataSetConfig
     milvus: MilvusConfig
@@ -64,8 +70,10 @@ config: AppConfig = AppConfig.model_validate(_config_dict)
 
 # 导出为模块级变量，使其他模块可以直接导入
 VERSION = config.version
+PROJECT = config.project
 CACHE_CONFIG = config.cache
 DATASET_CONFIG = config.dataset
 MILVUS_CONFIG = config.milvus
 EVALUATE_TITLE_CONFIG = config.evaluate_title
 VOCAB_CONFIG = config.vocab
+CONFIG = config

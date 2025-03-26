@@ -8,7 +8,6 @@ import numpy as np
 import math
 from config import CACHE_CONFIG, MILVUS_CONFIG, VOCAB_CONFIG
 import torch
-from model.cbow import CBOWModel
 
 
 def init_dir():
@@ -139,9 +138,3 @@ def get_device(enable_distributed: bool = False, local_rank: int = 0):
             return torch.device("cuda")
     else:
         return torch.device("cpu")
-
-
-def load_model(vocab_size: int, pad_idx: int, embedding_dim: int, path: str):
-    model = CBOWModel(vocab_size, embedding_dim, pad_idx)
-    model.load_state_dict(torch.load(path))
-    return model

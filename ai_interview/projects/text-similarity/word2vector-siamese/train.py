@@ -1,245 +1,199 @@
-from model.cbow import CBOWModel
-from config import DATASET_CONFIG, VOCAB_CONFIG, CACHE_CONFIG, MILVUS_CONFIG, config, VocabConfig
+from model import SiameseNetwork, compute_loss
+from config import DATASET_CONFIG, VOCAB_CONFIG, CONFIG, VocabConfig, PROJECT
 from utils.common import get_device
-from utils.train import is_enable_distributed, setup_distributed, cleanup_distributed, init_wandb, get_hyperparameters, get_checkpoint_path, get_checkpoint_path_final, get_train_dataset_cache_path, get_best_checkpoint_path
-from cbow_dataset import CBOWDataset
+from utils.train import get_checkpoint_path_final, get_best_checkpoint_path
 from vocab import Vocab
 from dataset import NewsDatasetCsv
-from torch.utils.data import DataLoader, default_collate
+from torch.utils.data import DataLoader
 import torch.optim as optim
+from type_definitions import WandbConfig, NewsItem
 from tqdm import tqdm
 import torch
 import os
-from torch.utils.data.distributed import DistributedSampler
-from torch.nn.parallel import DistributedDataParallel as DDP
 import wandb
-from typing import Union
-import torch.distributed as dist
-from shutdown import shutdown
-import atexit
+from torch.nn.utils.rnn import pad_sequence
 
 
-def save_model(model: CBOWModel, path: str):
+def save_model(model: SiameseNetwork, path: str):
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+
     torch.save(model.state_dict(), path)
 
 
-def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]):
-    print('batch_len', len(batch))
-    print('batch[0]', batch[0][0].shape, batch[0][1].shape)
-    return default_collate(batch)
+def collate_fn(batch: list[NewsItem], vocab: Vocab, max_title_length: int, max_content_length: int):
+    title_token_indices: list[torch.Tensor] = []
+    content_token_indices: list[torch.Tensor] = []
+
+    for item in batch:
+        # 遍历每个样本
+        title_tokens = vocab.tokenize(item["title"])
+        content_tokens = vocab.tokenize(item["content"])
+        title_indices = vocab.batch_encoder(title_tokens)
+        content_indices = vocab.batch_encoder(content_tokens)
+
+        title_token_indices.append(torch.LongTensor(
+            title_indices[:max_title_length]))
+        content_token_indices.append(torch.LongTensor(
+            content_indices[:max_content_length]))
+
+    clipped_title_token_indices = pad_sequence(
+        title_token_indices, padding_value=vocab.pad_idx, batch_first=True)
+    clipped_content_token_indices = pad_sequence(
+        content_token_indices, padding_value=vocab.pad_idx, batch_first=True)
+
+    return {
+        "input_ids_title": clipped_title_token_indices,
+        "input_ids_content": clipped_content_token_indices
+    }
 
 
-def build_loader(csv_dataset: NewsDatasetCsv, vocab: Vocab, window_size: int, batch_size: int, cache_path: str = ''):
-    dataset = CBOWDataset(csv_dataset, vocab, window_size, cache_path)
-
-    # 添加 DistributedSampler
-    sampler = DistributedSampler(
-        dataset) if is_enable_distributed() else None
-    dataloader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False if sampler else True,
-        sampler=sampler,
-        # collate_fn=collate_fn
-    )
-    return dataloader, sampler
+def build_dataloader(csv_path: str, batch_size: int, vocab: Vocab, max_title_length: int, max_content_length: int, shuffle: bool = True) -> DataLoader:
+    dataset = NewsDatasetCsv(csv_path)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=lambda x: collate_fn(x, vocab, max_title_length, max_content_length))
 
 
-def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch.device):
+def train_one_epoch(model: SiameseNetwork, dataloader: DataLoader, optimizer: optim.AdamW, temperature: float, device: torch.device):
+    model.train()
+    total_loss = 0.0
+    for batch in tqdm(dataloader, desc="Training"):
+        input_ids_title = batch["input_ids_title"].to(device)
+        input_ids_content = batch["input_ids_content"].to(device)
+        optimizer.zero_grad()
+        output_1, output_2 = model.forward_pair(
+            input_ids_title, input_ids_content)
+        loss = compute_loss(output_1, output_2, temperature)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            model.parameters(), max_norm=1.0)  # 防止梯度爆炸
+        optimizer.step()
+        wandb.log({"batch_loss": loss.item()})
+        total_loss += loss.item()
+    return total_loss / len(dataloader)
+
+
+def evaluate_one_epoch(model: SiameseNetwork, val_loader: DataLoader, temperature: float, device: torch.device):
     model.eval()
     total_loss = 0.0
     with torch.no_grad():
-        for i, (context_idxs, target_idx) in tqdm(enumerate(val_loader), desc="验证", total=len(val_loader)):
-            context_idxs = context_idxs.to(device)
-            target_idx = target_idx.to(device)
-            loss = model(context_idxs, target_idx)
+        for batch in tqdm(val_loader, desc="验证"):
+            input_ids_title = batch["input_ids_title"].to(device)
+            input_ids_content = batch["input_ids_content"].to(device)
+            output_1, output_2 = model.forward_pair(
+                input_ids_title, input_ids_content)
+            loss = compute_loss(output_1, output_2, temperature)
             total_loss += loss.item()
 
     return total_loss / len(val_loader)
 
 
-project = "text-similarity-word2vec_v2"
+def train(_config: dict = {}):
+    device = get_device()
+    wandb.init(project=PROJECT, config={
+        "toml": CONFIG.model_dump(),
+        **_config
+    })
 
-
-def train():
-    local_rank = int(os.environ.get('LOCAL_RANK', 0))
-    is_main_process = local_rank == 0
-    device = get_device(is_enable_distributed(), local_rank)
-
-    # 只在主进程初始化 wandb
-    if is_main_process:
-        wandb.init(project=project, config={
-            "toml": config.model_dump(),
-        })
-
-    # 添加 barrier 确保 wandb 初始化完成
-    if is_enable_distributed():
-        dist.barrier()
-
-    # 获取同步的超参数
-    hyperparams = get_hyperparameters(is_main_process, device)
+    config: WandbConfig = wandb.config  # type: ignore
 
     # 使用超参数
-    min_freq = hyperparams['min_freq']
-    max_freq = hyperparams['max_freq']
-    embedding_dim = hyperparams['embedding_dim']
-    batch_size = hyperparams['batch_size']
-    learning_rate = hyperparams['learning_rate']
-    weight_decay = hyperparams['weight_decay']
-    epochs = hyperparams['epochs']
-    window_size = hyperparams['window_size']
+    min_freq = config.min_freq
+    max_freq = config.max_freq
+    embedding_dim = config.embedding_dim
+    projection_dim = config.projection_dim
+    batch_size = config.batch_size
+    learning_rate = config.learning_rate
+    weight_decay = config.weight_decay
+    epochs = config.epochs
+    temperature = config.temperature
+    max_title_length = config.max_title_length
+    max_content_length = config.max_content_length
 
     vocab = Vocab(VocabConfig(
         **{**VOCAB_CONFIG.model_dump(), 'min_freq': min_freq, 'max_freq': max_freq}))
     vocab.load_vocab_from_txt()
     vocab_size = len(vocab)
 
-    train_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.val_csv_path)
-    val_csv_dataset = NewsDatasetCsv(DATASET_CONFIG.test_csv_path)
+    train_dataloader = build_dataloader(
+        DATASET_CONFIG.train_csv_path, batch_size, vocab, max_title_length, max_content_length)
+    val_dataloader = build_dataloader(
+        DATASET_CONFIG.val_csv_path, batch_size, vocab, max_title_length, max_content_length)
 
-    train_dataset_cache = get_train_dataset_cache_path(
-        min_freq, max_freq, window_size)
-    print(f'local_rank {local_rank}, train_dataset_cache', train_dataset_cache)
-    train_loader, train_sampler = build_loader(train_csv_dataset, vocab, window_size,
-                                               batch_size, train_dataset_cache)
-    if is_main_process:
-        val_batch_size = 32
-        val_loader, val_sampler = build_loader(
-            val_csv_dataset, vocab, window_size, val_batch_size)
-
-    if is_enable_distributed():
-        dist.barrier()
-
-    model = CBOWModel(vocab_size, embedding_dim, vocab.pad_idx)
-    if os.path.exists(get_checkpoint_path_final(hyperparams)):
-        model.load_state_dict(torch.load(
-            get_checkpoint_path_final(hyperparams), map_location=device))
+    model = SiameseNetwork(vocab_size, embedding_dim,
+                           projection_dim, vocab.pad_idx)
     model = model.to(device)
-
-    origin_model = model
-    if is_enable_distributed():
-        model = DDP(model, device_ids=[local_rank])
 
     optimizer = optim.AdamW(  # type: ignore
         model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     # 余弦退火
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
-    epoch_bar = tqdm(range(epochs), desc="训练",
-                     disable=local_rank != 0, position=0)
-
-    best_avg_loss = float('inf')
+    epoch_bar = tqdm(range(epochs), desc="训练")
+    best_val_loss = float('inf')
     for epoch in epoch_bar:
-        if train_sampler:
-            train_sampler.set_epoch(epoch)
-        total_loss = 0
-        batch_bar = tqdm(
-            train_loader, desc=f"训练第{epoch}轮", disable=local_rank != 0, position=1)
-        val_loss = 0.0
-        batch_len = len(train_loader)
-        batch_len_10 = batch_len // 10 or 1
-
-        model.train()
-        for i, (context_idxs, target_idx) in enumerate(batch_bar):
-            context_idxs = context_idxs.to(device)
-            target_idx = target_idx.to(device)
-            optimizer.zero_grad()
-            loss = model(context_idxs, target_idx)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(
-                model.parameters(), max_norm=1.0)  # 防止梯度爆炸
-            optimizer.step()
-            total_loss += loss.item()
-
-            if is_main_process:  # 只在主进程记录日志
-                batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
-                # 记录每个批次的损失
-                wandb.log({"batch_loss": loss.item()})
-
-                if (i + 1) % batch_len_10 == 0:
-                    val_loss = evaluate(model, val_loader, device)
-                    wandb.log({"val_loss": val_loss})
-
-            if is_enable_distributed():
-                dist.barrier()
-
+        train_loss = train_one_epoch(
+            model, train_dataloader, optimizer, temperature, device)
+        val_loss = evaluate_one_epoch(
+            model, val_dataloader, temperature, device)
         scheduler.step()
-        if is_enable_distributed():
-            total_loss_tensor = torch.tensor(total_loss).to(device)
-            # 收集所有进程的总损失
-            dist.all_reduce(total_loss_tensor)
-            total_loss = total_loss_tensor.item()
+        epoch_bar.set_postfix(train_loss=train_loss, val_loss=val_loss)
+        # 记录每个 epoch 的平均损失
+        wandb.log(
+            {"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss})
 
-            # 收集所有进程的批次数
-            batch_len_tensor = torch.tensor(batch_len).to(device)
-            dist.all_reduce(batch_len_tensor)
-            global_batch_len = batch_len_tensor.item()
-        else:
-            global_batch_len = batch_len
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            save_model(model, get_best_checkpoint_path(config))
 
-        if is_main_process:
-            # 使用全局总损失除以全局总批次数
-            avg_loss = total_loss / global_batch_len
-            epoch_bar.set_postfix(loss=avg_loss)
-            # 记录每个 epoch 的平均损失
-            wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-
-            if avg_loss < best_avg_loss:
-                best_avg_loss = avg_loss
-                save_model(origin_model, get_best_checkpoint_path(
-                    hyperparams, epoch))
-
-    # 保存最终模型并关闭 wandb（只在主进程）
-    if is_main_process:
-        final_model_path = get_checkpoint_path_final(hyperparams)
-        save_model(origin_model, final_model_path)
-        wandb.summary['final_model_path'] = final_model_path
-        wandb.finish()
-
-
-def clean_up():
-    # shutdown(10)
-    # print('start cleanup_distributed in clean_up')
-    cleanup_distributed()
-    # print('end cleanup_distributed in clean_up')
+    # 保存最终模型并关闭 wandb
+    final_model_path = get_checkpoint_path_final(config)
+    save_model(model, final_model_path)
+    wandb.summary['final_model_path'] = final_model_path
+    wandb.finish()
 
 
 def main():
-    atexit.register(clean_up)
-    if is_enable_distributed():
-        local_rank = int(os.environ['LOCAL_RANK'])
-        setup_distributed(local_rank)
-    else:
-        local_rank = 0
-    is_main_process = local_rank == 0
-
-    if is_main_process:
-        sweep_config = {
-            'method': 'bayes',
-            'metric': {'name': 'val_loss', 'goal': 'minimize'},
-            'parameters': {
-                'min_freq': {'values': [350]},
-                'max_freq': {'values': [15000000]},
-                'embedding_dim': {'values': [200]},
-                'batch_size': {'values': [512]},
-                'learning_rate': {'values': [3e-3]},
-                'weight_decay': {'values': [1e-4]},
-                'epochs': {'values': [10]},
-                'window_size': {'values': [5]},
-            }
+    use_sweep = False
+    if not use_sweep:
+        config = {
+            'min_freq': VOCAB_CONFIG.min_freq,
+            'max_freq': VOCAB_CONFIG.max_freq,
+            'embedding_dim': VOCAB_CONFIG.embedding_dim,
+            'projection_dim': VOCAB_CONFIG.projection_dim,
+            'batch_size': VOCAB_CONFIG.batch_size,
+            'learning_rate': VOCAB_CONFIG.learning_rate,
+            'weight_decay': VOCAB_CONFIG.weight_decay,
+            'epochs': VOCAB_CONFIG.epochs,
+            'temperature': VOCAB_CONFIG.temperature,
+            'max_title_length': VOCAB_CONFIG.max_title_length,
+            'max_content_length': VOCAB_CONFIG.max_content_length,
         }
-        use_exist_sweep = False
-        if use_exist_sweep:
-            os.environ['WANDB_PROJECT'] = project
-            sweep_id = 't4t1cue8'
-        else:
-            sweep_id = wandb.sweep(sweep_config, project=project)
-        wandb.agent(sweep_id, function=train, count=1)  # 不指明 count 会无限运行
-    else:
-        train()
+        train(config)
+        return
 
-    # 清理分布式进程组
-    cleanup_distributed()
+    sweep_config = {
+        'method': 'bayes',
+        'metric': {'name': 'val_loss', 'goal': 'minimize'},
+        'parameters': {
+            'min_freq': {'values': [350]},
+            'max_freq': {'values': [15000000]},
+            'embedding_dim': {'values': [200]},
+            'batch_size': {'values': [512]},
+            'learning_rate': {'values': [3e-3]},
+            'weight_decay': {'values': [1e-4]},
+            'epochs': {'values': [10]},
+            'temperature': {'values': [0.07]},
+            'max_title_length': {'values': [16]},
+            'max_content_length': {'values': [512]},
+        }
+    }
+    use_exist_sweep = False
+    if use_exist_sweep:
+        os.environ['WANDB_PROJECT'] = PROJECT
+        sweep_id = 't4t1cue8'
+    else:
+        sweep_id = wandb.sweep(sweep_config, project=PROJECT)
+    wandb.agent(sweep_id, function=train, count=1)  # 不指明 count 会无限运行
 
 
 if __name__ == "__main__":

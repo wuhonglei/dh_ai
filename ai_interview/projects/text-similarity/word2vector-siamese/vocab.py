@@ -104,8 +104,8 @@ class Vocab:
             return self.word_to_index['<unk>']
         return self.word_to_index[word]
 
-    def batch_encoder(self, texts: List[str]):
-        return [self.encoder(text) for text in texts]
+    def batch_encoder(self, words: List[str]):
+        return [self.encoder(word) for word in words]
 
     def decoder(self, index: int):
         return self.index_to_word[index]

@@ -3,11 +3,13 @@ from vocab import Vocab
 from db import MilvusDB
 import pandas as pd
 from config import DATASET_CONFIG, MILVUS_CONFIG, MilvusConfig, DataSetConfig, VocabConfig, VOCAB_CONFIG
-from utils.common import setup_readline, get_input, timer_decorator, load_json_file
+from utils.common import setup_readline, get_input, timer_decorator
 from type_definitions import CsvRow, DbResultWithContent, DbResult
-from utils.common import get_device, load_model
+from utils.common import get_device
 from config import CACHE_CONFIG
 from vectory import Vector
+from model import SiameseNetwork
+import torch
 
 
 class SearchResult:
@@ -17,17 +19,19 @@ class SearchResult:
         self.df = df
 
     @timer_decorator
-    def search(self, context: list[str], limit: int = 3) -> list[list[DbResult]]:
+    def search(self, context: list[str], max_length: int = 100, limit: int = 3) -> list[list[DbResult]]:
         embeddings = []
         for sentence in context:
-            embedding = self.vector.get_embedding(sentence)
+            embedding = self.vector.get_embedding(
+                sentence, max_length=max_length)
             embeddings.append(embedding)
 
         results = self.db.search(embeddings, limit=limit)
         return results
 
-    def search_with_content(self, context: list[str], limit: int = 3) -> list[list[DbResultWithContent]]:
-        search_results = self.search(context, limit)  # type: ignore
+    def search_with_content(self, context: list[str], max_length: int = 100, limit: int = 3) -> list[list[DbResultWithContent]]:
+        search_results = self.search(
+            context, max_length, limit)  # type: ignore
         ans: list[list[DbResultWithContent]] = []
         for search_result in search_results:
             temp: list[DbResultWithContent] = []
@@ -44,7 +48,7 @@ class SearchResult:
         new_df = self.df[self.df['index'].isin(ids)]
         return new_df.to_dict(orient='records')  # type: ignore
 
-    def user_input(self, limit: int = 3):
+    def user_input(self, max_length: int = 100, limit: int = 3):
         setup_readline()
         while True:
             context = get_input()
@@ -54,7 +58,8 @@ class SearchResult:
                 print("输入为空，请重新输入")
                 continue
 
-            results = self.search_with_content([context], limit)
+            results = self.search_with_content(
+                [context], max_length=max_length, limit=limit)
             for item in results[0]:
                 print()
                 print(f'distance: {item["distance"]:.4f}')
@@ -68,10 +73,13 @@ if __name__ == "__main__":
     vocab.load_vocab_from_txt()
     device = get_device()
     embedding_dim = VOCAB_CONFIG.embedding_dim
+    projection_dim = VOCAB_CONFIG.projection_dim
+    pad_idx = vocab.pad_idx
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(DATASET_CONFIG.val_csv_path)
-    model = load_model(len(vocab), vocab.pad_idx, embedding_dim,
-                       CACHE_CONFIG.val_cbow_model_cache_path)
+    model = SiameseNetwork(len(vocab), embedding_dim,
+                           projection_dim, vocab.pad_idx)
+    model.load_state_dict(torch.load(CACHE_CONFIG.best_model_path))
     model.to(device)
     model.eval()
     vector = Vector(vocab, model, device)
