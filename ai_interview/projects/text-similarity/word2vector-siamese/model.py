@@ -37,7 +37,7 @@ class SiameseNetwork(nn.Module):
         return output_1, output_2
 
 
-def compute_loss(output_1: torch.Tensor, output_2: torch.Tensor, temperature: float = 0.07) -> torch.Tensor:
+def compute_loss(output_1: torch.Tensor, output_2: torch.Tensor, temperature: float) -> torch.Tensor:
     # 计算相似度矩阵
     logits = output_1 @ output_2.T / temperature
 
