@@ -1,15 +1,15 @@
-version = "milvus.gensim.v6"
+version = "milvus.gensim.v6_1"
 
 [cache]
 search_history_path = "cache/.search_history"
 val_cbow_dataset_cache_path = "cache/val_cbow_5_350.pkl"
 test_cbow_dataset_cache_path = "cache/test_1000_cbow.pkl"
-val_cbow_model_cache_path = "checkpoint/200_8_10_100_final.pth"
+val_cbow_model_cache_path = "checkpoint/350_8_10_200_final.pth"
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_5_350.pth"
 
 [dataset]
 train_csv_dataset = "data/val.csv"
-val_csv_path = "data/test_1000.csv"
+val_csv_path = "data/val.csv"
 
 
 [milvus]
@@ -19,7 +19,12 @@ embedding_name = "content_embedding"
 [milvus.gensim.v6]
 db_name = "database/milvus_gensim_v6.db"
 collection_name = "gensim_title_content_collection_v6"
-description = "content embedding use gensim word2vector"
+description = "content embedding use gensim word2vector(skig-gram)"
+
+[milvus.gensim.v6_1]
+db_name = "database/milvus_gensim_v6_1.db"
+collection_name = "gensim_title_content_collection_v6_1"
+description = "content embedding use gensim word2vector(skip-gram)"
 
 [vocab]
 window = 8
@@ -34,4 +39,4 @@ stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.tx
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.gensim.v6.csv"
+evaluate_result_path = "性能测试结果/title/milvus.gensim.v6_1.csv"
