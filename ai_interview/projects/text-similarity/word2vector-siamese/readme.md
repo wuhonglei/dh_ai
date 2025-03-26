@@ -47,4 +47,4 @@
 | 版本 | MRR | loss | 训练集 | 验证集 | 向量维度 | epoch | min_freq | 停用词 | 备注 |
 | --- | --- | ---  | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | milvus.bow.v7 | 0.2826 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding |
-| milvus.bow.v7_1 | - | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding |
+| milvus.bow.v7_1 | 0.2413 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding |
