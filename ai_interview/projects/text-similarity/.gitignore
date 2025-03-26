@@ -10,6 +10,7 @@
 /word2vector/database/
 /word2vector/cache/
 /word2vector/checkpoint/
+/word2vector/checkpoint1/
 /word2vector/core
 
 /gensim-word2vector/data/origin/
