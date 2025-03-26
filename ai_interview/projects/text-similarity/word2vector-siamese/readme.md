@@ -45,7 +45,7 @@
 
 
 | 版本 | MRR | loss | 训练集 | 验证集 | 评估集 | 向量维度 | epoch | min_freq | 停用词 | 备注 |
-| --- | --- | ---  | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | ---  | --- | --- | --- | --- | --- | --- | --- | --- |
 | milvus.bow.v7 | 0.2826 | train_loss: 13.49 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding |
 | milvus.bow.v7_1 | 0.2413 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding |
 | milvus.bow.v7_2 | 0.0963 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | `val.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding|
@@ -53,4 +53,5 @@
 | milvus.bow.v7_4 | 0.2809 | train_loss: 8.222 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding, temperature = 0.1|
 | milvus.bow.v7_5 | 0.2809 | train_loss: 4.3165 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding, temperature = 1|
 | milvus.bow.v7_6 | 0.0489 | train_loss: 5.2095 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 不使用预训练 embedding, temperature = 1|
-| milvus.bow.v7_7 | 0.3506 | train_loss: - | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 不使用预训练 embedding, temperature = 1, 使用 idf 加权|
+| milvus.bow.v7_7 | 0.3506 | train_loss: 9.3986 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 不使用预训练 embedding, temperature = 1, 使用 idf 加权|
+| milvus.bow.v7_8 | 0.3401 | train_loss: 9.4332 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 使用预训练 embedding, temperature = 1, 使用 idf 加权|
