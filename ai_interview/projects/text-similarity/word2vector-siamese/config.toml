@@ -3,7 +3,8 @@ project = "text-similarity-word2vec-siamese"
 
 [cache]
 search_history_path = "cache/.search_history"
-best_model_path = 'checkpoint1/350_15000000_200_256_512_0.0001_0.0001_10_0.07_7_best.pth'
+best_model_path = 'checkpoint1/350_15000000_200_256_512_0.0001_0.0001_10_0.07_best.pth'
+pre_trained_model_path = 'pre-trained/350_15000000_5_10_0.003_0.0001_200_512_4_best.pth'
 
 [dataset]
 train_csv_path = "data/val_10000.csv"
@@ -18,10 +19,16 @@ embedding_name = "content_embedding"
 [milvus.bow.v7]
 db_name = "database/milvus_bow_v7.db"
 collection_name = "bow_title_content_collection_v7"
-description = "content embedding use CBOW-Siamese, 词向量取平均"
+description = "content embedding use CBOW-Siamese, 词向量取平均, 不使用预训练 embedding"
+
+[milvus.bow.v7_1]
+db_name = "database/milvus_bow_v7_1.db"
+collection_name = "bow_title_content_collection_v7_1"
+description = "content embedding use CBOW-Siamese, 词向量取平均, 使用预训练 embedding"
 
 
 [vocab]
+use_pretrained_model = true
 min_freq = 350
 max_freq = 15000000
 vocab_path = "data/vocab_val.txt"

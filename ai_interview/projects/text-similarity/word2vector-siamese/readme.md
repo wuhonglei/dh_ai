@@ -38,3 +38,13 @@
 | milvus.bow.v5_2 | 0.1364 | 4.2 | `val.csv` | 100 | 2 | 4 | 200 | 是 | adamW 优化器 |
 | milvus.bow.v5_3 | 0.1990 | 3.7 | `val.csv` | 200 | 5 | 10 | 350 | 是 | adamW 优化器 |
 
+## 四、CBOW-Siamese 性能评估
+使用 [MRR](https://en.wikipedia.org/wiki/Mean_reciprocal_rank) 性能对比, MRR 的范围是 0-1, 值越大越好。
+
+![MRR](./screenshots/mrr_cbow_siamese.png)
+
+
+| 版本 | MRR | loss | 训练集 | 验证集 | 向量维度 | epoch | min_freq | 停用词 | 备注 |
+| --- | --- | ---  | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| milvus.bow.v7 | 0.2826 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding |
+| milvus.bow.v7_1 | - | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding |

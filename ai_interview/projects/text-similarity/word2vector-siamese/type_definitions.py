@@ -67,6 +67,7 @@ class WandbConfig:
     temperature: float
     max_title_length: int
     max_content_length: int
+    use_pretrained_model: bool
 
 
 def create_category_item(category: str, url: str, news_list: list[NewsItem] | None = None) -> CategoryItem:

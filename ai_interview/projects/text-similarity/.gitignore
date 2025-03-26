@@ -31,7 +31,9 @@
 /word2vector-siamese/database/
 /word2vector-siamese/cache/
 /word2vector-siamese/checkpoint/
+/word2vector-siamese/checkpoint1/
 /word2vector-siamese/core
+/word2vector-siamese/pre-trained/
 
 train.log
 extractor.log

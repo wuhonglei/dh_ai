@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+import os
 
 
 class SiameseNetwork(nn.Module):
@@ -10,6 +11,13 @@ class SiameseNetwork(nn.Module):
         self.embedding = nn.Embedding(
             vocab_size, embedding_dim, padding_idx=pad_idx)
         self.projection = nn.Linear(embedding_dim, projection_dim)
+
+    def load_pretrained_embedding_model(self, path: str):
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File {path} not found")
+
+        state_dict = torch.load(path, map_location='cpu')
+        self.embedding.weight.data.copy_(state_dict['embedding.weight'])
 
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         # [batch_size, seq_len] -> [batch_size, seq_len, embedding_dim]

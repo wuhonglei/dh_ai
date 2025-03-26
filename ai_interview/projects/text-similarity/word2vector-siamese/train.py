@@ -1,5 +1,5 @@
 from model import SiameseNetwork, compute_loss
-from config import DATASET_CONFIG, VOCAB_CONFIG, CONFIG, VocabConfig, PROJECT
+from config import DATASET_CONFIG, VOCAB_CONFIG, CONFIG, VocabConfig, PROJECT, CACHE_CONFIG
 from utils.common import get_device
 from utils.train import get_checkpoint_path_final, get_best_checkpoint_path
 from vocab import Vocab
@@ -108,6 +108,8 @@ def train(_config: dict = {}):
     temperature = config.temperature
     max_title_length = config.max_title_length
     max_content_length = config.max_content_length
+    use_pretrained_model = config.use_pretrained_model
+    pre_trained_model_path = CACHE_CONFIG.pre_trained_model_path
 
     vocab = Vocab(VocabConfig(
         **{**VOCAB_CONFIG.model_dump(), 'min_freq': min_freq, 'max_freq': max_freq}))
@@ -121,6 +123,9 @@ def train(_config: dict = {}):
 
     model = SiameseNetwork(vocab_size, embedding_dim,
                            projection_dim, vocab.pad_idx)
+    if use_pretrained_model:
+        print(f"Loading pretrained model from {pre_trained_model_path}")
+        model.load_pretrained_embedding_model(pre_trained_model_path)
     model = model.to(device)
 
     optimizer = optim.AdamW(  # type: ignore
@@ -167,6 +172,7 @@ def main():
             'temperature': VOCAB_CONFIG.temperature,
             'max_title_length': VOCAB_CONFIG.max_title_length,
             'max_content_length': VOCAB_CONFIG.max_content_length,
+            'use_pretrained_model': VOCAB_CONFIG.use_pretrained_model,
         }
         train(config)
         return
@@ -185,6 +191,7 @@ def main():
             'temperature': {'values': [0.07]},
             'max_title_length': {'values': [16]},
             'max_content_length': {'values': [512]},
+            'use_pretrained_model': {'values': [True]},
         }
     }
     use_exist_sweep = False

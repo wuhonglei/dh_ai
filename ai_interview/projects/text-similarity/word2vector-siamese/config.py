@@ -6,6 +6,7 @@ from typing import Optional
 class CacheConfig(BaseModel):
     search_history_path: str
     best_model_path: str
+    pre_trained_model_path: str
 
 
 class DataSetConfig(BaseModel):
@@ -18,6 +19,7 @@ class VocabConfig(BaseModel):
     min_freq: int
     max_freq: int
     vocab_path: str
+    use_pretrained_model: bool
     use_stop_words: bool
     embedding_dim: int
     projection_dim: int
