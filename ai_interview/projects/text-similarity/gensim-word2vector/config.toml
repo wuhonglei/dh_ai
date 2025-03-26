@@ -9,7 +9,7 @@ val_cbow_model_checkpoint_path = "checkpoint/val_cbow_5_350.pth"
 
 [dataset]
 train_csv_dataset = "data/val.csv"
-val_csv_path = "data/val.csv"
+val_csv_path = "data/test_1000.csv"
 
 
 [milvus]
