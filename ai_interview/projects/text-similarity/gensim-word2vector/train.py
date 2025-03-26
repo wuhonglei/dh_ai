@@ -64,14 +64,14 @@ def main():
         'method': 'bayes',
         'metric': {'name': 'avg_loss', 'goal': 'minimize'},
         'parameters': {
-            'min_freq': {'values': [200, 350, 500]},
-            'embedding_dim': {'values': [100, 200, 300]},
-            'epochs': {'values': [5, 10, 15]},
-            'window': {'values': [2, 5, 8]},
-            'sg': {'values': [0, 1]},
+            'min_freq': {'values': [200, 350]},
+            'embedding_dim': {'values': [100, 200]},
+            'epochs': {'values': [5, 10]},
+            'window': {'values': [5, 8]},
+            'sg': {'values': [0]},
         }
     }
-    use_exist_sweep = True
+    use_exist_sweep = False
     if use_exist_sweep:
         os.environ['WANDB_PROJECT'] = project
         sweep_id = '72q7y2ud'
