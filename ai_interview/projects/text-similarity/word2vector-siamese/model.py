@@ -22,13 +22,11 @@ class SiameseNetwork(nn.Module):
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         # [batch_size, seq_len] -> [batch_size, seq_len, embedding_dim]
         embedded = self.embedding(input_ids)
-        # embedded 进行mask
-        mask = (input_ids != self.pad_idx).unsqueeze(-1)
-        embedded_sum = (embedded * mask).sum(dim=1)
-        embedded_sum = embedded_sum / (mask.sum(dim=1) + 1e-10)
+        # 使用最大池化
+        max_embedded = torch.max(embedded, dim=1)[0]
 
         # [batch_size, embedding_dim] -> [batch_size, projection_dim]
-        output = self.projection(embedded_sum)
+        output = self.projection(max_embedded)
         return output
 
     def forward_pair(self, input_ids_1: torch.Tensor, input_ids_2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
