@@ -1,4 +1,4 @@
-version = "milvus.bow.v7_2"
+version = "milvus.bow.v7_3"
 project = "text-similarity-word2vec-siamese"
 
 [cache]
@@ -31,9 +31,14 @@ db_name = "database/milvus_bow_v7_2.db"
 collection_name = "bow_title_content_collection_v7_2"
 description = "content embedding use CBOW-Siamese, 词向量取平均, 使用预训练 embedding, 提取 val.csv 的特征"
 
+[milvus.bow.v7_3]
+db_name = "database/milvus_bow_v7_3.db"
+collection_name = "bow_title_content_collection_v7_3"
+description = "content embedding use CBOW-Siamese, 词向量取平均, 不使用预训练 embedding, 提取 val.csv 的特征"
+
 
 [vocab]
-use_pretrained_model = true
+use_pretrained_model = false
 min_freq = 350
 max_freq = 15000000
 vocab_path = "data/vocab_val.txt"
@@ -43,7 +48,7 @@ projection_dim = 256
 batch_size = 512
 learning_rate = 1e-4
 weight_decay = 1e-4
-epochs = 10
+epochs = 15
 temperature = 0.07
 max_title_length = 16
 max_content_length = 512
@@ -53,4 +58,4 @@ stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.tx
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bow.v7_1.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bow.v7_3.csv"

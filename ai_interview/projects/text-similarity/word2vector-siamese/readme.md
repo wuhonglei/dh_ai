@@ -49,3 +49,4 @@
 | milvus.bow.v7 | 0.2826 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding |
 | milvus.bow.v7_1 | 0.2413 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding |
 | milvus.bow.v7_2 | 0.0963 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | `val.csv` | 200 | 10 | 350 | 是 | 词向量平均, 使用预训练 embedding|
+| milvus.bow.v7_3 | 0.1460 | train_loss: 7.75 | `val_10000.csv` | `test_1000.csv` | `val.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding|
