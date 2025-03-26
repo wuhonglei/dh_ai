@@ -53,4 +53,4 @@
 | milvus.bow.v7_4 | 0.2809 | train_loss: 8.222 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding, temperature = 0.1|
 | milvus.bow.v7_5 | 0.2809 | train_loss: 4.3165 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量平均, 不使用预训练 embedding, temperature = 1|
 | milvus.bow.v7_6 | 0.0489 | train_loss: 5.2095 | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 不使用预训练 embedding, temperature = 1|
-| milvus.bow.v7_7 | - | train_loss: - | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 不使用预训练 embedding, temperature = 1, 使用 idf 加权|
+| milvus.bow.v7_7 | 0.3506 | train_loss: - | `val_10000.csv` | `test_1000.csv` | `val_10000.csv` | 200 | 10 | 350 | 是 | 词向量最大池化, 不使用预训练 embedding, temperature = 1, 使用 idf 加权|

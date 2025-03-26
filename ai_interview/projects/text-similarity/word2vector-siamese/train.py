@@ -136,6 +136,7 @@ def train(_config: dict = {}):
 
     epoch_bar = tqdm(range(epochs), desc="训练")
     best_val_loss = float('inf')
+    best_model_path = ""
     for epoch in epoch_bar:
         train_loss = train_one_epoch(
             model, train_dataloader, optimizer, temperature, device)
@@ -149,12 +150,14 @@ def train(_config: dict = {}):
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            save_model(model, get_best_checkpoint_path(config))
+            best_model_path = get_best_checkpoint_path(config)
+            save_model(model, best_model_path)
 
     # 保存最终模型并关闭 wandb
     final_model_path = get_checkpoint_path_final(config)
     save_model(model, final_model_path)
     wandb.summary['final_model_path'] = final_model_path
+    wandb.summary['best_model_path'] = best_model_path
     wandb.finish()
 
 

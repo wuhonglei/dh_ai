@@ -3,7 +3,7 @@ project = "text-similarity-word2vec-siamese"
 
 [cache]
 search_history_path = "cache/.search_history"
-best_model_path = 'checkpoint1/350_15000000_200_256_512_0.0001_0.0001_10_0.07_best.pth'
+best_model_path = 'checkpoint1/350_15000000_200_256_512_0.0001_0.0001_15_1.0_best.pth'
 pre_trained_model_path = 'pre-trained/350_15000000_5_10_0.003_0.0001_200_512_4_best.pth'
 
 [dataset]
@@ -67,7 +67,7 @@ projection_dim = 256
 batch_size = 512
 learning_rate = 1e-4
 weight_decay = 1e-4
-epochs = 10
+epochs = 15
 temperature = 1
 max_title_length = 16
 max_content_length = 512

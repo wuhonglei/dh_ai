@@ -6,12 +6,18 @@ import os
 
 class SiameseNetwork(nn.Module):
     def __init__(self, vocab_size: int, embedding_dim: int, projection_dim: int, pad_idx: int, idf_dict: dict[int, float]):
-        super(SiameseNetwork, self).__init__()
+        super().__init__()
         self.pad_idx = pad_idx
-        self.idf_dict = idf_dict
         self.embedding = nn.Embedding(
             vocab_size, embedding_dim, padding_idx=pad_idx)
         self.projection = nn.Linear(embedding_dim, projection_dim)
+
+        # 优化1：预计算IDF权重tensor并注册为buffer
+        self.register_buffer(
+            'idf_weights',
+            torch.tensor([idf_dict.get(i, 0.0)
+                         for i in range(vocab_size)], dtype=torch.float)
+        )
 
     def load_pretrained_embedding_model(self, path: str):
         if not os.path.exists(path):
@@ -23,18 +29,18 @@ class SiameseNetwork(nn.Module):
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         # [batch_size, seq_len] -> [batch_size, seq_len, embedding_dim]
         embedded = self.embedding(input_ids)
-        # 使用 idf 加权
-        idf_weights = torch.tensor(
-            [self.idf_dict[idx.item()] for idx in input_ids.flatten()], device=input_ids.device)  # type: ignore
-        idf_weights = idf_weights.view_as(input_ids)
-        idf_weights_norm = F.normalize(idf_weights, p=2, dim=-1)
-        idf_embedded = embedded * idf_weights_norm.unsqueeze(-1)
 
-        idf_embedded_sum = idf_embedded.sum(dim=1)
+        # 优化2：直接索引预计算的IDF权重 [batch_size, seq_len]
+        batch_idf = self.idf_weights[input_ids]  # type: ignore
+
+        # 优化3：使用归一化后直接进行批量计算
+        idf_norm = F.normalize(batch_idf, p=2, dim=1)  # [batch_size, seq_len]
+
+        # 优化4：使用einsum进行加权求和，避免多次维度变换
+        weighted_sum = torch.einsum('bsd,bs->bd', embedded, idf_norm)
 
         # [batch_size, embedding_dim] -> [batch_size, projection_dim]
-        output = self.projection(idf_embedded_sum)
-        return output
+        return self.projection(weighted_sum)
 
     def forward_pair(self, input_ids_1: torch.Tensor, input_ids_2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         output_1 = self.forward(input_ids_1)
