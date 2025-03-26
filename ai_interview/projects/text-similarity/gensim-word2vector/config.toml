@@ -4,12 +4,12 @@ version = "milvus.gensim.v6"
 search_history_path = "cache/.search_history"
 val_cbow_dataset_cache_path = "cache/val_cbow_5_350.pkl"
 test_cbow_dataset_cache_path = "cache/test_1000_cbow.pkl"
-val_cbow_model_cache_path = "checkpoint/10_5_5_100_final.pth"
+val_cbow_model_cache_path = "checkpoint/200_8_10_100_final.pth"
 val_cbow_model_checkpoint_path = "checkpoint/val_cbow_5_350.pth"
 
 [dataset]
 train_csv_dataset = "data/val.csv"
-val_csv_path = "data/test_1000.csv"
+val_csv_path = "data/val.csv"
 
 
 [milvus]

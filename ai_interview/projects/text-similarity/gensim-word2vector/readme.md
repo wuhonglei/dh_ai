@@ -38,3 +38,13 @@
 | milvus.bow.v5_2 | 0.1364 | 4.2 | `val.csv` | 100 | 2 | 4 | 200 | 是 | adamW 优化器 |
 | milvus.bow.v5_3 | 0.1990 | 3.7 | `val.csv` | 200 | 5 | 10 | 350 | 是 | adamW 优化器 |
 
+
+### 四、gensim word2vector 性能评估
+使用 [MRR](https://en.wikipedia.org/wiki/Mean_reciprocal_rank) 性能对比, MRR 的范围是 0-1, 值越大越好。
+
+![MRR](./screenshots/mrr_word2vector_gensim.png)
+
+
+| 版本 | MRR | loss | 词汇表 | 向量维度 | 窗口大小 | epoch | min_freq | 停用词 | 备注 |
+| --- | --- | ---  | --- | --- | --- | --- | --- | --- | --- | --- |
+| milvus.bow.v6 | 0.1453 | - | `val.csv` | 100 | 8 | 10 | 200 | 是 | skip-gram |
