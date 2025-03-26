@@ -49,7 +49,7 @@ def evaluate(model: Union[CBOWModel, DDP], val_loader: DataLoader, device: torch
     model.eval()
     total_loss = 0.0
     with torch.no_grad():
-        for i, (context_idxs, target_idx) in enumerate(val_loader):
+        for i, (context_idxs, target_idx) in tqdm(enumerate(val_loader), desc="验证", total=len(val_loader)):
             context_idxs = context_idxs.to(device)
             target_idx = target_idx.to(device)
             loss = model(context_idxs, target_idx)
@@ -71,6 +71,10 @@ def train():
         wandb.init(project=project, config={
             "toml": config.model_dump(),
         })
+
+    # 添加 barrier 确保 wandb 初始化完成
+    if is_enable_distributed():
+        dist.barrier()
 
     # 获取同步的超参数
     hyperparams = get_hyperparameters(is_main_process, device)
@@ -148,15 +152,16 @@ def train():
             if is_main_process:  # 只在主进程记录日志
                 batch_bar.set_postfix(loss=loss.item(), val_loss=val_loss)
                 # 记录每个批次的损失
-                wandb.log({"batch_loss": loss.item()},
-                          step=epoch * len(train_loader) + i)
+                wandb.log({"batch_loss": loss.item()})
 
                 if (i + 1) % batch_len_10 == 0:
                     val_loss = evaluate(model, val_loader, device)
                     wandb.log({"val_loss": val_loss})
 
-        scheduler.step()
+            if is_enable_distributed():
+                dist.barrier()
 
+        scheduler.step()
         if is_enable_distributed():
             total_loss_tensor = torch.tensor(total_loss).to(device)
             # 收集所有进程的总损失
@@ -176,23 +181,25 @@ def train():
             epoch_bar.set_postfix(loss=avg_loss)
             # 记录每个 epoch 的平均损失
             wandb.log({"epoch": epoch, "avg_loss": avg_loss})
-            save_model(origin_model, get_checkpoint_path(hyperparams, epoch))
+            # save_model(origin_model, get_checkpoint_path(hyperparams, epoch))
 
     # 保存最终模型并关闭 wandb（只在主进程）
     if is_main_process:
-        save_model(origin_model, get_checkpoint_path_final(hyperparams))
+        final_model_path = get_checkpoint_path_final(hyperparams)
+        save_model(origin_model, final_model_path)
+        wandb.summary['final_model_path'] = final_model_path
         wandb.finish()
 
 
 def clean_up():
-    shutdown(10)
-    print('start cleanup_distributed in clean_up')
+    # shutdown(10)
+    # print('start cleanup_distributed in clean_up')
     cleanup_distributed()
-    print('end cleanup_distributed in clean_up')
+    # print('end cleanup_distributed in clean_up')
 
 
 def main():
-    # atexit.register(clean_up)
+    atexit.register(clean_up)
     if is_enable_distributed():
         local_rank = int(os.environ['LOCAL_RANK'])
         setup_distributed(local_rank)
@@ -206,16 +213,16 @@ def main():
             'metric': {'name': 'val_loss', 'goal': 'minimize'},
             'parameters': {
                 'min_freq': {'values': [350, 500]},
-                'max_freq': {'values': [80501, 105190]},
+                'max_freq': {'values': [15000000]},
                 'embedding_dim': {'values': [100, 200, 300]},
-                'batch_size': {'values': [256, 512, 1024, 12800]},
-                'learning_rate': {'values': [1e-3, 3e-3, 1e-2]},
+                'batch_size': {'values': [512, 1024]},
+                'learning_rate': {'values': [1e-3, 3e-3]},
                 'weight_decay': {'values': [1e-4, 1e-3]},
-                'epochs': {'values': [5, 10, 15]},
-                'window_size': {'values': [2, 5, 8]},
+                'epochs': {'values': [10, 15]},
+                'window_size': {'values': [5, 8]},
             }
         }
-        use_exist_sweep = True
+        use_exist_sweep = False
         if use_exist_sweep:
             os.environ['WANDB_PROJECT'] = project
             sweep_id = 't4t1cue8'
@@ -225,8 +232,9 @@ def main():
     else:
         train()
 
+    # 清理分布式进程组
+    cleanup_distributed()
+
 
 if __name__ == "__main__":
     main()
-    # 清理分布式进程组
-    cleanup_distributed()

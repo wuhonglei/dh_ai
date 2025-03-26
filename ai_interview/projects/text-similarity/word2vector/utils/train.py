@@ -98,11 +98,11 @@ def get_hyperparameters(is_main_process: bool, device: torch.device):
 
 
 def get_checkpoint_path(hyperparams: Hyperparameters, epoch: int):
-    return f'checkpoint/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_{epoch}.pth'
+    return f'checkpoint1/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_{epoch}.pth'
 
 
 def get_checkpoint_path_final(hyperparams: Hyperparameters):
-    return f'checkpoint/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_final.pth'
+    return f'checkpoint1/{hyperparams["min_freq"]}_{hyperparams["max_freq"]}_{hyperparams["window_size"]}_{hyperparams["epochs"]}_{hyperparams["learning_rate"]}_{hyperparams["weight_decay"]}_{hyperparams["embedding_dim"]}_{hyperparams["batch_size"]}_final.pth'
 
 
 def get_train_dataset_cache_path(min_freq: int, max_freq: int, window_size: int):
