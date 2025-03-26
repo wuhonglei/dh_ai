@@ -26,5 +26,12 @@
 /bert/checkpoint/
 /bert/core
 
+/word2vector-siamese/data/origin/
+/word2vector-siamese/data/*.csv
+/word2vector-siamese/database/
+/word2vector-siamese/cache/
+/word2vector-siamese/checkpoint/
+/word2vector-siamese/core
+
 train.log
 extractor.log
