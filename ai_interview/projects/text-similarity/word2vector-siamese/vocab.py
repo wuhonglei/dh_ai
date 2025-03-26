@@ -3,7 +3,7 @@ from tqdm import tqdm
 from typing import Dict, List
 from collections import Counter
 from dataset import NewsDatasetCsv
-from utils.common import load_txt_file
+from utils.common import load_txt_file, load_json_file
 
 
 from config import DATASET_CONFIG, VOCAB_CONFIG, VocabConfig
@@ -21,6 +21,7 @@ class Vocab:
         # 创建一个过滤词集合，包含所有需要过滤的词
         self.ignored_words: set[str] = set()
         self.stop_words = self.load_stop_words()
+        self.idf_dict = load_json_file(self.vocab_config.idf_path)
 
     def initialize_word_and_index(self):
         special_tokens = ['<unk>', '<pad>']
@@ -92,6 +93,18 @@ class Vocab:
         print(
             f"Total words: {total_words}, Used words: {len(self.index_to_word)}, low freq words: {len(self.low_freq_words)}, high freq words: {len(self.high_freq_words)}")
         self.vocab = set(self.index_to_word)
+
+    def load_valid_idf_dict(self):
+        if len(self.word_to_index) <= 2:
+            raise ValueError("词汇表太小，无法计算 idf 值")
+
+        valid_idf_dict: dict[int, float] = {}
+        for word, index in self.word_to_index.items():
+            if word in self.idf_dict:
+                valid_idf_dict[index] = self.idf_dict[word]
+            else:
+                valid_idf_dict[index] = 1
+        return valid_idf_dict
 
     def __len__(self):
         return len(self.word_to_index)

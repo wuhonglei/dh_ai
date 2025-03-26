@@ -71,14 +71,17 @@ class SearchResult:
 if __name__ == "__main__":
     vocab = Vocab()
     vocab.load_vocab_from_txt()
+    valid_idf_dict = vocab.load_valid_idf_dict()
+    vocab_size = len(vocab)
+
     device = get_device()
     embedding_dim = VOCAB_CONFIG.embedding_dim
     projection_dim = VOCAB_CONFIG.projection_dim
     pad_idx = vocab.pad_idx
     db = MilvusDB(dimension=embedding_dim, milvus_config=MILVUS_CONFIG)
     df = pd.read_csv(DATASET_CONFIG.val_csv_path)
-    model = SiameseNetwork(len(vocab), embedding_dim,
-                           projection_dim, vocab.pad_idx)
+    model = SiameseNetwork(vocab_size, embedding_dim,
+                           projection_dim, pad_idx, valid_idf_dict)
     model.load_state_dict(torch.load(CACHE_CONFIG.best_model_path))
     model.to(device)
     model.eval()

@@ -31,6 +31,7 @@ class VocabConfig(BaseModel):
     max_title_length: int
     max_content_length: int
     stop_words_paths: list[str]
+    idf_path: str
 
 
 class MilvusConfig(BaseModel):

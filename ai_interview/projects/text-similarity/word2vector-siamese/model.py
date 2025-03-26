@@ -5,9 +5,10 @@ import os
 
 
 class SiameseNetwork(nn.Module):
-    def __init__(self, vocab_size: int, embedding_dim: int, projection_dim: int, pad_idx: int):
+    def __init__(self, vocab_size: int, embedding_dim: int, projection_dim: int, pad_idx: int, idf_dict: dict[int, float]):
         super(SiameseNetwork, self).__init__()
         self.pad_idx = pad_idx
+        self.idf_dict = idf_dict
         self.embedding = nn.Embedding(
             vocab_size, embedding_dim, padding_idx=pad_idx)
         self.projection = nn.Linear(embedding_dim, projection_dim)
@@ -22,11 +23,17 @@ class SiameseNetwork(nn.Module):
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         # [batch_size, seq_len] -> [batch_size, seq_len, embedding_dim]
         embedded = self.embedding(input_ids)
-        # 使用最大池化
-        max_embedded = torch.max(embedded, dim=1)[0]
+        # 使用 idf 加权
+        idf_weights = torch.tensor(
+            [self.idf_dict[idx.item()] for idx in input_ids.flatten()], device=input_ids.device)  # type: ignore
+        idf_weights = idf_weights.view_as(input_ids)
+        idf_weights_norm = F.normalize(idf_weights, p=2, dim=-1)
+        idf_embedded = embedded * idf_weights_norm.unsqueeze(-1)
+
+        idf_embedded_sum = idf_embedded.sum(dim=1)
 
         # [batch_size, embedding_dim] -> [batch_size, projection_dim]
-        output = self.projection(max_embedded)
+        output = self.projection(idf_embedded_sum)
         return output
 
     def forward_pair(self, input_ids_1: torch.Tensor, input_ids_2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:

@@ -82,6 +82,7 @@ class EvaluateTitle:
 if __name__ == "__main__":
     vocab = Vocab()
     vocab.load_vocab_from_txt()
+    valid_idf_dict = vocab.load_valid_idf_dict()
     device = get_device()
     pad_idx = vocab.pad_idx
     vocab_size = len(vocab)
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     df = pd.read_csv(test_csv_path)
 
     model = SiameseNetwork(vocab_size, embedding_dim,
-                           projection_dim, pad_idx)
+                           projection_dim, pad_idx, valid_idf_dict)
     model.load_state_dict(torch.load(best_model_path))
     model.to(device)
     model.eval()

@@ -114,6 +114,7 @@ def train(_config: dict = {}):
     vocab = Vocab(VocabConfig(
         **{**VOCAB_CONFIG.model_dump(), 'min_freq': min_freq, 'max_freq': max_freq}))
     vocab.load_vocab_from_txt()
+    valid_idf_dict = vocab.load_valid_idf_dict()
     vocab_size = len(vocab)
 
     train_dataloader = build_dataloader(
@@ -122,7 +123,7 @@ def train(_config: dict = {}):
         DATASET_CONFIG.val_csv_path, batch_size, vocab, max_title_length, max_content_length)
 
     model = SiameseNetwork(vocab_size, embedding_dim,
-                           projection_dim, vocab.pad_idx)
+                           projection_dim, vocab.pad_idx, valid_idf_dict)
     if use_pretrained_model:
         print(f"Loading pretrained model from {pre_trained_model_path}")
         model.load_pretrained_embedding_model(pre_trained_model_path)
