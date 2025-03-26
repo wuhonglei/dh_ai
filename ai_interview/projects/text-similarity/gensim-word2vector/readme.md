@@ -45,6 +45,8 @@
 ![MRR](./screenshots/mrr_word2vector_gensim.png)
 
 
+
 | 版本 | MRR | loss | 词汇表 | 向量维度 | 窗口大小 | epoch | min_freq | 停用词 | 备注 |
 | --- | --- | ---  | --- | --- | --- | --- | --- | --- | --- | --- |
 | milvus.bow.v6 | 0.1453 | - | `val.csv` | 100 | 8 | 10 | 200 | 是 | skip-gram |
+| milvus.bow.v6_1 | 0.1206 | - | `val.csv` | 200 | 8 | 10 | 350 | 是 | CBOW |
