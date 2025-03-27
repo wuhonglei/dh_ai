@@ -82,7 +82,6 @@ class EvaluateTitle:
 if __name__ == "__main__":
     vocab = Vocab()
     vocab.load_vocab_from_txt()
-    valid_idf_dict = vocab.load_valid_idf_dict()
     device = get_device()
     pad_idx = vocab.pad_idx
     vocab_size = len(vocab)
