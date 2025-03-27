@@ -1,9 +1,9 @@
-version = "milvus.bow.v7_9"
+version = "milvus.bow.v7_11"
 project = "text-similarity-word2vec-siamese"
 
 [cache]
 search_history_path = "cache/.search_history"
-best_model_path = 'checkpoint1/350_15000000_200_256_512_0.0001_0.0001_15_1.0_best.pth'
+best_model_path = "checkpoint1/350_15000000_200_256_512_0.0001_0.0001_15_1.0_best.pth"
 pre_trained_model_path = 'pre-trained/350_15000000_5_10_0.003_0.0001_200_512_4_best.pth'
 
 [dataset]
@@ -66,6 +66,16 @@ db_name = "database/milvus_bow_v7_9.db"
 collection_name = "bow_title_content_collection_v7_9"
 description = "content embedding use CBOW-Siamese, 使用 LSTM, 使用预训练 embedding, 提取 val_10000.csv 的特征, temperature = 1"
 
+[milvus.bow.v7_10]
+db_name = "database/milvus_bow_v7_10.db"
+collection_name = "bow_title_content_collection_v7_10"
+description = "content embedding use CBOW-Siamese, 使用 LSTM, 不使用 projection, 使用预训练 embedding, 提取 val_10000.csv 的特征, temperature = 1"
+
+[milvus.bow.v7_11]
+db_name = "database/milvus_bow_v7_11.db"
+collection_name = "bow_title_content_collection_v7_11"
+description = "content embedding use CBOW-Siamese, 使用 RNN, 不使用 projection, 不使用预训练 embedding, 提取 val_10000.csv 的特征, temperature = 1"
+
 [vocab]
 use_pretrained_model = false
 min_freq = 350
@@ -89,4 +99,4 @@ stop_words_paths = ["stopwords/baidu_stopwords.txt", "stopwords/hit_stopwords.tx
 [evaluate_title]
 limit = 10
 test_data_path = "data/evaluate/标题测试原材料_1000_from_val_10000.csv"
-evaluate_result_path = "性能测试结果/title/milvus.bow.v7_9.csv"
+evaluate_result_path = "性能测试结果/title/milvus.bow.v7_11.csv"
