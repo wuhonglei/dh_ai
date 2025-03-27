@@ -1,23 +1,22 @@
+from numpy import dtype
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
 import os
+from torchinfo import summary
 
 
 class SiameseNetwork(nn.Module):
-    def __init__(self, vocab_size: int, embedding_dim: int, projection_dim: int, pad_idx: int, idf_dict: dict[int, float]):
+    def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int, projection_dim: int, pad_idx: int):
         super().__init__()
         self.pad_idx = pad_idx
         self.embedding = nn.Embedding(
             vocab_size, embedding_dim, padding_idx=pad_idx)
-        self.projection = nn.Linear(embedding_dim, projection_dim)
-
-        # 优化1：预计算IDF权重tensor并注册为buffer
-        self.register_buffer(
-            'idf_weights',
-            torch.tensor([idf_dict.get(i, 0.0)
-                         for i in range(vocab_size)], dtype=torch.float)
-        )
+        self.lstm = nn.LSTM(embedding_dim,
+                            hidden_size=hidden_dim,
+                            batch_first=True,
+                            bidirectional=False)
+        self.projection = nn.Linear(hidden_dim, projection_dim)
 
     def load_pretrained_embedding_model(self, path: str):
         if not os.path.exists(path):
@@ -29,18 +28,10 @@ class SiameseNetwork(nn.Module):
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         # [batch_size, seq_len] -> [batch_size, seq_len, embedding_dim]
         embedded = self.embedding(input_ids)
-
-        # 优化2：直接索引预计算的IDF权重 [batch_size, seq_len]
-        batch_idf = self.idf_weights[input_ids]  # type: ignore
-
-        # 优化3：使用归一化后直接进行批量计算
-        idf_norm = F.normalize(batch_idf, p=2, dim=1)  # [batch_size, seq_len]
-
-        # 优化4：使用einsum进行加权求和，避免多次维度变换
-        weighted_sum = torch.einsum('bsd,bs->bd', embedded, idf_norm)
-
-        # [batch_size, embedding_dim] -> [batch_size, projection_dim]
-        return self.projection(weighted_sum)
+        # 输出形状 [batch_size, seq_len, hidden_dim]
+        output, (hidden, _) = self.lstm(embedded)
+        new_hidden = hidden.squeeze(0)
+        return self.projection(new_hidden)
 
     def forward_pair(self, input_ids_1: torch.Tensor, input_ids_2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         output_1 = self.forward(input_ids_1)
@@ -60,3 +51,10 @@ def compute_loss(output_1: torch.Tensor, output_2: torch.Tensor, temperature: fl
             F.cross_entropy(logits.T, labels)) / 2
 
     return loss
+
+
+if __name__ == "__main__":
+    model = SiameseNetwork(vocab_size=10000, embedding_dim=200,
+                           hidden_dim=256, projection_dim=256, pad_idx=0)
+    input_ids = torch.randint(0, 10000, (2, 16), dtype=torch.long)
+    summary(model, input_data=input_ids)

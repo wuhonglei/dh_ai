@@ -59,6 +59,7 @@ class WandbConfig:
     min_freq: int
     max_freq: int
     embedding_dim: int
+    hidden_dim: int
     projection_dim: int
     batch_size: int
     learning_rate: float

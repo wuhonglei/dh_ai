@@ -100,6 +100,7 @@ def train(_config: dict = {}):
     min_freq = config.min_freq
     max_freq = config.max_freq
     embedding_dim = config.embedding_dim
+    hidden_dim = config.hidden_dim
     projection_dim = config.projection_dim
     batch_size = config.batch_size
     learning_rate = config.learning_rate
@@ -114,7 +115,6 @@ def train(_config: dict = {}):
     vocab = Vocab(VocabConfig(
         **{**VOCAB_CONFIG.model_dump(), 'min_freq': min_freq, 'max_freq': max_freq}))
     vocab.load_vocab_from_txt()
-    valid_idf_dict = vocab.load_valid_idf_dict()
     vocab_size = len(vocab)
 
     train_dataloader = build_dataloader(
@@ -123,7 +123,7 @@ def train(_config: dict = {}):
         DATASET_CONFIG.val_csv_path, batch_size, vocab, max_title_length, max_content_length)
 
     model = SiameseNetwork(vocab_size, embedding_dim,
-                           projection_dim, vocab.pad_idx, valid_idf_dict)
+                           hidden_dim,  projection_dim, vocab.pad_idx)
     if use_pretrained_model:
         print(f"Loading pretrained model from {pre_trained_model_path}")
         model.load_pretrained_embedding_model(pre_trained_model_path)
@@ -168,6 +168,7 @@ def main():
             'min_freq': VOCAB_CONFIG.min_freq,
             'max_freq': VOCAB_CONFIG.max_freq,
             'embedding_dim': VOCAB_CONFIG.embedding_dim,
+            'hidden_dim': VOCAB_CONFIG.hidden_dim,
             'projection_dim': VOCAB_CONFIG.projection_dim,
             'batch_size': VOCAB_CONFIG.batch_size,
             'learning_rate': VOCAB_CONFIG.learning_rate,
@@ -188,6 +189,8 @@ def main():
             'min_freq': {'values': [350]},
             'max_freq': {'values': [15000000]},
             'embedding_dim': {'values': [200]},
+            'hidden_dim': {'values': [256]},
+            'projection_dim': {'values': [256]},
             'batch_size': {'values': [512]},
             'learning_rate': {'values': [3e-3]},
             'weight_decay': {'values': [1e-4]},

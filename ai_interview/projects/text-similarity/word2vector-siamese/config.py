@@ -22,6 +22,7 @@ class VocabConfig(BaseModel):
     use_pretrained_model: bool
     use_stop_words: bool
     embedding_dim: int
+    hidden_dim: int
     projection_dim: int
     batch_size: int
     learning_rate: float

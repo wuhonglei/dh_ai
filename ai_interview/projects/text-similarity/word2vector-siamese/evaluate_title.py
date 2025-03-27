@@ -87,6 +87,7 @@ if __name__ == "__main__":
     pad_idx = vocab.pad_idx
     vocab_size = len(vocab)
     embedding_dim = VOCAB_CONFIG.embedding_dim
+    hidden_dim = VOCAB_CONFIG.hidden_dim
     projection_dim = VOCAB_CONFIG.projection_dim
     best_model_path = CACHE_CONFIG.best_model_path
     test_csv_path = DATASET_CONFIG.test_csv_path
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     df = pd.read_csv(test_csv_path)
 
     model = SiameseNetwork(vocab_size, embedding_dim,
-                           projection_dim, pad_idx, valid_idf_dict)
+                           hidden_dim, projection_dim, pad_idx)
     model.load_state_dict(torch.load(best_model_path))
     model.to(device)
     model.eval()
