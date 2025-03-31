@@ -21,6 +21,13 @@ def get_category_by_id(id: int, category_list: list[CategoryItem]) -> CategoryIt
     return None
 
 
+def get_category_name(id: int, category_list: list[CategoryItem]) -> str:
+    category = get_category_by_id(id, category_list)
+    if category:
+        return category['display_name']
+    return ''
+
+
 def get_leaf_level_category_list(category: CategoryItem) -> list[LeafCategoryItem]:
     leaf_category_list = []
     if not category:

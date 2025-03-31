@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Category Tree Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+      #main {
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main"></div>
+    <script>
+      // 初始化 ECharts 实例
+      var myChart = echarts.init(document.getElementById("main"));
+      function calculateLeafNodeSize(data) {
+        let count = 0;
+        for (const child of data.children) {
+          if (!child.has_children) {
+            count += 1;
+          } else {
+            count += calculateLeafNodeSize(child);
+          }
+        }
+        return count;
+      }
+
+      // 加载 JSON 文件
+      fetch("./mtsku_category_tree.json")
+        .then((response) => response.json())
+        .then((json) => {
+          // 转换数据格式
+          function convertData(data) {
+            const children = (data.children || []).map((child) =>
+              convertData(child)
+            );
+            const directChildCount = children.length;
+            const directChildCountDesc =
+              directChildCount > 0 ? ` ${directChildCount}/` : "";
+            const childCount = calculateLeafNodeSize(data);
+            const leafChildCountDesc = childCount > 0 ? `${childCount}` : "";
+            const desc = `${data.display_name}${directChildCountDesc}${leafChildCountDesc}`;
+            return {
+              name: desc,
+              value: data.id,
+              children,
+            };
+          }
+
+          const treeData = convertData({
+            name: "Root",
+            display_name: "根节点",
+            children: json.data.list,
+          });
+
+          // 配置项
+          const option = {
+            title: {
+              // text: "类目树结构可视化",
+              left: "center",
+            },
+            tooltip: {
+              trigger: "item",
+              formatter: "{b}",
+            },
+            series: [
+              {
+                type: "tree",
+                data: [treeData],
+                orient: "LR", // 水平方向布局，从左到右
+                // layout: "orthogonal", // 正交布局
+                top: "5%",
+                left: "7%",
+                bottom: "2%",
+                right: "7%",
+                symbolSize: 7,
+                itemStyle: {
+                  borderWidth: 1,
+                },
+                lineStyle: {
+                  width: 1,
+                  curveness: 0, // 直线连接
+                },
+                initialTreeDepth: 1,
+                // 控制层级间的距离
+                levelDistance: 300, // 每层之间的水平间距
+                // nodeDistance: 150, // 同层节点之间的垂直间距
+                label: {
+                  position: "right",
+                  verticalAlign: "middle",
+                  align: "left",
+                  fontSize: 12,
+                  distance: 10, // 标签与节点的距离
+                },
+                leaves: {
+                  label: {
+                    position: "right",
+                    verticalAlign: "middle",
+                    align: "left",
+                  },
+                },
+                emphasis: {
+                  focus: "descendant",
+                },
+                expandAndCollapse: true,
+                animationDuration: 550,
+                animationDurationUpdate: 750,
+              },
+            ],
+          };
+
+          // 使用配置项显示图表
+          myChart.setOption(option);
+        });
+
+      // 响应窗口大小变化
+      window.addEventListener("resize", function () {
+        myChart.resize();
+      });
+    </script>
+  </body>
+</html>
