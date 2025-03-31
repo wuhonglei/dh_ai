@@ -1,19 +1,27 @@
 import json
+from type_define import CategoryItem, LeafCategoryItem
 
 
-def load_category_list(path: str):
+def load_category_list(path: str) -> list[CategoryItem]:
     with open(path, 'r') as f:
         return json.load(f)['data']['list']
 
 
-def get_category_by_id(id: str, category_list: list[dict]) -> dict | None:
+def category_list_to_dict(category_list: list[CategoryItem]) -> dict[int, CategoryItem]:
+    category_dict: dict[int, CategoryItem] = {}
     for category in category_list:
-        if str(category['id']) == str(id):
+        category_dict[category['id']] = category
+    return category_dict
+
+
+def get_category_by_id(id: int, category_list: list[CategoryItem]) -> CategoryItem | None:
+    for category in category_list:
+        if category['id'] == id:
             return category
     return None
 
 
-def get_leaf_level_category_list(category: dict) -> list[dict]:
+def get_leaf_level_category_list(category: CategoryItem) -> list[LeafCategoryItem]:
     leaf_category_list = []
     if not category:
         return leaf_category_list

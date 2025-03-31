@@ -1,6 +1,7 @@
 import os
 import pickle
 import torch
+import json
 
 
 def save_cache(file_path: str, data):
@@ -28,3 +29,13 @@ def get_device():
         return torch.device('cuda')
     else:
         return torch.device('cpu')
+
+
+def load_json(file_path: str):
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+
+def save_json(file_path: str, data):
+    with open(file_path, 'w') as f:
+        json.dump(data, f)
