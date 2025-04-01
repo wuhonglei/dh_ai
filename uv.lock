@@ -644,6 +644,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "albumentations" },
     { name = "dotenv" },
+    { name = "emoji" },
     { name = "gensim" },
     { name = "ipykernel" },
     { name = "jieba" },
@@ -657,6 +658,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "seaborn" },
     { name = "spacy" },
+    { name = "termcolor" },
     { name = "timm" },
     { name = "torchinfo" },
     { name = "torchvision" },
@@ -669,6 +671,7 @@ dependencies = [
 requires-dist = [
     { name = "albumentations", specifier = ">=2.0.4" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "emoji", specifier = ">=2.14.1" },
     { name = "gensim", specifier = ">=4.3.3" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "jieba", specifier = ">=0.42.1" },
@@ -682,6 +685,7 @@ requires-dist = [
     { name = "scikit-learn", specifier = ">=1.6.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "spacy", specifier = ">=3.8.4" },
+    { name = "termcolor", specifier = ">=3.0.0" },
     { name = "timm", specifier = ">=1.0.14" },
     { name = "torchinfo", specifier = ">=1.8.0" },
     { name = "torchvision", specifier = ">=0.15.2" },
@@ -729,6 +733,15 @@ source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/98/a8/bd76f872481c783a7e29cf0d4eccf773b1a2418b971f389245964223dcd6/dynaconf-3.2.10.tar.gz", hash = "sha256:8dbeef31a2343c8342c9b679772c3d005b4801c587cf2f525f98f57ec2f607f1" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/06/02/3846e28288fa0ee0d45e3e01581629fbfcc1ca53121ad26e0f278daa8241/dynaconf-3.2.10-py2.py3-none-any.whl", hash = "sha256:7f70a4b8a8861efb88d8267aeb6f246c791dc34ecbb8299c26a19abd59113df6" },
+]
+
+[[package]]
+name = "emoji"
+version = "2.14.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/cb/7d/01cddcbb6f5cc0ba72e00ddf9b1fa206c802d557fd0a20b18e130edf1336/emoji-2.14.1.tar.gz", hash = "sha256:f8c50043d79a2c1410ebfae833ae1868d5941a67a6cd4d18377e2eb0bd79346b" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/91/db/a0335710caaa6d0aebdaa65ad4df789c15d89b7babd9a30277838a7d9aac/emoji-2.14.1-py3-none-any.whl", hash = "sha256:35a8a486c1460addb1499e3bf7929d3889b2e2841a57401903699fef595e942b" },
 ]
 
 [[package]]
@@ -3373,6 +3386,15 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/ca/99/5a5b6f19ff9f083671ddf7b9632028436167cd3d33e11015754e41b249a4/sympy-1.13.1.tar.gz", hash = "sha256:9cebf7e04ff162015ce31c9c6c9144daa34a93bd082f54fd8f12deca4f47515f" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/b2/fe/81695a1aa331a842b582453b605175f419fe8540355886031328089d840a/sympy-1.13.1-py3-none-any.whl", hash = "sha256:db36cdc64bf61b9b24578b6f7bab1ecdd2452cf008f34faa33776680c26d66f8" },
+]
+
+[[package]]
+name = "termcolor"
+version = "3.0.0"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/17/b3/b30506dc4297bb12e209ce455ae53c95f78470b442ae8ef83535cb9493e6/termcolor-3.0.0.tar.gz", hash = "sha256:0cd855c8716383f152ad02bbb39841d6e4694538ff5d424088e56c8b81fde525" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/f6/38/a85380919a38f24b6f2b9b05b7b6970962351ef8d12d32bfbc34ab05380b/termcolor-3.0.0-py3-none-any.whl", hash = "sha256:fdfdc9f2bdb71c69fbbbaeb7ceae3afef0461076dd2ee265bf7b7c49ddb05ebb" },
 ]
 
 [[package]]

@@ -39,3 +39,8 @@ def load_json(file_path: str):
 def save_json(file_path: str, data):
     with open(file_path, 'w') as f:
         json.dump(data, f)
+
+
+def create_dir(file_path: str):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    return file_path
