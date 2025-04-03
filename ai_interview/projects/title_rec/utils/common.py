@@ -2,6 +2,7 @@ import os
 import pickle
 import torch
 import json
+import string
 
 
 def save_cache(file_path: str, data):
@@ -44,3 +45,17 @@ def save_json(file_path: str, data):
 def create_dir(file_path: str):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     return file_path
+
+
+def write_file(file_path: str, data):
+    with open(file_path, 'w') as f:
+        f.write(data)
+
+
+def read_lines(file_path: str):
+    with open(file_path, 'r') as f:
+        return [line.strip() for line in f.readlines()]
+
+
+def is_punctuation(char: str) -> bool:
+    return char in string.punctuation

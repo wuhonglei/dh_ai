@@ -32,7 +32,9 @@ def is_spacy_stop_word(word: str) -> bool:
     return word in spacy_stop_words
 
 
-def tokenize_nltk(text: str, args: TokenArgs) -> list[str]:
+def tokenize_nltk(text: str, args: TokenArgs | None = None) -> list[str]:
+    if args is None:
+        args = TokenArgs(use_stop_words=False, lower=False)
     if args['lower']:
         text = text.lower()
     tokens = word_tokenize(text)
@@ -41,7 +43,9 @@ def tokenize_nltk(text: str, args: TokenArgs) -> list[str]:
     return tokens
 
 
-def tokenize_spacy(text: str, args: TokenArgs) -> list[str]:
+def tokenize_spacy(text: str, args: TokenArgs | None = None) -> list[str]:
+    if args is None:
+        args = TokenArgs(use_stop_words=False, lower=False)
     if args['lower']:
         text = text.lower()
     doc = nlp(text)
