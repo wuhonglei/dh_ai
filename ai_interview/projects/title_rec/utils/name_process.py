@@ -52,7 +52,7 @@ def remove_non_word(text):
 
 def save_invalid_title():
     csv_path = os.path.join(root_dir, 'dataset',
-                            'level1_20', 'valid.csv')
+                            'level1_80', 'valid.csv')
     invalid_names = []
     df = pd.read_csv(csv_path)
     total = len(df)
@@ -209,7 +209,7 @@ def analysis_invalid_symbol(column_name: str = 'remove_prefix_emoji'):
     csv_names = ['valid.csv']
     for csv_name in tqdm(csv_names, desc='clean emoji in name'):
         csv_path = os.path.join(root_dir, 'dataset',
-                                'level1_20', 'clean', csv_name)
+                                'level1_80', 'clean', csv_name)
         df = pd.read_csv(csv_path)
         invalid_word_freq = FreqDist()
         for index, row in tqdm(df.iterrows(), total=len(df), desc=f'analysis invalid symbol in {csv_name}'):
@@ -245,7 +245,7 @@ def clean_prefix_in_name():
 
     for csv_name in tqdm(csv_names, desc='clean prefix in name'):
         csv_path = os.path.join(root_dir, 'dataset',
-                                'level1_20', csv_name)
+                                'level1_80', csv_name)
         df = pd.read_csv(csv_path)
         df = df.drop(columns=['clean_name'])
         total = len(df)
@@ -274,7 +274,7 @@ def clean_prefix_in_name():
 
         df['remove_prefix'] = result['remove_prefix']
         file_path = create_dir(os.path.join(root_dir, 'dataset',
-                                            'level1_20', 'clean', csv_name))
+                                            'level1_80', 'clean', csv_name))
         df.to_csv(file_path, index=False)
 
 
@@ -282,13 +282,13 @@ def clean_emoji_in_name():
     csv_names = ['train.csv', 'valid.csv', 'test.csv']
     for csv_name in tqdm(csv_names, desc='clean emoji in name'):
         csv_path = os.path.join(root_dir, 'dataset',
-                                'level1_20', 'clean', csv_name)
+                                'level1_80', 'clean', csv_name)
         df = pd.read_csv(csv_path)
         df = df.dropna(subset=['remove_prefix'])
         df['remove_prefix_emoji'] = df['remove_prefix'].apply(
             lambda x: remove_emoji(x, ' '))
         file_path = create_dir(os.path.join(root_dir, 'dataset',
-                                            'level1_20', 'clean', csv_name))
+                                            'level1_80', 'clean', csv_name))
         df.to_csv(file_path, index=False)
 
 
@@ -296,13 +296,13 @@ def clean_symbol_in_name():
     csv_names = ['train.csv', 'valid.csv', 'test.csv']
     for csv_name in tqdm(csv_names, desc='clean emoji in name'):
         csv_path = os.path.join(root_dir, 'dataset',
-                                'level1_20', 'clean', csv_name)
+                                'level1_80', 'clean', csv_name)
         df = pd.read_csv(csv_path)
         df = df.dropna(subset=['remove_prefix_emoji'])
         df['remove_prefix_emoji_symbol'] = df['remove_prefix_emoji'].apply(
             lambda x: remove_symbol(x, ' '))
         file_path = create_dir(os.path.join(root_dir, 'dataset',
-                                            'level1_20', 'clean', csv_name))
+                                            'level1_80', 'clean', csv_name))
         df.to_csv(file_path, index=False)
 
 
@@ -310,14 +310,14 @@ def tokenize_name():
     csv_names = ['train.csv', 'valid.csv', 'test.csv']
     for csv_name in tqdm(csv_names, desc='tokenize name'):
         csv_path = os.path.join(root_dir, 'dataset',
-                                'level1_20', 'clean', csv_name)
+                                'level1_80', 'clean', csv_name)
         df = pd.read_csv(csv_path)
         df['nltk_tokenized_name'] = df['name'].apply(
             lambda x: ' '.join(tokenize_nltk(x)))
         df['spacy_tokenized_name'] = df['name'].apply(
             lambda x: ' '.join(tokenize_spacy(x)))
         file_path = create_dir(os.path.join(root_dir, 'dataset',
-                                            'level1_20', 'clean', csv_name))
+                                            'level1_80', 'clean', csv_name))
         df.to_csv(file_path, index=False)
 
 

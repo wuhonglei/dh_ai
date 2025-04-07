@@ -88,7 +88,7 @@ def save_dataset():
         sub_df, stratify_column=stratify_column)
 
     # 创建输出目录
-    output_dir = root_dir / "dataset" / "level1_20"
+    output_dir = root_dir / "dataset" / "level1_80"
     create_dir(str(output_dir))
 
     # 保存数据集
