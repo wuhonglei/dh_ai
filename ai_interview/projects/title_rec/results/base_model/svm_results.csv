@@ -9,3 +9,5 @@ TfidfVectorizer,nltk_tokenized_name,level1_global_be_category_id,87123,58607,0.8
 TfidfVectorizer,remove_prefix,level1_global_be_category_id,87123,57913,0.8833123543747824,435.1265516281128
 TfidfVectorizer,remove_prefix_emoji,level1_global_be_category_id,87123,57912,0.8832855727255684,432.0577850341797
 TfidfVectorizer,remove_prefix_emoji_symbol,level1_global_be_category_id,87122,57912,0.8832855727255684,434.567259311676
+TfidfVectorizer,remove_spacy_stop_words,level1_global_be_category_id,87122,57907,0.8831516644794987,435.73722290992737
+TfidfVectorizer,remove_nltk_stop_words,level1_global_be_category_id,87122,58561,0.883580170866922,459.6513738632202
