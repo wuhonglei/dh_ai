@@ -28,6 +28,7 @@ dependencies = [
     "transformers>=4.49.0",
     "uv>=0.6.2",
     "wandb>=0.19.7",
+    "xgboost>=3.0.0",
 ]
 [tool.uv]
 index-url = "https://mirrors.aliyun.com/pypi/simple/"
