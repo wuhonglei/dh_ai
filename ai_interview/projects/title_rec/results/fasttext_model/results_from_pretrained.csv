@@ -1,0 +1,3 @@
+title_name,train_txt,test_txt,model_size(MB),wordNgrams,train_time(s),pretrainedVectors,accuracy
+remove_nltk_stop_words,valid.txt,test.txt,2554,2,113.496089220047,crawl-300d-2M.vec,0.8810894774900239
+remove_spacy_stop_words,valid.txt,test.txt,2554,2,108.6335461139679,crawl-300d-2M.vec,0.8833659176732103

@@ -10,4 +10,6 @@ logistic 回归在使用 BOW 作为特征时，效果最好，准确率最高可
 
 ![fasttext 模型效果](https://p.ipic.vip/9otk4y.png)
 结论:
-fasttext 模型在使用 spacy 分词时并且移除停用词时，效果最好, ，准确率最高可以达到 `0.8755`
+1. fasttext 模型在使用 spacy 分词时并且移除停用词时，效果最好, ，准确率最高可以达到 `0.8755`，
+2. fasttext 模型使用预训练向量 `crawl-300d-2M.vec` 时，准确率最高可达到 `0.8833`
+
