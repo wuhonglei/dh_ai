@@ -15,7 +15,7 @@ from tqdm import tqdm
 from string import punctuation
 
 from config import root_dir, dataset_dir
-from vocab import tokenize_nltk, tokenize_spacy
+from vocab import tokenize_nltk, tokenize_spacy, is_spacy_stop_word, is_nltk_stop_word
 from common import write_file, read_lines, create_dir, is_punctuation
 
 
@@ -321,5 +321,24 @@ def tokenize_name():
         df.to_csv(file_path, index=False)
 
 
+def remove_stop_words():
+    csv_names = ['test.csv', 'valid.csv', 'train.csv']
+    for csv_name in tqdm(csv_names, desc='remove stop words'):
+        csv_path = os.path.join(root_dir, 'dataset',
+                                'level1_80', 'clean', csv_name)
+        df = pd.read_csv(csv_path)
+        df = df.dropna(subset=['spacy_tokenized_name', 'nltk_tokenized_name',
+                       'remove_prefix_emoji_symbol'])
+        df['remove_spacy_stop_words'] = df['spacy_tokenized_name'].apply(
+            lambda x: ' '.join(token for token in x.lower().split() if not is_spacy_stop_word(token)))
+        df['remove_prefix_emoji_symbol_stop_words'] = df['remove_prefix_emoji_symbol'].apply(
+            lambda x: ' '.join(token for token in x.lower().split() if not is_spacy_stop_word(token)))
+        df['remove_nltk_stop_words'] = df['nltk_tokenized_name'].apply(
+            lambda x: ' '.join(token for token in x.lower().split() if not is_nltk_stop_word(token)))
+        file_path = create_dir(os.path.join(root_dir, 'dataset',
+                                            'level1_80', 'clean', csv_name))
+        df.to_csv(file_path, index=False)
+
+
 if __name__ == '__main__':
-    tokenize_name()
+    remove_stop_words()

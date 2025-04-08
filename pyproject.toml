@@ -8,6 +8,7 @@ dependencies = [
     "albumentations>=2.0.4",
     "dotenv>=0.9.9",
     "emoji>=2.14.1",
+    "fasttext>=0.9.3",
     "gensim>=4.3.3",
     "ipykernel>=6.29.5",
     "jieba>=0.42.1",
