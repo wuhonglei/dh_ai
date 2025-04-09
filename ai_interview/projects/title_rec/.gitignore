@@ -1,7 +1,8 @@
 /dataset/
-/models/
 /__MACOSX/
 
 .webui_secret_key
 /cache/
 /test
+/models/fasttext_model/data/
+/models/fasttext_model/pretrained_vectors/
