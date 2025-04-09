@@ -11,10 +11,6 @@ from tqdm import tqdm
 
 
 def train_fasttext_model(train_data_path: str, train_args: dict):
-    # 在训练时只使用训练集中的词汇
-    train_args['minCount'] = 1  # 确保所有词汇都被包含
-    train_args['minn'] = 0  # 禁用子词
-    train_args['maxn'] = 0  # 禁用子词
     model = fasttext.train_supervised(input=train_data_path, **train_args)
     return model
 
