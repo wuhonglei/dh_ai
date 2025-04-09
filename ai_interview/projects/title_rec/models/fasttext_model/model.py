@@ -43,9 +43,9 @@ def get_model_size(model) -> int:
 
 def main():
     columns = [
-        # 'spacy_tokenized_name', 'nltk_tokenized_name',
-        # 'remove_prefix', 'remove_prefix_emoji',
-        # 'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words',
+        'spacy_tokenized_name', 'nltk_tokenized_name',
+        'remove_prefix', 'remove_prefix_emoji',
+        'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words',
         'remove_nltk_stop_words',
         'remove_spacy_stop_words'
     ]
