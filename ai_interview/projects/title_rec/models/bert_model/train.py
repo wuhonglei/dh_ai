@@ -11,6 +11,7 @@ from model import BaseModel
 from config import train_csv_path, test_csv_path, columns, label_name, max_length, project_name
 from tqdm import tqdm
 import wandb
+from shutdown import shutdown
 
 
 def get_device():
@@ -88,7 +89,7 @@ def train(_config: dict = {}):
         **_config
     })
     config = wandb.config
-    bert_name = 'bert-base-uncased'
+    bert_name = config['bert_name']
     num_classes = config['num_classes']
     batch_size = config['batch_size']
     max_length = config['max_length']
@@ -127,8 +128,9 @@ def train(_config: dict = {}):
 
 def main():
     sweep_config = {
-        'method': 'grid',
+        'method': 'bayes',
         'name': 'base_model',
+        'count': 100,  # 限制最多运行100次
         'metric': {
             'name': 'eval_acc',
             'goal': 'maximize'
@@ -138,7 +140,6 @@ def main():
                 'values': [64, 128]
             },
             'learning_rate': {
-                'priority': 3,
                 'values': [1e-5, 2e-5, 3e-5]
             },
             'epochs': {
@@ -148,11 +149,9 @@ def main():
                 'values': [18, 22, 28]
             },
             'column_name': {
-                'priority': 2,
                 'values': ['name', 'spacy_tokenized_name', 'remove_spacy_stop_words', 'remove_prefix', 'remove_prefix_emoji', 'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words']
             },
             'bert_name': {
-                'priority': 1,
                 'values': ['bert-base-uncased', 'distilbert-base-uncased', 'albert-base-v1', 'albert-xlarge-v1', 'albert-xlarge-v2']
             },
             'num_classes': {
@@ -166,3 +165,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    shutdown()
