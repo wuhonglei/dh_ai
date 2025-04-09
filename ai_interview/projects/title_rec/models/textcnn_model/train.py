@@ -160,7 +160,7 @@ def train(_config: dict = {}):
 
 def main():
     sweep_config = {
-        'method': 'bayes',
+        'method': 'grid',
         'metric': {
             'name': 'test_loss',
             'goal': 'minimize'
@@ -172,31 +172,31 @@ def main():
         },
         'parameters': {
             'batch_size': {
-                'values': [640, 1280, 2560]
+                'values': [640, 1280]
             },
             'learning_rate': {
-                'values': [0.001, 0.0005, 0.0001]
+                'values': [0.001]
             },
             'epochs': {
-                'values': [5, 10, 15]
+                'values': [5, 10]
             },
             'embedding_dim': {
                 'values': [100, 200, 300]
             },
             'num_filters': {
-                'values': [50, 100, 200]
+                'values': [100, 150]
             },
             'filter_sizes': {
-                'values': [[3, 4, 5], [2, 3, 4], [2, 3, 4, 5]]
+                'values': [[3, 4, 5]]
             },
             'min_freq': {
-                'values': [3, 5, 10]
+                'values': [3, 5]
             },
             'max_seq_length': {
-                'values': [15, 20, 25]
+                'values': [15, 20]
             },
             'column': {
-                'values': columns
+                'values': ['spacy_tokenized_name', 'remove_spacy_stop_words', 'remove_prefix', 'remove_prefix_emoji', 'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words']
             },
             'num_classes': {
                 'values': [30]
