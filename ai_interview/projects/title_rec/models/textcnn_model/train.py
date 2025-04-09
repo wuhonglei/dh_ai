@@ -7,13 +7,23 @@ import time
 import torch
 from torch.utils.data import DataLoader
 from typing import Callable
-from config import train_csv_path, vocab_dir, columns, label_name, test_csv_path
+from config import train_csv_path, vocab_dir, columns, label_name, test_csv_path, project_name
 from vocab import Vocab, load_vocab
 from dataset import TextCNNDataset
 from model import TextCNN
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
+import wandb
+from dotenv import load_dotenv
+
+local_env_path = '.env.local'
+load_dotenv(local_env_path)
+
+
+def write_local_env(key: str, value: str):
+    with open(local_env_path, 'a') as f:
+        f.write(f'{key}={value}\n')
 
 
 def get_device():
@@ -25,6 +35,20 @@ def get_device():
         return torch.device('cuda')
     else:
         return torch.device('cpu')
+
+
+def get_readable_params_size(model: nn.Module):
+    """
+    估算模型保存后的体积(MB)
+    假设所有参数都是 float32 类型（4字节）
+    """
+    # 计算参数量
+    num_params = sum(p.numel() for p in model.parameters())
+    # 计算存储大小（字节）
+    size_bytes = num_params * 4  # float32 每个参数占用 4 字节
+    # 转换为 MB
+    size_mb = size_bytes / 1024 / 1024
+    return size_mb
 
 
 def tokenizer(text: str) -> list[str]:
@@ -41,7 +65,7 @@ def train_one_epoch(model: TextCNN, train_loader: DataLoader, criterion: nn.Cros
     model.train()
     total_loss = 0
     progress_bar = tqdm(train_loader, desc=f'训练第 {epoch} 轮',
-                        total=len(train_loader), position=1, leave=False)
+                        total=len(train_loader))
     for batch in progress_bar:
         input_ids, labels = batch
         outputs = model(input_ids.to(device))
@@ -61,7 +85,7 @@ def eval_one_epoch(model: TextCNN, test_loader: DataLoader, criterion: nn.CrossE
     total_loss = 0
     with torch.no_grad():
         for batch in tqdm(test_loader, desc='测试',
-                          total=len(test_loader), position=2, leave=False):
+                          total=len(test_loader)):
             input_ids, labels = batch
             outputs = model(input_ids.to(device))
             loss = criterion(outputs, labels.to(device))
@@ -72,18 +96,26 @@ def eval_one_epoch(model: TextCNN, test_loader: DataLoader, criterion: nn.CrossE
     return total_loss / len(test_loader), total_correct / total_samples
 
 
-def train():
-    min_freq = 5
-    max_seq_length = 20
-    epochs = 3
-    column = 'spacy_tokenized_name'
-    embedding_dim = 100
-    num_filters = 100
-    filter_sizes = [3, 4, 5]
-    learning_rate = 0.001
-    num_classes = 30
+def train(_config: dict = {}):
+    # 默认配置
     device = get_device()
-    batch_size = 1280
+
+    # 初始化 wandb
+    wandb.init(project=project_name, config={
+        **_config,
+    })
+    # 使用 wandb.config 更新配置，并提供默认值
+    config = wandb.config
+    min_freq = config['min_freq']
+    max_seq_length = config['max_seq_length']
+    epochs = config['epochs']
+    column = config['column']
+    embedding_dim = config['embedding_dim']
+    num_filters = config['num_filters']
+    filter_sizes = config['filter_sizes']
+    learning_rate = config['learning_rate']
+    batch_size = config['batch_size']
+    num_classes = config['num_classes']
 
     vocab = Vocab()
     word_to_id, _ = vocab.load_vocab_freq(
@@ -106,7 +138,8 @@ def train():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     progress_bar = tqdm(range(epochs), desc='训练',
-                        total=epochs, position=0, leave=False)
+                        total=epochs)
+    best_test_acc = 0.0
     for epoch in progress_bar:
         train_loss = train_one_epoch(
             model, train_loader, criterion, optimizer, epoch, device)
@@ -114,10 +147,70 @@ def train():
             model, test_loader, criterion, device)
         progress_bar.set_postfix(
             train_loss=train_loss, test_loss=test_loss, test_acc=test_acc)
+        best_test_acc = max(best_test_acc, test_acc)
+        wandb.log({
+            'train_loss': train_loss,
+            'test_loss': test_loss,
+            'test_acc': test_acc
+        })
+
+    wandb.summary['params_size'] = get_readable_params_size(model)
+    wandb.summary['best_test_acc'] = best_test_acc
+
+
+def main():
+    sweep_config = {
+        'method': 'bayes',
+        'metric': {
+            'name': 'test_loss',
+            'goal': 'minimize'
+        },
+        'early_terminate': {
+            'type': 'hyperband',
+            'min_iter': 3,
+            'eta': 2
+        },
+        'parameters': {
+            'batch_size': {
+                'values': [640, 1280, 2560]
+            },
+            'learning_rate': {
+                'values': [0.001, 0.0005, 0.0001]
+            },
+            'epochs': {
+                'values': [5, 10, 15]
+            },
+            'embedding_dim': {
+                'values': [100, 200, 300]
+            },
+            'num_filters': {
+                'values': [50, 100, 200]
+            },
+            'filter_sizes': {
+                'values': [[3, 4, 5], [2, 3, 4], [2, 3, 4, 5]]
+            },
+            'min_freq': {
+                'values': [3, 5, 10]
+            },
+            'max_seq_length': {
+                'values': [15, 20, 25]
+            },
+            'column': {
+                'values': columns
+            },
+            'num_classes': {
+                'values': [30]
+            }
+        }
+    }
+
+    if os.environ.get('sweep_id'):
+        sweep_id: str = os.environ.get('sweep_id', '')
+    else:
+        sweep_id = wandb.sweep(sweep_config, project=project_name)
+        write_local_env('sweep_id', sweep_id)
+    wandb.agent(sweep_id, train)
 
 
 if __name__ == '__main__':
-    start_time = time.time()
-    train()
-    end_time = time.time()
-    print(f'训练时间: {end_time - start_time:.2f} 秒')
+    main()

@@ -10,3 +10,4 @@ columns = [
     'remove_spacy_stop_words'
 ]
 label_name = 'level1_global_be_category_id'
+project_name = 'shopee_title_textcnn_model'
