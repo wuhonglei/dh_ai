@@ -131,8 +131,8 @@ def main():
     use_sweep = False
     if not use_sweep:
         config = {
-            'batch_size': 128,
-            'learning_rate': 3e-5,
+            'batch_size': 256,
+            'learning_rate': 5e-5,
             'epochs': 3,
             'max_length': 28,
             'column_name': 'spacy_tokenized_name',
