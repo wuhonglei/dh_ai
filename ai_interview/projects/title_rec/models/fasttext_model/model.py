@@ -8,6 +8,7 @@ import fasttext
 import pandas as pd
 from typing import Any
 from tqdm import tqdm
+from collections import Counter
 
 
 def train_fasttext_model(train_data_path: str, train_args: dict):
@@ -57,6 +58,30 @@ def save_fasttext_model_as_vec(model, save_path: str) -> None:
             f.write(f"{word} {vector_str}\n")
 
 
+def get_bucket(train_txt_path: str, wordNgrams: int, min_count: int) -> int:
+    """
+    获取桶的数量, 桶的数量由 wordNgrams 唯一值的数量决定
+    """
+    counter = Counter()
+    with open(train_txt_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            words = line.strip().split()[1:]
+            if len(words) < wordNgrams:
+                continue
+            for i in range(len(words) - wordNgrams + 1):
+                ngram = words[i:i+wordNgrams]
+                counter.update(ngram)
+
+    bucket_count = 0
+    for word, freq in counter.most_common():
+        if freq < min_count:
+            break
+        bucket_count += 1
+
+    print(f'bucket_count: {bucket_count}')
+    return bucket_count
+
+
 def main():
     columns = [
         'remove_spacy_stop_words',
@@ -71,10 +96,9 @@ def main():
         'epoch': 100,
         'lr': 0.1,
         'wordNgrams': 2,
-        'minCount': 5,
+        'minCount': 2,
         'dim': 100,
         'loss': 'softmax',
-        'bucket': 35000,
     }
 
     result = []
@@ -83,6 +107,9 @@ def main():
             'data', column, train_txt)
         test_data_path = os.path.join(
             'data', column, test_txt)
+
+        train_args['bucket'] = get_bucket(
+            train_data_path, train_args['wordNgrams'], train_args['minCount'])
 
         start_time = time.time()
         model = train_fasttext_model(
@@ -101,6 +128,8 @@ def main():
             'train_time(s)': end_time - start_time,
             'accuracy': precision,
         })
+
+        break
 
     result_df = pd.DataFrame(result)
     result_df.to_csv(
