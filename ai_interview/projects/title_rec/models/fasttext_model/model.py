@@ -37,25 +37,44 @@ def get_model_size(model) -> int:
     return size // (1024 * 1024)  # 单位 兆
 
 
+def save_fasttext_model_as_vec(model, save_path: str) -> None:
+    """
+    将 fasttext 模型保存为 .vec 格式
+
+    Args:
+        model: fasttext模型
+        save_path: 保存路径
+    """
+    # 获取词向量
+    words = model.get_words()
+    with open(save_path, 'w', encoding='utf-8') as f:
+        # 写入词向量维度信息
+        f.write(f"{len(words)} {model.get_dimension()}\n")
+        # 写入每个词的向量
+        for word in words:
+            vector = model.get_word_vector(word)
+            vector_str = ' '.join(map(str, vector))
+            f.write(f"{word} {vector_str}\n")
+
+
 def main():
     columns = [
+        'remove_spacy_stop_words',
         'spacy_tokenized_name', 'nltk_tokenized_name',
         'remove_prefix', 'remove_prefix_emoji',
         'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words',
         'remove_nltk_stop_words',
-        'remove_spacy_stop_words'
     ]
     train_txt = 'valid.txt'
     test_txt = 'test.txt'
     train_args = {
-        'epoch': 1,
+        'epoch': 100,
         'lr': 0.1,
         'wordNgrams': 2,
         'minCount': 5,
-        'dim': 300,
+        'dim': 100,
         'loss': 'softmax',
-        'bucket': 200000,
-        'pretrainedVectors': '',  # ./pretrained_vectors/crawl-300d-2M.vec
+        'bucket': 35000,
     }
 
     result = []
@@ -80,7 +99,6 @@ def main():
             'model_size(MB)': model_size,
             'wordNgrams': train_args['wordNgrams'],
             'train_time(s)': end_time - start_time,
-            'pretrainedVectors': os.path.basename(train_args['pretrainedVectors']),
             'accuracy': precision,
         })
 
