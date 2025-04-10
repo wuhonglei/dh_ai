@@ -102,6 +102,10 @@ def main():
             'accuracy': precision,
         })
 
+    result_df = pd.DataFrame(result)
+    result_df.to_csv(
+        '../../results/fasttext_model/results_from_scratch.csv', index=False)
+
 
 if __name__ == '__main__':
     main()
