@@ -9,5 +9,5 @@ columns = [
     'remove_spacy_stop_words'
 ]
 label_name = 'level1_global_be_category_id'
-project_name = 'shopee_title_base_model'
+project_name = 'shopee_title_bert_model'
 max_length = 22
