@@ -86,7 +86,8 @@ def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.Cros
 
 def train(_config: dict = {}):
     wandb.init(project=project_name, config={
-        **_config
+        **_config,
+        'device': get_device()
     })
     config = wandb.config
     bert_name = config['bert_name']
@@ -96,7 +97,7 @@ def train(_config: dict = {}):
     learning_rate = config['learning_rate']
     epochs = config['epochs']
     column_name = config['column_name']
-    device = get_device()
+    device = config['device']
 
     tokenizer = AutoTokenizer.from_pretrained(bert_name)
     train_loader = build_loader(train_csv_path, column_name, label_name,
@@ -127,6 +128,20 @@ def train(_config: dict = {}):
 
 
 def main():
+    use_sweep = False
+    if not use_sweep:
+        config = {
+            'batch_size': 128,
+            'learning_rate': 3e-5,
+            'epochs': 3,
+            'max_length': 28,
+            'column_name': 'spacy_tokenized_name',
+            'bert_name': 'bert-base-uncased',
+            'num_classes': 30
+        }
+        train(config)
+        return
+
     sweep_config = {
         'method': 'bayes',
         'name': 'base_model',
@@ -137,10 +152,10 @@ def main():
         },
         'parameters': {
             'batch_size': {
-                'values': [64, 128]
+                'values': [128, 256]
             },
             'learning_rate': {
-                'values': [1e-5, 2e-5, 3e-5]
+                'values': [3e-5, 5e-5]
             },
             'epochs': {
                 'values': [3]
