@@ -3,20 +3,18 @@ from typing import List
 class Solution:
     def productExceptSelf(self, nums: List[int]) -> List[int]:
         n = len(nums)
-        L, R, answer = [0] * n, [0] * n, [0] * n
+        answer = [0] * n
 
         # L[i] = L[i-1] * nums[i-1]
-        L[0] = 1
+        answer[0] = 1
         for i in range(1, n):
-            L[i] = L[i-1] * nums[i-1]
-        for i in range(n-2, -1, -1):
-            R[i] = R[i + 1] * nums[i + 1]
-        
-        # R[i] = R[i+1] * nums[i+1]
-        R[n-1] = 1
-        for i in range(n):
-            answer[i] = L[i] * R[i]
-        
+            answer[i] = answer[i-1] * nums[i-1]
+
+        R = 1
+        for i in range(n-1, -1, -1):
+            answer[i] = answer[i] * R
+            R = R * nums[i]
+
         return answer
 
 case_list = [
