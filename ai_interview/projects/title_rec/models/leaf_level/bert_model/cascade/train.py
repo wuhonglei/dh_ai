@@ -114,6 +114,12 @@ def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.Cros
             level1_pred = level1_logits.argmax(dim=1)
             level1_correct += (level1_pred == level1_labels).sum().item()
 
+            if not level_map:
+                leaf_correct += (leaf_logits.argmax(dim=1)
+                                 == leaf_labels).sum().item()
+                total_samples += level1_labels.size(0)
+                continue
+
             # 初始化叶子节点预测的累积结果
             all_leaf_preds = []
 
@@ -186,7 +192,7 @@ def train(_config: dict = {}):
         train_level1_loss, train_leaf_loss = train_one_epoch(model, train_loader, criterion,
                                                              optimizer, epoch, device)
         eval_loss, level1_acc, leaf_acc = eval_one_epoch(
-            model, test_loader, criterion, device, epoch, level_map)
+            model, test_loader, criterion, device, epoch, {})
         best_level1_acc = max(best_level1_acc, level1_acc)
         best_leaf_acc = max(best_leaf_acc, leaf_acc)
         progress_bar.set_postfix(train_level1_loss=train_level1_loss, train_leaf_loss=train_leaf_loss, eval_loss=eval_loss,
@@ -209,10 +215,10 @@ def main():
         config = {
             'batch_size': 128,
             'learning_rate': 3e-5,
-            'epochs': 5,
+            'epochs': 6,
             'max_length': 50,
-            'column_name': 'remove_spacy_stop_words',
-            'bert_name': 'distilbert-base-uncased',
+            'column_name': 'name',
+            'bert_name': 'bert-base-uncased',
             'level1_label_name': 'level1_global_be_category_id',
             'leaf_label_name': 'global_be_category_id',
             'dropout': 0.1

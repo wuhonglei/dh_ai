@@ -8,4 +8,4 @@ columns = [
     'remove_nltk_stop_words',
     'remove_spacy_stop_words'
 ]
-project_name = 'shopee_title_bert_model_leaf_level'
+project_name = 'shopee_title_bert_model_joint_leaf_level'
