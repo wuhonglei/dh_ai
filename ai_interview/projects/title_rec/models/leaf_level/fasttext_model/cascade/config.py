@@ -38,7 +38,7 @@ columns = [
     'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words',
     'remove_nltk_stop_words',
 ]
-train_txt = 'valid.txt'
+train_txt = 'train.txt'
 test_txt = 'test.txt'
 train_args = {
     'epoch': 50,

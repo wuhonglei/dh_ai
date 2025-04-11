@@ -16,7 +16,7 @@ def save_txt(labels: list[str], titles: list[str], csv_path: str):
             f.write(f'{label} {title}\n')
 
 
-csv_names = ['test.csv', 'valid.csv']
+csv_names = ['test.csv', 'valid.csv', 'train.csv']
 columns = ['spacy_tokenized_name', 'nltk_tokenized_name',
            'remove_prefix', 'remove_prefix_emoji',
            'remove_prefix_emoji_symbol',
@@ -35,8 +35,6 @@ def generate_fasttext_dataset(label_name: str, dataset_dir: str):
             csv_path = os.path.join(output_dir,
                                     f'{csv_name.split(".")[0]}.txt')
             save_txt(label, title, csv_path)
-            # break
-        # break
 
 
 def generate_fasttext_dataset_for_every_top_level(level1_name: str, leaf_level_name: str, dataset_dir: str):
