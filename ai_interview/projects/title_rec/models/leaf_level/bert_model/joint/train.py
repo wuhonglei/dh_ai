@@ -37,9 +37,9 @@ def get_readable_params_size(model: nn.Module):
     return size_mb
 
 
-def build_loader(csv_path: str, column_name: str, label_name: str, batch_size: int, tokenizer, max_length: int, shuffle: bool):
+def build_loader(csv_path: str, column_name: str, label_name: str, batch_size: int, tokenizer, max_length: int, shuffle: bool, label_encoder: LabelEncoder):
     dataset = BaseDataset(csv_path, column_name,
-                          label_name, tokenizer, max_length)
+                          label_name, tokenizer, max_length, label_encoder)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
@@ -91,7 +91,6 @@ def train(_config: dict = {}):
     })
     config = wandb.config
     bert_name = config['bert_name']
-    num_classes = config['num_classes']
     batch_size = config['batch_size']
     max_length = config['max_length']
     learning_rate = config['learning_rate']
@@ -100,11 +99,17 @@ def train(_config: dict = {}):
     device = config['device']
     label_name = config['label_name']
 
+    label_encoder = LabelEncoder()
+    label_encoder_df = pd.concat([pd.read_csv(train_csv_path), pd.read_csv(
+        test_csv_path)], ignore_index=True)
+    label_encoder.fit(label_encoder_df[label_name])
+    num_classes = len(label_encoder.classes_)
+
     tokenizer = AutoTokenizer.from_pretrained(bert_name)
     train_loader = build_loader(train_csv_path, column_name, label_name,
-                                batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=True)
+                                batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=True, label_encoder=label_encoder)
     test_loader = build_loader(test_csv_path, column_name, label_name,
-                               batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False)
+                               batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False, label_encoder=label_encoder)
     model = BaseModel(num_classes=num_classes, bert_name=bert_name)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -138,7 +143,6 @@ def main():
             'max_length': 28,
             'column_name': 'name',
             'bert_name': 'bert-base-uncased',
-            'num_classes': 1590,
             'label_name': 'global_be_category_id'
         }
         train(config)
@@ -170,9 +174,6 @@ def main():
             },
             'bert_name': {
                 'values': ['bert-base-uncased', 'distilbert-base-uncased', 'albert-base-v1', 'albert-xlarge-v1', 'albert-xlarge-v2']
-            },
-            'num_classes': {
-                'values': [30]
             },
             'label_name': {
                 'values': ['global_be_category_id']

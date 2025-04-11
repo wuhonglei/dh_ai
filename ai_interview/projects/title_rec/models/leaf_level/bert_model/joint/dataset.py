@@ -12,15 +12,14 @@ from config import test_csv_path, columns
 
 
 class BaseDataset(Dataset):
-    def __init__(self, csv_path: str, column_name: str, label_name: str, tokenizer, max_length: int):
+    def __init__(self, csv_path: str, column_name: str, label_name: str, tokenizer, max_length: int, label_encoder: LabelEncoder):
         self.data = pd.read_csv(csv_path).dropna(
             subset=[column_name, label_name])
         self.column_name = column_name
         self.label_name = label_name
         self.tokenizer = tokenizer
         self.max_length = max_length
-        self.label_encoder = LabelEncoder()
-        self.label_encoder.fit(self.data[self.label_name])
+        self.label_encoder = label_encoder
 
     def __len__(self):
         return len(self.data)
