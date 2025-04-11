@@ -11,11 +11,6 @@ from tqdm import tqdm
 from collections import Counter
 
 
-def train_fasttext_model(train_data_path: str, train_args: dict):
-    model = fasttext.train_supervised(input=train_data_path, **train_args)
-    return model
-
-
 def test_fasttext_model(model, test_data_path: str) -> float:
     score = model.test(test_data_path)
     return score[1]
@@ -36,26 +31,6 @@ def get_model_size(model) -> int:
     size = os.path.getsize(save_path)  # 单位 字节
     os.remove(save_path)
     return size // (1024 * 1024)  # 单位 兆
-
-
-def save_fasttext_model_as_vec(model, save_path: str) -> None:
-    """
-    将 fasttext 模型保存为 .vec 格式
-
-    Args:
-        model: fasttext模型
-        save_path: 保存路径
-    """
-    # 获取词向量
-    words = model.get_words()
-    with open(save_path, 'w', encoding='utf-8') as f:
-        # 写入词向量维度信息
-        f.write(f"{len(words)} {model.get_dimension()}\n")
-        # 写入每个词的向量
-        for word in words:
-            vector = model.get_word_vector(word)
-            vector_str = ' '.join(map(str, vector))
-            f.write(f"{word} {vector_str}\n")
 
 
 def get_bucket(train_txt_path: str, wordNgrams: int, min_count: int) -> int:
@@ -82,6 +57,13 @@ def get_bucket(train_txt_path: str, wordNgrams: int, min_count: int) -> int:
     return bucket_count
 
 
+def train_fasttext_model(train_data_path: str, train_args: dict):
+    train_args['bucket'] = get_bucket(
+        train_data_path, train_args['wordNgrams'], train_args['minCount'])
+    model = fasttext.train_supervised(input=train_data_path, **train_args)
+    return model
+
+
 def main():
     columns = [
         'remove_spacy_stop_words',
@@ -103,13 +85,8 @@ def main():
 
     result = []
     for column in tqdm(columns, desc='训练 fasttext 模型'):
-        train_data_path = os.path.join(
-            'data', column, train_txt)
-        test_data_path = os.path.join(
-            'data', column, test_txt)
-
-        train_args['bucket'] = get_bucket(
-            train_data_path, train_args['wordNgrams'], train_args['minCount'])
+        train_data_path = os.path.join('data', column, train_txt)
+        test_data_path = os.path.join('data', column, test_txt)
 
         start_time = time.time()
         model = train_fasttext_model(
@@ -128,6 +105,7 @@ def main():
             'train_time(s)': end_time - start_time,
             'accuracy': precision,
         })
+        break
 
     result_df = pd.DataFrame(result)
     csv_path = '../../../../results/leaf_level/fasttext_model/joint/results_from_scratch.csv'
