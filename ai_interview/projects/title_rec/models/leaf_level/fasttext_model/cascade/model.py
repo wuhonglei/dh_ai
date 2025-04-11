@@ -80,6 +80,9 @@ def predict_cascade(top_level_model, leaf_models: dict, txt_path: str) -> float:
     total_count = 0
     with open(txt_path, 'r', encoding='utf-8') as f:
         for line in f:
+            if '__label__' not in line:
+                continue
+
             text_list = line.strip().split()
             label = text_list[0].split('__label__')[1]
             title = ' '.join(text_list[1:])
@@ -117,6 +120,7 @@ def predict_cascade(top_level_model, leaf_models: dict, txt_path: str) -> float:
 
 def main():
     result = []
+    best_accuracy = 0
     for column in tqdm(columns, desc='训练 fasttext 模型'):
         # 先训练一级目录
         top_level_train_data_path = os.path.join(
@@ -125,6 +129,7 @@ def main():
             'data/top_level', column, test_txt)
 
         start_time = time.time()
+        train_args['epoch'] = 50
         top_level_model = train_fasttext_model(
             top_level_train_data_path, train_args)
         top_level_precision = test_fasttext_model(
@@ -151,6 +156,7 @@ def main():
                 'data/leaf_level', column, level1_name, test_txt)
 
             start_time = time.time()
+            train_args['epoch'] = 80
             model = train_fasttext_model(
                 train_data_path, train_args)
             precision = test_fasttext_model(model, test_data_path)
@@ -171,10 +177,11 @@ def main():
         accuracy = predict_cascade(top_level_model, leaf_models,
                                    final_test_data_path.format(column=column))
         item['cascade_accuracy'] = accuracy
+        best_accuracy = max(best_accuracy, accuracy)
         print(f'{column} 的准确率为 {accuracy}')
         result.append(item)
-        break
 
+    print(f'最好的准确率为 {best_accuracy}')
     json_path = './result.json'
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
