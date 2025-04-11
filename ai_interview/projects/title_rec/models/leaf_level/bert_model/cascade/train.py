@@ -10,7 +10,7 @@ from torch import nn, optim
 from transformers import AutoTokenizer
 from dataset import BaseDataset
 from model import BaseModel
-from config import label_encoder_csv_path, train_csv_path, test_csv_path,  project_name, leaf_level_map_path
+from config import train_csv_path, test_csv_path,  project_name, leaf_level_map_path
 from tqdm import tqdm
 import wandb
 from shutdown import shutdown
@@ -87,8 +87,6 @@ def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.Cr
             progress_bar.set_postfix(batch_loss=loss.item(), level1_loss=loss_level1.item(),
                                      leaf_loss=loss_leaf.item())
 
-        if batch_idx == 10:
-            break
     return level1_total_loss / len(train_loader), leaf_total_loss / len(train_loader)
 
 
@@ -159,10 +157,11 @@ def train(_config: dict = {}):
     dropout = config['dropout']
 
     level1_label_encoder = LabelEncoder()
-    label_encoder_df = pd.read_csv(train_csv_path)
-    level1_label_encoder.fit(label_encoder_df[level1_label_name].to_list())
+    label_encoder_df = pd.concat([pd.read_csv(train_csv_path), pd.read_csv(
+        test_csv_path)], ignore_index=True)
+    level1_label_encoder.fit(label_encoder_df[level1_label_name])
     leaf_label_encoder = LabelEncoder()
-    leaf_label_encoder.fit(label_encoder_df[leaf_label_name].to_list())
+    leaf_label_encoder.fit(label_encoder_df[leaf_label_name])
 
     num_level1 = len(level1_label_encoder.classes_)
     num_leaf = len(leaf_label_encoder.classes_)
