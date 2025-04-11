@@ -1,0 +1,222 @@
+[
+    {
+        "column": "remove_spacy_stop_words",
+        "top_level_precision": 0.8709660140871475,
+        "top_level_model_size": 32,
+        "top_level_train_time": 5.357496023178101,
+        "test_length": 37339,
+        "leaf_models": [
+            {
+                "level1_name": "100001",
+                "precision": 0.7788825757575758,
+                "model_size": 4,
+                "train_time": 0.45566487312316895,
+                "test_length": 2112
+            },
+            {
+                "level1_name": "100009",
+                "precision": 0.8245833333333333,
+                "model_size": 3,
+                "train_time": 0.45957088470458984,
+                "test_length": 2400
+            },
+            {
+                "level1_name": "100010",
+                "precision": 0.6617429837518464,
+                "model_size": 2,
+                "train_time": 0.2323000431060791,
+                "test_length": 677
+            },
+            {
+                "level1_name": "100011",
+                "precision": 0.7474916387959866,
+                "model_size": 1,
+                "train_time": 0.12216615676879883,
+                "test_length": 598
+            },
+            {
+                "level1_name": "100012",
+                "precision": 0.5,
+                "model_size": 0,
+                "train_time": 0.11616301536560059,
+                "test_length": 166
+            },
+            {
+                "level1_name": "100013",
+                "precision": 0.8713280926768722,
+                "model_size": 3,
+                "train_time": 0.4819366931915283,
+                "test_length": 2417
+            },
+            {
+                "level1_name": "100014",
+                "precision": 0.43884892086330934,
+                "model_size": 0,
+                "train_time": 0.11770915985107422,
+                "test_length": 280
+            },
+            {
+                "level1_name": "100015",
+                "precision": 0.7698630136986301,
+                "model_size": 1,
+                "train_time": 0.12274289131164551,
+                "test_length": 365
+            },
+            {
+                "level1_name": "100016",
+                "precision": 0.6869158878504673,
+                "model_size": 1,
+                "train_time": 0.12422919273376465,
+                "test_length": 429
+            },
+            {
+                "level1_name": "100017",
+                "precision": 0.8123529411764706,
+                "model_size": 2,
+                "train_time": 0.4609260559082031,
+                "test_length": 1701
+            },
+            {
+                "level1_name": "100532",
+                "precision": 0.8035714285714286,
+                "model_size": 0,
+                "train_time": 0.11886405944824219,
+                "test_length": 336
+            },
+            {
+                "level1_name": "100533",
+                "precision": 0.5813953488372093,
+                "model_size": 0,
+                "train_time": 0.11765408515930176,
+                "test_length": 129
+            },
+            {
+                "level1_name": "100534",
+                "precision": 0.777027027027027,
+                "model_size": 0,
+                "train_time": 0.1209869384765625,
+                "test_length": 148
+            },
+            {
+                "level1_name": "100535",
+                "precision": 0.9084158415841584,
+                "model_size": 1,
+                "train_time": 0.1284499168395996,
+                "test_length": 407
+            },
+            {
+                "level1_name": "100629",
+                "precision": 0.6098846787479407,
+                "model_size": 5,
+                "train_time": 1.2121860980987549,
+                "test_length": 3037
+            },
+            {
+                "level1_name": "100630",
+                "precision": 0.7723797780517879,
+                "model_size": 6,
+                "train_time": 1.4242479801177979,
+                "test_length": 4057
+            },
+            {
+                "level1_name": "100631",
+                "precision": 0.7621225983531564,
+                "model_size": 2,
+                "train_time": 0.23590898513793945,
+                "test_length": 1094
+            },
+            {
+                "level1_name": "100632",
+                "precision": 0.6951512241958714,
+                "model_size": 4,
+                "train_time": 0.7736849784851074,
+                "test_length": 2085
+            },
+            {
+                "level1_name": "100633",
+                "precision": 0.6836403033586133,
+                "model_size": 1,
+                "train_time": 0.33754777908325195,
+                "test_length": 927
+            },
+            {
+                "level1_name": "100634",
+                "precision": 0.785234899328859,
+                "model_size": 0,
+                "train_time": 0.11809825897216797,
+                "test_length": 150
+            },
+            {
+                "level1_name": "100635",
+                "precision": 0.36619718309859156,
+                "model_size": 0,
+                "train_time": 0.12050199508666992,
+                "test_length": 145
+            },
+            {
+                "level1_name": "100636",
+                "precision": 0.7733469231749267,
+                "model_size": 9,
+                "train_time": 3.6137778759002686,
+                "test_length": 7849
+            },
+            {
+                "level1_name": "100637",
+                "precision": 0.6582381729200653,
+                "model_size": 2,
+                "train_time": 0.4509110450744629,
+                "test_length": 1235
+            },
+            {
+                "level1_name": "100638",
+                "precision": 0.7982151710461081,
+                "model_size": 3,
+                "train_time": 0.46472716331481934,
+                "test_length": 2017
+            },
+            {
+                "level1_name": "100639",
+                "precision": 0.6888646288209607,
+                "model_size": 2,
+                "train_time": 0.23117589950561523,
+                "test_length": 916
+            },
+            {
+                "level1_name": "100640",
+                "precision": 0.5805168986083499,
+                "model_size": 1,
+                "train_time": 0.1252739429473877,
+                "test_length": 510
+            },
+            {
+                "level1_name": "100641",
+                "precision": 0.4318181818181818,
+                "model_size": 0,
+                "train_time": 0.11454176902770996,
+                "test_length": 93
+            },
+            {
+                "level1_name": "100642",
+                "precision": 0.6820276497695853,
+                "model_size": 0,
+                "train_time": 0.11878705024719238,
+                "test_length": 220
+            },
+            {
+                "level1_name": "100643",
+                "precision": 0.6018099547511312,
+                "model_size": 0,
+                "train_time": 0.12016892433166504,
+                "test_length": 223
+            },
+            {
+                "level1_name": "100644",
+                "precision": 0.6851549755301795,
+                "model_size": 2,
+                "train_time": 0.23983383178710938,
+                "test_length": 616
+            }
+        ],
+        "cascade_accuracy": 0.675968826160315
+    }
+]

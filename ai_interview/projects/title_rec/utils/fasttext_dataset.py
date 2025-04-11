@@ -30,7 +30,7 @@ def generate_fasttext_dataset(label_name: str, dataset_dir: str):
         for csv_name in tqdm(csv_names, desc=f'生成 {column} 的 fasttext 训练数据'):
             csv_path = os.path.join(clean_dataset_dir, csv_name)
             df = pd.read_csv(csv_path)
-            label = df[label_name].apply(lambda x: f'__label___{x}').tolist()
+            label = df[label_name].apply(lambda x: f'__label__{x}').tolist()
             title = df[column].tolist()
             csv_path = os.path.join(output_dir,
                                     f'{csv_name.split(".")[0]}.txt')
@@ -46,7 +46,7 @@ def generate_fasttext_dataset_for_every_top_level(level1_name: str, leaf_level_n
             df = pd.read_csv(csv_path)
             for level1, df_level1 in df.groupby(level1_name):
                 label = df_level1[leaf_level_name].apply(
-                    lambda x: f'__label___{x}').tolist()
+                    lambda x: f'__label__{x}').tolist()
                 title = df_level1[column].tolist()
                 csv_path = os.path.join(dataset_dir, column, str(level1),
                                         f'{csv_name.split(".")[0]}.txt')
@@ -54,12 +54,12 @@ def generate_fasttext_dataset_for_every_top_level(level1_name: str, leaf_level_n
 
 
 if __name__ == '__main__':
-    # generate_fasttext_dataset(label_name='level1_global_be_category_id',
-    #                           dataset_dir=fasttext_leaf_level_joint_dataset_dir)
+    generate_fasttext_dataset(label_name='global_be_category_id',
+                              dataset_dir=os.path.join(fasttext_leaf_level_joint_dataset_dir))
 
-    generate_fasttext_dataset_for_every_top_level(
-        level1_name='level1_global_be_category_id',
-        leaf_level_name='global_be_category_id',
-        dataset_dir=os.path.join(
-            fasttext_leaf_level_cascade_dataset_dir, 'level_level')
-    )
+    # generate_fasttext_dataset_for_every_top_level(
+    #     level1_name='level1_global_be_category_id',
+    #     leaf_level_name='global_be_category_id',
+    #     dataset_dir=os.path.join(
+    #         fasttext_leaf_level_cascade_dataset_dir, 'leaf_level')
+    # )
