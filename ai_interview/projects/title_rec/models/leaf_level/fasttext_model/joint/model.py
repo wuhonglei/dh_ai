@@ -72,10 +72,10 @@ def main():
         'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words',
         'remove_nltk_stop_words',
     ]
-    train_txt = 'valid.txt'
+    train_txt = 'train.txt'
     test_txt = 'test.txt'
     train_args = {
-        'epoch': 50,
+        'epoch': 80,
         'lr': 0.1,
         'wordNgrams': 2,
         'minCount': 2,
@@ -105,7 +105,6 @@ def main():
             'train_time(s)': end_time - start_time,
             'accuracy': precision,
         })
-        break
 
     result_df = pd.DataFrame(result)
     csv_path = '../../../../results/leaf_level/fasttext_model/joint/results_from_scratch.csv'

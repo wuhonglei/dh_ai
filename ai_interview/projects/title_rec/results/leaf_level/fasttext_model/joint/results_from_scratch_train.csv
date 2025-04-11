@@ -1,0 +1,9 @@
+title_name,train_txt,test_txt,model_size(MB),wordNgrams,train_time(s),accuracy
+remove_spacy_stop_words,train.txt,test.txt,68,2,610.5164260864258,0.759167492566898
+spacy_tokenized_name,train.txt,test.txt,89,2,618.2626628875732,0.7463102349128117
+nltk_tokenized_name,train.txt,test.txt,101,2,618.8317441940308,0.7444887900784829
+remove_prefix,train.txt,test.txt,69,2,619.6458160877228,0.7574799774997991
+remove_prefix_emoji,train.txt,test.txt,68,2,620.092912197113,0.7579889106152734
+remove_prefix_emoji_symbol,train.txt,test.txt,68,2,618.274010181427,0.7578817668014893
+remove_prefix_emoji_symbol_stop_words,train.txt,test.txt,65,2,614.252475976944,0.7599174992633863
+remove_nltk_stop_words,train.txt,test.txt,80,2,784.3335449695587,0.7578014089411512
