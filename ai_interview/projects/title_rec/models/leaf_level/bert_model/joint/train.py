@@ -10,8 +10,10 @@ from dataset import BaseDataset
 from model import BaseModel
 from config import train_csv_path, test_csv_path,  project_name
 from tqdm import tqdm
+import pandas as pd
 import wandb
 from shutdown import shutdown
+from sklearn.calibration import LabelEncoder
 
 
 def get_device():
@@ -139,7 +141,7 @@ def main():
         config = {
             'batch_size': 128,
             'learning_rate': 3e-5,
-            'epochs': 3,
+            'epochs': 5,
             'max_length': 28,
             'column_name': 'name',
             'bert_name': 'bert-base-uncased',
