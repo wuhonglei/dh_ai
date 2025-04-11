@@ -45,9 +45,10 @@ def build_loader(csv_path: str, column_name: str, level1_label_name: str, leaf_l
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle), num_level1, num_leaf
 
 
-def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Adam, epoch: int, device: torch.device) -> float:
+def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Adam, epoch: int, device: torch.device) -> tuple[float, float]:
     model.train()
-    total_loss = 0.0
+    level1_total_loss = 0.0
+    leaf_total_loss = 0.0
     progress_bar = tqdm(
         train_loader, desc=f'Epoch {epoch}', total=len(train_loader))
     for batch_idx, batch in enumerate(progress_bar):
@@ -63,10 +64,12 @@ def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.Cr
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        total_loss += loss.item()
+        level1_total_loss += loss_level1.item()
+        leaf_total_loss += loss_leaf.item()
         if batch_idx % 10 == 0:
-            progress_bar.set_postfix(batch_loss=loss.item())
-    return total_loss / len(train_loader)
+            progress_bar.set_postfix(batch_loss=loss.item(), level1_loss=loss_level1.item(),
+                                     leaf_loss=loss_leaf.item())
+    return level1_total_loss / len(train_loader), leaf_total_loss / len(train_loader)
 
 
 def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int) -> tuple[float, float, float]:
@@ -128,16 +131,17 @@ def train(_config: dict = {}):
     best_leaf_acc = 0.0
     progress_bar = tqdm(range(epochs), desc='Epoch')
     for epoch in progress_bar:
-        train_loss = train_one_epoch(model, train_loader, criterion,
-                                     optimizer, epoch, device)
+        train_level1_loss, train_leaf_loss = train_one_epoch(model, train_loader, criterion,
+                                                             optimizer, epoch, device)
         eval_loss, level1_acc, leaf_acc = eval_one_epoch(
             model, test_loader, criterion, device, epoch)
         best_level1_acc = max(best_level1_acc, level1_acc)
         best_leaf_acc = max(best_leaf_acc, leaf_acc)
-        progress_bar.set_postfix(train_loss=train_loss, eval_loss=eval_loss,
+        progress_bar.set_postfix(train_level1_loss=train_level1_loss, train_leaf_loss=train_leaf_loss, eval_loss=eval_loss,
                                  level1_acc=level1_acc, leaf_acc=leaf_acc)
         wandb.log({
-            'train_loss': train_loss,
+            'train_level1_loss': train_level1_loss,
+            'train_leaf_loss': train_leaf_loss,
             'eval_loss': eval_loss,
             'level1_acc': level1_acc,
             'leaf_acc': leaf_acc

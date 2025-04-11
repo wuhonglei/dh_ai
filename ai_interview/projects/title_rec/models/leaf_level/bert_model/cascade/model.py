@@ -7,9 +7,9 @@ from torchinfo import summary
 class BaseModel(nn.Module):
     def __init__(self, bert_name: str, num_level1: int, num_leaf: int, dropout: float = 0.1):
         super(BaseModel, self).__init__()
+        self.bert = AutoModel.from_pretrained(bert_name)
         self.num_level1 = num_level1
         self.num_leaf = num_leaf
-        self.bert = AutoModel.from_pretrained(bert_name)
         self.fc_level1 = nn.Linear(self.bert.config.hidden_size, num_level1)
         self.fc_leaf = nn.Linear(
             self.bert.config.hidden_size + num_level1, num_leaf)

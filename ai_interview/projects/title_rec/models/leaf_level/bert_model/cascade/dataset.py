@@ -14,7 +14,7 @@ from config import test_csv_path, columns
 class BaseDataset(Dataset):
     def __init__(self, csv_path: str, column_name: str, level1_label_name: str, leaf_label_name: str, tokenizer, max_length: int):
         self.data = pd.read_csv(csv_path).dropna(
-            subset=[column_name, level1_label_name])
+            subset=[column_name, level1_label_name, leaf_label_name])
         self.column_name = column_name
         self.level1_label_name = level1_label_name
         self.leaf_label_name = leaf_label_name
