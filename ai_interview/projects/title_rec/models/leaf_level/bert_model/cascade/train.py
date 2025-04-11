@@ -2,16 +2,19 @@
 训练模型
 """
 
+import pandas as pd
+import json
 import torch
 from torch.utils.data import DataLoader
 from torch import nn, optim
 from transformers import AutoTokenizer
 from dataset import BaseDataset
 from model import BaseModel
-from config import train_csv_path, test_csv_path,  project_name
+from config import label_encoder_csv_path, train_csv_path, test_csv_path,  project_name, leaf_level_map_path
 from tqdm import tqdm
 import wandb
 from shutdown import shutdown
+from sklearn.calibration import LabelEncoder
 
 
 def get_device():
@@ -37,12 +40,26 @@ def get_readable_params_size(model: nn.Module):
     return size_mb
 
 
-def build_loader(csv_path: str, column_name: str, level1_label_name: str, leaf_label_name: str, batch_size: int, tokenizer, max_length: int, shuffle: bool):
+def transform_level_map(json_path: str, level1_label_encoder: LabelEncoder, leaf_label_encoder: LabelEncoder) -> dict[int, list[int]]:
+    with open(json_path, 'r') as f:
+        level_map = json.load(f)
+
+    level_map_dict = {}
+    for level1_label, leaf_labels in level_map.items():
+        level1_label_id = level1_label_encoder.transform(
+            [level1_label]).item()  # type: ignore
+        level_map_dict[level1_label_id] = []
+        for leaf_label in leaf_labels:
+            leaf_label_id = leaf_label_encoder.transform(
+                [leaf_label]).item()  # type: ignore
+            level_map_dict[level1_label_id].append(leaf_label_id)
+    return level_map_dict
+
+
+def build_loader(csv_path: str, column_name: str, level1_label_name: str, leaf_label_name: str, batch_size: int, tokenizer, max_length: int, shuffle: bool, level1_label_encoder: LabelEncoder, leaf_label_encoder: LabelEncoder):
     dataset = BaseDataset(csv_path, column_name, level1_label_name,
-                          leaf_label_name, tokenizer, max_length)
-    num_level1 = len(dataset.level1_label_encoder.classes_)
-    num_leaf = len(dataset.leaf_label_encoder.classes_)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle), num_level1, num_leaf
+                          leaf_label_name, tokenizer, max_length, level1_label_encoder, leaf_label_encoder)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
 def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Adam, epoch: int, device: torch.device) -> tuple[float, float]:
@@ -69,10 +86,13 @@ def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.Cr
         if batch_idx % 10 == 0:
             progress_bar.set_postfix(batch_loss=loss.item(), level1_loss=loss_level1.item(),
                                      leaf_loss=loss_leaf.item())
+
+        if batch_idx == 10:
+            break
     return level1_total_loss / len(train_loader), leaf_total_loss / len(train_loader)
 
 
-def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int) -> tuple[float, float, float]:
+def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int, level_map: dict[int, list[int]]) -> tuple[float, float, float]:
     model.eval()
     total_loss = 0.0
     level1_correct = 0
@@ -92,10 +112,31 @@ def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.Cros
             loss_leaf = criterion(leaf_logits, leaf_labels)
             loss = loss_level1 + loss_leaf
             total_loss += loss.item()
-            level1_correct += (level1_logits.argmax(dim=1) ==
-                               level1_labels).sum().item()
-            leaf_correct += (leaf_logits.argmax(dim=1) ==
-                             leaf_labels).sum().item()
+
+            level1_pred = level1_logits.argmax(dim=1)
+            level1_correct += (level1_pred == level1_labels).sum().item()
+
+            # 初始化叶子节点预测的累积结果
+            all_leaf_preds = []
+
+            # 遍历每个样本
+            for level1_pred_idx, leaf_logit in zip(level1_pred, leaf_logits):
+                # 获取 level1_pred 对应的叶子节点的索引
+                leaf_pred_indices = level_map[level1_pred_idx.item()]
+
+                # 获取叶子节点的索引对应的 logits
+                leaf_pred_logits = leaf_logit[leaf_pred_indices]
+                # 获取叶子节点的索引对应的预测（局部索引）
+                local_leaf_pred = leaf_pred_logits.argmax(dim=0).item()
+                # 将局部索引转换为全局索引
+                global_leaf_pred = leaf_pred_indices[local_leaf_pred]
+
+                all_leaf_preds.append(global_leaf_pred)
+
+            # 计算叶子节点的正确预测数
+            leaf_correct += sum(pred == label for pred,
+                                label in zip(all_leaf_preds, leaf_labels)).item()
+
             total_samples += level1_labels.size(0)
     return total_loss / len(test_loader), level1_correct / total_samples, leaf_correct / total_samples
 
@@ -117,15 +158,27 @@ def train(_config: dict = {}):
     leaf_label_name = config['leaf_label_name']
     dropout = config['dropout']
 
+    level1_label_encoder = LabelEncoder()
+    label_encoder_df = pd.read_csv(train_csv_path)
+    level1_label_encoder.fit(label_encoder_df[level1_label_name].to_list())
+    leaf_label_encoder = LabelEncoder()
+    leaf_label_encoder.fit(label_encoder_df[leaf_label_name].to_list())
+
+    num_level1 = len(level1_label_encoder.classes_)
+    num_leaf = len(leaf_label_encoder.classes_)
+    level_map = transform_level_map(
+        leaf_level_map_path, level1_label_encoder, leaf_label_encoder)
+
     tokenizer = AutoTokenizer.from_pretrained(bert_name)
-    train_loader, num_level1, num_leaf = build_loader(train_csv_path, column_name, level1_label_name,
-                                                      leaf_label_name, batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=True)
-    test_loader, _, _ = build_loader(test_csv_path, column_name, level1_label_name,
-                                     leaf_label_name, batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False)
+    train_loader = build_loader(train_csv_path, column_name, level1_label_name,
+                                leaf_label_name, batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=True, level1_label_encoder=level1_label_encoder, leaf_label_encoder=leaf_label_encoder)
+    test_loader = build_loader(test_csv_path, column_name, level1_label_name,
+                               leaf_label_name, batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False, level1_label_encoder=level1_label_encoder, leaf_label_encoder=leaf_label_encoder)
     model = BaseModel(num_level1=num_level1,
                       num_leaf=num_leaf, bert_name=bert_name, dropout=dropout)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(  # type: ignore
+        model.parameters(), lr=learning_rate)
     model.to(device)
     best_level1_acc = 0.0
     best_leaf_acc = 0.0
@@ -134,7 +187,7 @@ def train(_config: dict = {}):
         train_level1_loss, train_leaf_loss = train_one_epoch(model, train_loader, criterion,
                                                              optimizer, epoch, device)
         eval_loss, level1_acc, leaf_acc = eval_one_epoch(
-            model, test_loader, criterion, device, epoch)
+            model, test_loader, criterion, device, epoch, level_map)
         best_level1_acc = max(best_level1_acc, level1_acc)
         best_leaf_acc = max(best_leaf_acc, leaf_acc)
         progress_bar.set_postfix(train_level1_loss=train_level1_loss, train_leaf_loss=train_leaf_loss, eval_loss=eval_loss,
@@ -157,8 +210,8 @@ def main():
         config = {
             'batch_size': 128,
             'learning_rate': 3e-5,
-            'epochs': 3,
-            'max_length': 28,
+            'epochs': 5,
+            'max_length': 50,
             'column_name': 'remove_spacy_stop_words',
             'bert_name': 'distilbert-base-uncased',
             'level1_label_name': 'level1_global_be_category_id',

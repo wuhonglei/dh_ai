@@ -12,7 +12,7 @@ from config import test_csv_path, columns
 
 
 class BaseDataset(Dataset):
-    def __init__(self, csv_path: str, column_name: str, level1_label_name: str, leaf_label_name: str, tokenizer, max_length: int):
+    def __init__(self, csv_path: str, column_name: str, level1_label_name: str, leaf_label_name: str, tokenizer, max_length: int, level1_label_encoder: LabelEncoder, leaf_label_encoder: LabelEncoder):
         self.data = pd.read_csv(csv_path).dropna(
             subset=[column_name, level1_label_name, leaf_label_name])
         self.column_name = column_name
@@ -20,10 +20,8 @@ class BaseDataset(Dataset):
         self.leaf_label_name = leaf_label_name
         self.tokenizer = tokenizer
         self.max_length = max_length
-        self.level1_label_encoder = LabelEncoder()
-        self.level1_label_encoder.fit(self.data[self.level1_label_name])
-        self.leaf_label_encoder = LabelEncoder()
-        self.leaf_label_encoder.fit(self.data[self.leaf_label_name])
+        self.level1_label_encoder = level1_label_encoder
+        self.leaf_label_encoder = leaf_label_encoder
 
     def __len__(self):
         return len(self.data)

@@ -7,20 +7,20 @@ from torch.utils.data import Dataset
 from sklearn.preprocessing import LabelEncoder
 import torch
 from transformers import AutoTokenizer
+from typing import Optional
 
 from config import train_csv_path, test_csv_path, columns, label_name, max_length
 
 
 class BaseDataset(Dataset):
-    def __init__(self, csv_path: str, column_name: str, label_name: str, tokenizer, max_length: int):
+    def __init__(self, csv_path: str, column_name: str, label_name: str, tokenizer, max_length: int, label_encoder: Optional[LabelEncoder]):
         self.data = pd.read_csv(csv_path).dropna(
             subset=[column_name, label_name])
         self.column_name = column_name
         self.label_name = label_name
         self.tokenizer = tokenizer
         self.max_length = max_length
-        self.label_encoder = LabelEncoder()
-        self.label_encoder.fit(self.data[self.label_name])
+        self.label_encoder = label_encoder
 
     def __len__(self):
         return len(self.data)
@@ -50,11 +50,30 @@ class BaseDataset(Dataset):
 
 if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
-    dataset = BaseDataset(
+    label_encoder = LabelEncoder()
+    # 先拟合训练集的标签
+    train_data = pd.read_csv(train_csv_path)
+    label_encoder.fit(train_data[label_name])
+
+    # 使用同一个label_encoder创建数据集
+    train_dataset = BaseDataset(
+        csv_path=train_csv_path,
+        column_name=columns[0],
+        label_name=label_name,
+        tokenizer=tokenizer,
+        max_length=max_length,
+        label_encoder=label_encoder
+    )
+
+    test_dataset = BaseDataset(
         csv_path=test_csv_path,
         column_name=columns[0],
         label_name=label_name,
         tokenizer=tokenizer,
-        max_length=max_length)
-    print(len(dataset))
-    print(dataset[0])
+        max_length=max_length,
+        label_encoder=label_encoder
+    )
+    print(len(train_dataset))
+    print(len(test_dataset))
+    print(train_dataset[0])
+    print(test_dataset[0])

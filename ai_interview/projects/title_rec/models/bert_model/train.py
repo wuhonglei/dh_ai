@@ -2,6 +2,8 @@
 训练模型
 """
 
+import pandas as pd
+from sklearn.calibration import LabelEncoder
 import torch
 from torch.utils.data import DataLoader
 from torch import nn, optim
@@ -37,9 +39,9 @@ def get_readable_params_size(model: nn.Module):
     return size_mb
 
 
-def build_loader(csv_path: str, column_name: str, label_name: str, batch_size: int, tokenizer, max_length: int, shuffle: bool):
+def build_loader(csv_path: str, column_name: str, label_name: str, batch_size: int, tokenizer, max_length: int, shuffle: bool, label_encoder: LabelEncoder):
     dataset = BaseDataset(csv_path, column_name,
-                          label_name, tokenizer, max_length)
+                          label_name, tokenizer, max_length, label_encoder)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
@@ -99,14 +101,18 @@ def train(_config: dict = {}):
     column_name = config['column_name']
     device = config['device']
 
+    label_encoder = LabelEncoder()
+    label_encoder.fit(pd.read_csv(train_csv_path)[label_name])
+
     tokenizer = AutoTokenizer.from_pretrained(bert_name)
     train_loader = build_loader(train_csv_path, column_name, label_name,
-                                batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=True)
+                                batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=True, label_encoder=label_encoder)
     test_loader = build_loader(test_csv_path, column_name, label_name,
-                               batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False)
+                               batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False, label_encoder=label_encoder)
     model = BaseModel(num_classes=num_classes, bert_name=bert_name)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(  # type: ignore
+        model.parameters(), lr=learning_rate)
     model.to(device)
     best_acc = 0.0
     progress_bar = tqdm(range(epochs), desc='Epoch')
@@ -132,8 +138,8 @@ def main():
     if not use_sweep:
         config = {
             'batch_size': 256,
-            'learning_rate': 5e-5,
-            'epochs': 3,
+            'learning_rate': 3e-5,
+            'epochs': 2,
             'max_length': 28,
             'column_name': 'spacy_tokenized_name',
             'bert_name': 'bert-base-uncased',
