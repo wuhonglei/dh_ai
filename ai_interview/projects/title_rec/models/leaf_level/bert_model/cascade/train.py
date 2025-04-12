@@ -90,7 +90,7 @@ def train_one_epoch(model: BaseModel, train_loader: DataLoader, criterion: nn.Cr
     return level1_total_loss / len(train_loader), leaf_total_loss / len(train_loader)
 
 
-def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int, level_map: dict[int, list[int]]) -> tuple[float, float, float]:
+def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int, level_map: dict[int, list[int]], level1_top_k: int = 1) -> tuple[float, float, float]:
     model.eval()
     total_loss = 0.0
     level1_correct = 0
@@ -122,11 +122,13 @@ def eval_one_epoch(model: BaseModel, test_loader: DataLoader, criterion: nn.Cros
 
             # 初始化叶子节点预测的累积结果
             all_leaf_preds = []
-
-            # 遍历每个样本
-            for level1_pred_idx, leaf_logit in zip(level1_pred, leaf_logits):
+            # 遍历每个样本 [batch_size, level1_top_k]
+            level1_top_k_preds_batch = level1_logits.topk(level1_top_k).indices
+            for level1_top_k_indices, leaf_logit in zip(level1_top_k_preds_batch, leaf_logits):
                 # 获取 level1_pred 对应的叶子节点的索引
-                leaf_pred_indices = level_map[level1_pred_idx.item()]
+                leaf_pred_indices = []
+                for level1_pred_idx in level1_top_k_indices:
+                    leaf_pred_indices.extend(level_map[level1_pred_idx.item()])
 
                 # 获取叶子节点的索引对应的 logits
                 leaf_pred_logits = leaf_logit[leaf_pred_indices]
@@ -192,7 +194,7 @@ def train(_config: dict = {}):
         train_level1_loss, train_leaf_loss = train_one_epoch(model, train_loader, criterion,
                                                              optimizer, epoch, device)
         eval_loss, level1_acc, leaf_acc = eval_one_epoch(
-            model, test_loader, criterion, device, epoch, {})
+            model, test_loader, criterion, device, epoch, level_map)
         best_level1_acc = max(best_level1_acc, level1_acc)
         best_leaf_acc = max(best_leaf_acc, leaf_acc)
         progress_bar.set_postfix(train_level1_loss=train_level1_loss, train_leaf_loss=train_leaf_loss, eval_loss=eval_loss,
@@ -221,7 +223,8 @@ def main():
             'bert_name': 'bert-base-uncased',
             'level1_label_name': 'level1_global_be_category_id',
             'leaf_label_name': 'global_be_category_id',
-            'dropout': 0.1
+            'dropout': 0.1,
+            'level1_top_k': 2
         }
         train(config)
         return
@@ -261,6 +264,9 @@ def main():
             },
             'dropout': {
                 'values': [0.1, 0.2, 0.3]
+            },
+            'level1_top_k': {
+                'values': [1, 2, 3]
             }
         }
     }
