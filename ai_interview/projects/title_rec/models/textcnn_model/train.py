@@ -27,11 +27,7 @@ def write_local_env(key: str, value: str):
 
 
 def get_device():
-    return torch.device('cpu')
-
-    if torch.backends.mps.is_available():
-        return torch.device('mps')
-    elif torch.cuda.is_available():
+    if torch.cuda.is_available():
         return torch.device('cuda')
     else:
         return torch.device('cpu')
@@ -159,6 +155,23 @@ def train(_config: dict = {}):
 
 
 def main():
+    use_sweep = False
+    if not use_sweep:
+        config = {
+            'batch_size': 640,
+            'learning_rate': 0.001,
+            'epochs': 8,
+            'embedding_dim': 300,
+            'num_filters': 100,
+            'filter_sizes': [3, 4, 5],
+            'min_freq': 3,
+            'max_seq_length': 25,
+            'column': 'remove_prefix',
+            'num_classes': 30
+        }
+        train(config)
+        return
+
     sweep_config = {
         'method': 'grid',
         'metric': {

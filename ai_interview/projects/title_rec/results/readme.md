@@ -16,8 +16,8 @@ logistic 回归在使用 BOW 作为特征时，效果最好，准确率最高可
 ### textcnn 模型
 
 https://wandb.ai/wuhonglei1017368065-shopee/shopee_title_textcnn_model/table?nw=nwuserwuhonglei1017368065
-最好的效果: `0.83896`
-模型大小: `10MB`
+最好的效果: `0.8416`
+模型大小: `24MB`
 训练时长: `3min(5epochs)`
 
 
