@@ -161,7 +161,7 @@ def main():
         config = {
             'batch_size': 128,
             'learning_rate': 0.001,
-            'epochs': 100,
+            'epochs': 10,
             'embedding_dim': 100,
             'min_freq': 2,
             'max_seq_length': 50,
