@@ -12,8 +12,8 @@ from typing import Callable
 from sklearn.preprocessing import LabelEncoder
 
 
-class TextCNNDataset(Dataset):
-    def __init__(self, csv_path: str, column_name: str, label_name: str, tokenizer: Callable, word_to_id: dict[str, int], max_length: int):
+class FastTextDataset(Dataset):
+    def __init__(self, csv_path: str, column_name: str, label_name: str, tokenizer: Callable, word_to_id: dict[str, int], max_length: int, wordNgrams: int):
         self.column_name = column_name
         self.label_name = label_name
         self.data = pd.read_csv(csv_path).dropna(
@@ -25,24 +25,30 @@ class TextCNNDataset(Dataset):
         self.max_length = max_length
         self.pad_id = 0
         self.unk_id = 1
+        self.wordNgrams = wordNgrams
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         row = self.data.iloc[idx]
-        tokens = self.tokenizer(row[self.column_name])
+        unigrams = self.tokenizer(row[self.column_name])
+        if self.wordNgrams > 1:
+            ngrams = [unigrams[i] + '_' + unigrams[i + 1]
+                      for i in range(len(unigrams) - self.wordNgrams + 1)]
+            unigrams = unigrams + ngrams
+
         label = row[self.label_name]
-        if self.max_length and len(tokens) > self.max_length:
-            tokens = tokens[:self.max_length]
+        if self.max_length and len(unigrams) > self.max_length:
+            unigrams = unigrams[:self.max_length]
 
         if self.word_to_id:
             token_ids = [self.word_to_id.get(token, self.unk_id)
-                         for token in tokens]
+                         for token in unigrams]
             if len(token_ids) < self.max_length:
                 token_ids += [self.pad_id] * (self.max_length - len(token_ids))
             labels_idx = self.label_encoder.transform(
                 [label]).item()  # type: ignore
             return torch.tensor(token_ids, dtype=torch.long), torch.tensor(labels_idx, dtype=torch.long)
         else:
-            return tokens, label
+            return unigrams, label

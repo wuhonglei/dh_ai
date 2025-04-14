@@ -5,4 +5,5 @@
 /cache/
 /test
 /models/fasttext_model/data/
+/models/fasttext_custom_model/data/
 /models/fasttext_model/pretrained_vectors/
