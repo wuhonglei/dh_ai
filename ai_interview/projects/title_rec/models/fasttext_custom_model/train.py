@@ -27,11 +27,7 @@ def write_local_env(key: str, value: str):
 
 
 def get_device():
-    return torch.device('cpu')
-
-    if torch.backends.mps.is_available():
-        return torch.device('mps')
-    elif torch.cuda.is_available():
+    if torch.cuda.is_available():
         return torch.device('cuda')
     else:
         return torch.device('cpu')
