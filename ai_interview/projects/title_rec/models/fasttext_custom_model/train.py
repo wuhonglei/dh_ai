@@ -218,7 +218,7 @@ def main():
                 'values': [2]
             },
             'dropout': {
-                'values': [0, 0.1, 0.5]
+                'values': [0, 0.2, 0.5]
             },
             'use_relu': {
                 'values': [True, False]
