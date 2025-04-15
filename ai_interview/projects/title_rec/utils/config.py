@@ -13,3 +13,6 @@ fasttext_leaf_level_cascade_dataset_dir = os.path.join(
     fasttext_leaf_level_dir, 'cascade/data')
 fasttext_leaf_level_joint_dataset_dir = os.path.join(
     fasttext_leaf_level_dir, 'joint/data')
+src_img_dir = os.path.join(root_dir, 'dataset/level1_valid_test_images')
+resize_img_dir = os.path.join(
+    root_dir, 'dataset/level1_valid_test_images_resize')

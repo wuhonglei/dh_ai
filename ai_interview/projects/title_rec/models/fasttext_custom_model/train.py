@@ -156,20 +156,20 @@ def train(_config: dict = {}):
 
 
 def main():
-    use_sweep = True
+    use_sweep = False
     if not use_sweep:
         config = {
             'batch_size': 128,
             'learning_rate': 0.001,
-            'epochs': 10,
-            'embedding_dim': 100,
-            'min_freq': 2,
-            'max_seq_length': 50,
+            'epochs': 12,
+            'embedding_dim': 150,
+            'min_freq': 3,
+            'max_seq_length': 40,
             'column': 'remove_spacy_stop_words',
             'num_classes': 30,
             'wordNgrams': 2,
-            'dropout': 0.5,
-            'use_relu': True
+            'dropout': 0,
+            'use_relu': False
         }
         train(config)
         return
