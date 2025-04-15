@@ -15,7 +15,8 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import wandb
 import os
-
+import atexit
+from shutdown import shutdown
 from config import train_csv_path, test_csv_path, label_name, project_name, image_dir
 
 
@@ -163,7 +164,7 @@ def train(_config={}):
 
     # Initialize wandb only on rank 0
     if rank == 0:
-        wandb.init(project=project_name, config={**_config})
+        wandb.init(project=project_name, config={**_config, 'device': device})
         config = wandb.config
     else:
         config = _config
@@ -229,15 +230,19 @@ def train(_config={}):
     cleanup_distributed()
 
 
+def cleanup():
+    shutdown(10)
+
+
 def main():
     use_sweep = False
     if not use_sweep:
         config = {
-            'batch_size': 64,
+            'batch_size': 128,
             'learning_rate': 0.001,
-            'epochs': 12,
+            'epochs': 8,
             'dropout': 0.5,
-            'model_name': 'vgg16'
+            'model_name': 'vgg19'
         }
         train(config)
         return
@@ -258,4 +263,5 @@ def main():
 
 
 if __name__ == '__main__':
+    atexit.register(cleanup)
     main()
