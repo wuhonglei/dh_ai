@@ -28,4 +28,5 @@ class ImageModel(nn.Module):
 if __name__ == '__main__':
     model = ImageModel(num_classes=10, model_name='vgg16', drop_rate=0.5)
     print(model)
-    summary(model, input_size=(1, 3, 224, 224))
+    summary(model, input_size=(1, 3, 224, 224), col_names=[
+            "input_size", "output_size", "num_params", "params_percent"])
