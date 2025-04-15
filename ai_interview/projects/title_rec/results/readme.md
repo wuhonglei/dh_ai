@@ -44,3 +44,4 @@ https://wandb.ai/wuhonglei1017368065-shopee/shopee_title_bert_model?nw=nwuserwuh
 2. 使用 bert 模型
   - 一个模型集成 level1 和 leaf_level 预测，效果大概是 `0.724`
   - 联合搜索，效果大概是 `0.719`
+3. 使用 custom fasttext 模型，使用级联搜索，在一个模型同时输出一级标签和叶子标签，准确率是 `0.7196`，此时使用的训练集是 `valid.csv` 测试集是 `test.csv`；使用 `train.csv` 作为训练集时的准确率是 `0.758`
