@@ -150,7 +150,7 @@ def main():
     use_sweep = False
     if not use_sweep:
         config = {
-            'batch_size': 128,
+            'batch_size': 64,
             'learning_rate': 0.001,
             'epochs': 12,
             'dropout': 0.5,
@@ -158,6 +158,20 @@ def main():
         }
         train(config)
         return
+
+    sweep_config = {
+        'method': 'bayes',
+        'name': project_name,
+        'parameters': {
+            'batch_size': {'values': [64, 128]},
+            'learning_rate': {'values': [0.001, 0.0001]},
+            'epochs': {'values': [12, 24]},
+            'dropout': {'values': [0.5, 0.1]},
+            'model_name': {'values': ['resnet101', 'vgg16']},
+        }
+    }
+    sweep_id = wandb.sweep(sweep_config, project=project_name)
+    wandb.agent(sweep_id, train)
 
 
 if __name__ == '__main__':
