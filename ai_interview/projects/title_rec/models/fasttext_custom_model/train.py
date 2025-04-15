@@ -6,9 +6,8 @@ import os
 import time
 import torch
 from torch.utils.data import DataLoader
-from typing import Callable
-from config import train_csv_path, vocab_dir, columns, label_name, test_csv_path, project_name
-from vocab import Vocab, load_vocab
+from config import train_csv_path, vocab_dir, label_name, test_csv_path, project_name
+from vocab import Vocab
 from dataset import FastTextDataset
 from model import FastText
 import torch.nn as nn
