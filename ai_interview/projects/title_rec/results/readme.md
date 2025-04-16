@@ -35,8 +35,15 @@ https://wandb.ai/wuhonglei1017368065-shopee/shopee_title_bert_model?nw=nwuserwuh
 1. `bert-base-uncased` 效果最好，但是模型大小比较大，训练时间比较久
 2. `distilbert-base-uncased` 效果其次，模型大小较小，训练时间较短
 
-### 总结
+### vgg 模型
 
+1. vgg16 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.210`
+2. vgg19 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.3538`
+
+### resnet 模型
+
+1. resnet101 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.6434`
+2. resnet152 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.6283`
 
 ### leaf_level 结果
 
