@@ -1,4 +1,5 @@
 import torch
+import time
 import torch.nn as nn
 import torch.optim as optim
 import torch.distributed as dist
@@ -119,7 +120,7 @@ def train_one_epoch(model: nn.Module, train_loader: DataLoader, criterion: nn.Cr
         correct += (outputs.argmax(1) == labels).sum().item()
 
         if rank == 0:
-            progress_bar.set_postfix(loss=loss.item())
+            progress_bar.set_postfix(loss=loss.item(), acc=correct / total)
 
     # Synchronize metrics across all processes
     total_loss = torch.tensor(running_loss / len(train_loader)).to(device)
@@ -205,6 +206,7 @@ def train(_config={}):
 
     best_test_acc = 0.0
     for epoch in progress_bar:
+        start_time = time.time()
         train_loader.sampler.set_epoch(epoch)  # type: ignore
         train_loss, train_acc = train_one_epoch(
             model, train_loader, criterion, optimizer, epoch, device, rank, world_size)
@@ -220,7 +222,8 @@ def train(_config={}):
                 'train_loss': train_loss,
                 'test_loss': test_loss,
                 'train_acc': train_acc,
-                'test_acc': test_acc
+                'test_acc': test_acc,
+                'time': time.time() - start_time
             })
 
     if rank == 0:
@@ -237,13 +240,15 @@ def cleanup():
 def main():
     use_sweep = False
     if not use_sweep:
-        config = {
-            'batch_size': 128,
-            'learning_rate': 0.001,
-            'epochs': 8,
-            'dropout': 0.5,
-            'model_name': 'vgg19'
-        }
+        model_names = [('vgg19', 0.5), ('resnet101', 0.1), ('resnet152', 0.05)]
+        for model_name, dropout in model_names:
+            config = {
+                'batch_size': 128,
+                'learning_rate': 0.001,
+                'epochs': 10,
+                'dropout': dropout,
+                'model_name': model_name
+            }
         train(config)
         return
 
