@@ -65,7 +65,10 @@ print(model.default_cfg)
 1. efficientnet_b5 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.7194`
 2. efficientnet_b7 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.6904`
 
-### leaf_level 结果
+### llama 模型
+模型名称: `Llama-3.2-1B`
+
+1. `zero-shot` 零样本分类，使用 `test.csv` 测试，效果是 `0.2017`, Mac 电脑本地运行时间 `1:34:12`
 
 1. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率
 2. 使用 bert 模型
