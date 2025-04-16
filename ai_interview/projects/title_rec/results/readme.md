@@ -71,6 +71,7 @@ print(model.default_cfg)
 1. `zero-shot` 零样本分类，使用 `test.csv` 测试，效果是 `0.2017`
    - Mac 电脑本地运行时间 `1hour:34min`
    - 4090 显卡运行时间 `40min`
+   - 4090 显卡, batch_size=8, 运行时间 `46min`
 
 2. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率
 3. 使用 bert 模型
