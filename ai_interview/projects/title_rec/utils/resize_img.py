@@ -11,9 +11,11 @@ import multiprocessing
 from typing import List, Tuple
 from config import clean_dataset_dir, src_img_dir, resize_img_dir
 
-pipeline = A.Compose([
-    A.Resize(224, 224, interpolation=cv2.INTER_LINEAR),
-])
+
+def get_pipeline(size: int):
+    return A.Compose([
+        A.Resize(size, size, interpolation=cv2.INTER_LINEAR),
+    ])
 
 
 def resize_single_img(img_path: str, save_path: str, pipeline: A.Compose):
@@ -89,14 +91,17 @@ def process_imgs_parallel(src_imgs: List[str], save_dir: str, pipeline: A.Compos
 
 def main():
     csv_names = ['valid.csv', 'test.csv']
-    save_dir = resize_img_dir
+    size = 600
+    save_dir = f'{resize_img_dir}_{size}'
     use_parallel = True
+
     empty_dir(save_dir)
     time_start = time.time()
     src_imgs = []
     for csv_name in csv_names:
         src_imgs.extend(get_src_imgs(os.path.join(
             clean_dataset_dir, csv_name), src_img_dir))
+    pipeline = get_pipeline(size)
     process_imgs_parallel(src_imgs, save_dir, pipeline, use_parallel)
     time_end = time.time()
     print(f'time cost: {time_end - time_start}s')
