@@ -5,13 +5,13 @@ import pandas as pd
 from tqdm import tqdm
 
 
-model_name = model_path
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-tokenizer.pad_token = tokenizer.eos_token  # 显式设置 pad_token
-model = AutoModelForCausalLM.from_pretrained(model_name)
+# model_name = model_path
+# tokenizer = AutoTokenizer.from_pretrained(model_name)
+# tokenizer.pad_token = tokenizer.eos_token  # 显式设置 pad_token
+# model = AutoModelForCausalLM.from_pretrained(model_name)
 
-classifier = pipeline("text-generation", model=model,
-                      tokenizer=tokenizer, max_new_tokens=5)
+# classifier = pipeline("text-generation", model=model,
+#                       tokenizer=tokenizer, max_new_tokens=5)
 
 
 def classify(text: str, labels: str) -> str:
@@ -36,17 +36,22 @@ def get_label_map(csv_path: str) -> tuple[dict, dict, list]:
 id_to_name, name_to_id, label_names = get_label_map(label_names_csv_path)
 
 
-total = 0
-correct = 0
 test_df = pd.read_csv(test_csv_path)
+correct = 0
+total = len(test_df)
+temp_total = 0
 progress_bar = tqdm(test_df.iterrows(), total=len(test_df))
 for index, row in progress_bar:
     text = row['name']
     label_id = row[label_id_col]
     label_name = id_to_name[label_id]
     predict_name = classify(text, ', '.join(label_names))
-    total += 1
+    temp_total += 1
     if label_name.lower() == predict_name.lower():
         correct += 1
+
+    # 每隔 10% 打印一次进度
+    if temp_total % (total // 10) == 0:
+        print(f"Accuracy: {correct / temp_total}")
 
 print(f"Accuracy: {correct / total}")
