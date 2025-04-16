@@ -64,8 +64,8 @@ temp_total = 0
 total = len(dataset)
 progress_bar = tqdm(dataloader, total=len(dataloader))
 for batch in progress_bar:
-    batch_texts: list[str] = batch["text"]
-    batch_labels: list[str] = batch["label_name"]
+    batch_texts: list[str] = batch[0]
+    batch_labels: list[str] = batch[1]
     predict_names = batch_classify(batch_texts, ', '.join(label_names))
     temp_total += len(batch_texts)
     for label, predict in zip(batch_labels, predict_names):
