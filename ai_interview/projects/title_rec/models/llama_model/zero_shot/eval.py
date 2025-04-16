@@ -5,13 +5,13 @@ import pandas as pd
 from tqdm import tqdm
 
 
-# model_name = model_path
-# tokenizer = AutoTokenizer.from_pretrained(model_name)
-# tokenizer.pad_token = tokenizer.eos_token  # 显式设置 pad_token
-# model = AutoModelForCausalLM.from_pretrained(model_name)
+model_name = model_path
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.eos_token  # 显式设置 pad_token
+model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# classifier = pipeline("text-generation", model=model,
-#                       tokenizer=tokenizer, max_new_tokens=5)
+classifier = pipeline("text-generation", model=model,
+                      tokenizer=tokenizer, max_new_tokens=5)
 
 
 def classify(text: str, labels: str) -> str:
