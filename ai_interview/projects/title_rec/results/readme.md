@@ -45,6 +45,21 @@ https://wandb.ai/wuhonglei1017368065-shopee/shopee_title_bert_model?nw=nwuserwuh
 1. resnet101 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.6434`
 2. resnet152 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.6283`
 
+### vit 模型
+ 
+使用 timm 加载的 vit 预训练模型，完整名称是 `vit_base_patch16_224.augreg2_in21k_ft_in1k`, learning_rate 设置为 `0.0001` 时，最好的测试集准确率是 `0.6812`.
+注意：该预训练模型的图片均值和方差和 imagenet 数据集不一样，需要通过以下方式打印查看
+
+```python
+import timm
+model = timm.create_model('vit_base_patch16_224', pretrained=True)
+print(model.default_cfg)
+```
+
+```json
+{'url': '', 'hf_hub_id': 'timm/vit_base_patch16_224.augreg2_in21k_ft_in1k', 'architecture': 'vit_base_patch16_224', 'tag': 'augreg2_in21k_ft_in1k', 'custom_load': False, 'input_size': (3, 224, 224), 'fixed_input_size': True, 'interpolation': 'bicubic', 'crop_pct': 0.9, 'crop_mode': 'center', 'mean': (0.5, 0.5, 0.5), 'std': (0.5, 0.5, 0.5), 'num_classes': 1000, 'pool_size': None, 'first_conv': 'patch_embed.proj', 'classifier': 'head'}
+```
+
 ### leaf_level 结果
 
 1. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率
