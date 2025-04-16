@@ -8,26 +8,16 @@ class Solution:
         "D": 500,
         "M": 1000
     }
-    scale = -2
-    special_char_to_int = {
-        "IV": scale * char_to_int["I"],
-        "IX": scale * char_to_int["I"],
-        "XL": scale * char_to_int["X"],
-        "XC": scale * char_to_int["X"],
-        "CD": scale * char_to_int["C"],
-        "CM": scale * char_to_int["C"],
-    }
     def romanToInt(self, s: str) -> int:
         ans = 0
         last_char = ""
-        for c in s:
-            ans += Solution.char_to_int[c]
-            concat = last_char + c
-            if concat in Solution.special_char_to_int:
-                ans += Solution.special_char_to_int[concat]
-                last_char = ""
+        n = len(s)
+        for i, c in enumerate(s):
+            value = Solution.char_to_int[c]
+            if i < n - 1 and value <  Solution.char_to_int[s[i + 1]]:
+                ans -= value
             else:
-                last_char = c
+                ans += value
         return ans
 
 case_list = [
