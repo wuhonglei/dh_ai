@@ -60,6 +60,10 @@ print(model.default_cfg)
 {'url': '', 'hf_hub_id': 'timm/vit_base_patch16_224.augreg2_in21k_ft_in1k', 'architecture': 'vit_base_patch16_224', 'tag': 'augreg2_in21k_ft_in1k', 'custom_load': False, 'input_size': (3, 224, 224), 'fixed_input_size': True, 'interpolation': 'bicubic', 'crop_pct': 0.9, 'crop_mode': 'center', 'mean': (0.5, 0.5, 0.5), 'std': (0.5, 0.5, 0.5), 'num_classes': 1000, 'pool_size': None, 'first_conv': 'patch_embed.proj', 'classifier': 'head'}
 ```
 
+### efficientnet 模型
+
+1. efficientnet_b5 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.7194`
+
 ### leaf_level 结果
 
 1. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率
