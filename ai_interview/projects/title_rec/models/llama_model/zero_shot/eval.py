@@ -17,7 +17,7 @@ classifier = pipeline("text-generation", model=model,
 
 
 def batch_classify(texts: list[str], categories: str) -> list[str]:
-    prompts = [f'Text: "{text}"\nQuestion: Which category does this text belong to? {categories}\nAnswer:'
+    prompts = [f'Text: "{text}"\nQuestion: Which category does this text belong to? [{categories}]\nAnswer:'
                for text in texts]
     results: list[str] = classifier(prompts)  # type: ignore
     # 提取模型输出的类别，可以用正则或简单字符串处理
