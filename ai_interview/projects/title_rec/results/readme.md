@@ -63,6 +63,7 @@ print(model.default_cfg)
 ### efficientnet 模型
 
 1. efficientnet_b5 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.7194`
+2. efficientnet_b7 模型，使用 `valid.csv` 图像训练，使用 `test.csv` 图像测试，效果是 `0.6904`
 
 ### leaf_level 结果
 

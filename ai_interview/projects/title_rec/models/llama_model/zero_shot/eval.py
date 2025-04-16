@@ -1,20 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import json
-from config import test_csv_path, label_id_col, tree_json_path, model_path
+from config import test_csv_path, label_id_col, tree_json_path, model_path, label_names_csv_path
 import pandas as pd
 from tqdm import tqdm
-
-
-def load_category_list(path: str):
-    with open(path, 'r') as f:
-        return json.load(f)['data']['list']
-
-
-def get_category_by_id(id: int, category_list: list[dict]) -> dict | None:
-    for category in category_list:
-        if category['id'] == id:
-            return category
-    return None
 
 
 model_name = model_path
@@ -35,18 +23,22 @@ def classify(text: str, labels: str) -> str:
     return predict_name
 
 
-category_list = load_category_list(tree_json_path)
-id_to_name = {category['id']: category['name']
-              for category in category_list}
-name_to_id = {category['name']: category['id']
-              for category in category_list}
+def get_label_map(csv_path: str) -> tuple[dict, dict, list]:
+    df = pd.read_csv(csv_path)
+    name_col = 'label_names'
+    id_col = 'label_ids'
+    label_names = df[name_col].unique().tolist()
+    id_to_name = {row[id_col]: row[name_col] for _, row in df.iterrows()}
+    name_to_id = {row[name_col]: row[id_col] for _, row in df.iterrows()}
+    return id_to_name, name_to_id, label_names
 
-test_df = pd.read_csv(test_csv_path)
-label_ids = test_df[label_id_col].unique().tolist()
-label_names = [id_to_name[id] for id in label_ids]
+
+id_to_name, name_to_id, label_names = get_label_map(label_names_csv_path)
+
 
 total = 0
 correct = 0
+test_df = pd.read_csv(test_csv_path)
 progress_bar = tqdm(test_df.iterrows(), total=len(test_df))
 for index, row in progress_bar:
     text = row['name']
