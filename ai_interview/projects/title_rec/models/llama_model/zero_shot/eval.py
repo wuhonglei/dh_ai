@@ -15,7 +15,7 @@ classifier = pipeline("text-generation", model=model,
 
 
 def classify(text: str, labels: str) -> str:
-    prompt = f'Text: "{text}"\nQuestion: Which category does this text belong to? {labels}\nAnswer:'
+    prompt = f'Text: "{text}"\nQuestion: Which category does this text belong to? [{labels}]\nAnswer:'
     result: str = classifier(prompt)[0]['generated_text']  # type: ignore
     # 提取模型输出的类别，可以用正则或简单字符串处理
     predict_name = result.split(
