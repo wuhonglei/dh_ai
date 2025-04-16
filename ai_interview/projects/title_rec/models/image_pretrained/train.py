@@ -234,7 +234,8 @@ def train(_config={}):
 
 
 def cleanup():
-    shutdown(10)
+    pass
+    # shutdown(10)
 
 
 def main():
