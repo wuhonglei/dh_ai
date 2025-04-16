@@ -10,6 +10,7 @@ columns = [
     'remove_spacy_stop_words'
 ]
 model_path = '../Llama-3.2-1B'
+name_col = 'name'
 label_id_col = 'level1_global_be_category_id'
 project_name = 'shopee_title_llama_zero_shot_model'
 label_names_csv_path = './label_names.csv'
