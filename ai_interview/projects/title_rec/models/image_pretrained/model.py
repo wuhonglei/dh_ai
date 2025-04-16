@@ -11,7 +11,7 @@ import timm
 class ImageModel(nn.Module):
     def __init__(self, num_classes: int, model_name: str, drop_rate: float):
         super(ImageModel, self).__init__()
-        self.vgg = timm.create_model(
+        self.image_model = timm.create_model(
             model_name,
             pretrained=True,
             num_classes=num_classes,
@@ -21,7 +21,7 @@ class ImageModel(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.vgg(x)
+        x = self.image_model(x)
         return x
 
 
