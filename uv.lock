@@ -642,6 +642,7 @@ name = "dh-ai"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "accelerate" },
     { name = "albumentations" },
     { name = "dotenv" },
     { name = "emoji" },
@@ -671,6 +672,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "accelerate", specifier = ">=0.26.0" },
     { name = "albumentations", specifier = ">=2.0.4" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "emoji", specifier = ">=2.14.1" },
