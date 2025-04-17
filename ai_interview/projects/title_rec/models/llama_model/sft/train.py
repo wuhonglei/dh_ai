@@ -36,7 +36,7 @@ test_dataloader = build_dataloader(
 
 training_args = TrainingArguments(
     report_to='wandb',
-    per_device_train_batch_size=8,
+    per_device_train_batch_size=64,
     num_train_epochs=3,
     eval_strategy="steps",
     eval_steps=1000,

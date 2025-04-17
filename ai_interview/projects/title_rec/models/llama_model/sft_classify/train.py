@@ -122,8 +122,8 @@ def train(_config: dict = {}):
     model = build_model(num_classes=num_classes,
                         model_name=model_name, pad_token_id=tokenizer.pad_token_id)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(  # type: ignore
-        model.parameters(), lr=learning_rate)
+    optimizer = optim.SGD(  # type: ignore
+        model.parameters(), lr=learning_rate, momentum=0.9)
     model.to(device)
     best_acc = 0.0
     progress_bar = tqdm(range(epochs), desc='Epoch')
@@ -146,54 +146,16 @@ def train(_config: dict = {}):
 
 
 def main():
-    use_sweep = False
-    if not use_sweep:
-        config = {
-            'batch_size': 256,
-            'learning_rate': 1e-5,
-            'epochs': 1,
-            'max_length': 28,
-            'column_name': 'name',
-            'model_name': '../Llama-3.2-1B',
-            'num_classes': 30
-        }
-        train(config)
-        return
-
-    sweep_config = {
-        'method': 'bayes',
-        'name': 'base_model',
-        'count': 100,  # 限制最多运行100次
-        'metric': {
-            'name': 'eval_acc',
-            'goal': 'maximize'
-        },
-        'parameters': {
-            'batch_size': {
-                'values': [128, 256]
-            },
-            'learning_rate': {
-                'values': [3e-5, 5e-5]
-            },
-            'epochs': {
-                'values': [3]
-            },
-            'max_length': {
-                'values': [18, 22, 28]
-            },
-            'column_name': {
-                'values': ['name', 'spacy_tokenized_name', 'remove_spacy_stop_words', 'remove_prefix', 'remove_prefix_emoji', 'remove_prefix_emoji_symbol', 'remove_prefix_emoji_symbol_stop_words']
-            },
-            'model_name': {
-                'values': ['bert-base-uncased', 'distilbert-base-uncased', 'albert-base-v1', 'albert-xlarge-v1', 'albert-xlarge-v2']
-            },
-            'num_classes': {
-                'values': [30]
-            }
-        }
+    config = {
+        'batch_size': 64,
+        'learning_rate': 1e-5,
+        'epochs': 1,
+        'max_length': 28,
+        'column_name': 'name',
+        'model_name': '../Llama-3.2-1B',
+        'num_classes': 30
     }
-    sweep_id = wandb.sweep(sweep_config, project=project_name)
-    wandb.agent(sweep_id, train)
+    train(config)
 
 
 if __name__ == '__main__':
