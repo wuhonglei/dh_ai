@@ -50,8 +50,8 @@ def collate_fn(batch, encoder: Encoder, pad_token_id=0):
     input_ids = pad_sequence([torch.tensor(encoder.encode(sentence))
                               for sentence in batch], batch_first=True, padding_value=pad_token_id)
     labels = input_ids.clone()
-    input_ids = torch.roll(input_ids, shifts=-1, dims=-1)
-    input_ids[:, -1] = pad_token_id
+    labels = torch.roll(labels, shifts=-1, dims=-1)  # 左移一位
+    labels[:, -1] = pad_token_id  # 最后一个位置填充pad_token_id
     return input_ids, labels
 
 

@@ -24,5 +24,5 @@ class TitleRecDataset(Dataset):
         prompt = f'Text: "{name}"\nWhich category? [{", ".join(self.categories)}]\nAnswer:'
         return {
             "input_ids": self.tokenizer(prompt, truncation=True, padding="max_length", max_length=128)["input_ids"],
-            "labels": self.tokenizer(label_name, truncation=True, padding="max_length", max_length=10)["input_ids"]
+            "labels": self.tokenizer(label_name, truncation=True, padding="max_length", max_length=128)["input_ids"]
         }

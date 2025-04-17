@@ -187,6 +187,7 @@ class GPT2LMHeadModel(nn.Module):
 
     def forward(self, input_ids, lm_labels=None, past=None, ignore_index: int = 0):
         hidden_states, presents = self.transformer(input_ids, past=past)
+        # hidden_states 形状: [batch_size, seq_len, n_embd]
         lm_logits = self.lm_head(hidden_states)
         if lm_labels is not None:
             return compute_loss(lm_logits, lm_labels, ignore_index)
