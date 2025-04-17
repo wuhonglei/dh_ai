@@ -37,6 +37,8 @@ test_dataloader = build_dataloader(
 training_args = TrainingArguments(
     per_device_train_batch_size=8,
     num_train_epochs=3,
+    evaluation_strategy="steps",
+    eval_steps=100,
     output_dir="./llama3-classifier"
 )
 
