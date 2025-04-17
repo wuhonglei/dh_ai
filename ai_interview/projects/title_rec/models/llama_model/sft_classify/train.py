@@ -74,7 +74,7 @@ def build_loader(csv_path: str, column_name: str, label_name: str, batch_size: i
     return DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=4, pin_memory=True)
 
 
-def train_one_epoch(model: nn.Module, train_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Adam, epoch: int, device: torch.device, rank: int) -> tuple[float, float]:
+def train_one_epoch(model: nn.Module, train_loader: DataLoader, criterion: nn.CrossEntropyLoss, optimizer: optim.Adam, epoch: int, device: torch.device, rank: int, world_size: int) -> tuple[float, float]:
     model.train()
     total_loss = 0.0
     temp_total = 0
@@ -113,19 +113,15 @@ def train_one_epoch(model: nn.Module, train_loader: DataLoader, criterion: nn.Cr
     return total_loss / len(train_loader), temp_correct / temp_total
 
 
-def eval_one_epoch(model: nn.Module, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int, rank: int) -> tuple[float, float]:
+def eval_one_epoch(model: nn.Module, test_loader: DataLoader, criterion: nn.CrossEntropyLoss, device: torch.device, epoch: int, rank: int, world_size: int) -> tuple[float, float]:
     model.eval()
     total_loss = 0.0
     total_correct = 0
     total_samples = 0
 
     with torch.no_grad():
-        if rank == 0:
-            progress_bar = tqdm(
-                test_loader, desc=f'Epoch {epoch}', total=len(test_loader))
-        else:
-            progress_bar = test_loader
-
+        progress_bar = tqdm(
+            test_loader, desc=f'Epoch {epoch}', total=len(test_loader), disable=rank != 0)
         for batch in progress_bar:
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
@@ -197,9 +193,9 @@ def train(_config: dict = {}):
     progress_bar = tqdm(range(epochs), desc='Epoch', disable=rank != 0)
     for epoch in progress_bar:
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion,
-                                                optimizer, epoch, device, rank)
+                                                optimizer, epoch, device, rank, world_size)
         eval_loss, eval_acc = eval_one_epoch(
-            model, test_loader, criterion, device, epoch, rank)
+            model, test_loader, criterion, device, epoch, rank, world_size)
 
         if rank == 0:
             best_acc = max(best_acc, eval_acc)
