@@ -2,7 +2,7 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer, PreTrainedTokenizer, PreTrainedTokenizerFast
 from torch.utils.data import DataLoader
 
-from config import train_csv_path, test_csv_path, name_col, label_id_col, label_names_csv_path, model_path
+from config import train_csv_path, test_csv_path, name_col, label_id_col, label_names_csv_path, model_path, project_name
 from dataset import TitleRecDataset
 
 
@@ -35,10 +35,11 @@ test_dataloader = build_dataloader(
 
 
 training_args = TrainingArguments(
+    report_to='wandb',
     per_device_train_batch_size=8,
     num_train_epochs=3,
-    evaluation_strategy="steps",
-    eval_steps=100,
+    eval_strategy="steps",
+    eval_steps=1000,
     output_dir="./llama3-classifier"
 )
 
