@@ -20,7 +20,7 @@ class BaseModel(nn.Module):
 
 
 if __name__ == '__main__':
-    model = BaseModel(num_classes=10, bert_name='distilbert-base-uncased')
+    model = BaseModel(num_classes=10, bert_name='bert-base-uncased')
     input_data = torch.randint(0, 100, (1, 22))
     attention_mask = torch.ones(1, 22)
     summary(model, input_data=input_data, attention_mask=attention_mask)
