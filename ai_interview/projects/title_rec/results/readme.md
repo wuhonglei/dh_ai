@@ -72,9 +72,15 @@ print(model.default_cfg)
    - Mac 电脑本地运行时间 `1hour:34min`
    - 4090 显卡运行时间 `40min`
    - 4090 显卡, batch_size=8, 运行时间 `46min`
+2. 基于 `LlamaForSequenceClassification` 模型，使用 `valid.csv` 训练，使用 `test.csv` 测试
+   - 1 epochs, 使用 pad_token_id, batch_size=256, learning_rate=1e-5, 效果是 `0.88626`
+   - 2 epochs, 使用 pad_token_id, batch_size=256, learning_rate=1e-5, 效果是 `0.889`
+   - 1 epochs, pad_token_id 设置为 -1，既取 seq 最后一个 token 作为 embedding，效果是 `0.889`
+  
+### 叶子分类模型
 
-2. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率
-3. 使用 bert 模型
+1. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率
+2. 使用 bert 模型
   - 一个模型集成 level1 和 leaf_level 预测，效果大概是 `0.724`
   - 联合搜索，效果大概是 `0.719`
-4. 使用 custom fasttext 模型，使用级联搜索，在一个模型同时输出一级标签和叶子标签，准确率是 `0.7196`，此时使用的训练集是 `valid.csv` 测试集是 `test.csv`；使用 `train.csv` 作为训练集时的准确率是 `0.758`
+3. 使用 custom fasttext 模型，使用级联搜索，在一个模型同时输出一级标签和叶子标签，准确率是 `0.7196`，此时使用的训练集是 `valid.csv` 测试集是 `test.csv`；使用 `train.csv` 作为训练集时的准确率是 `0.758`

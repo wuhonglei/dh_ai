@@ -120,7 +120,7 @@ def train(_config: dict = {}):
     test_loader = build_loader(test_csv_path, column_name, label_name,
                                batch_size=batch_size, tokenizer=tokenizer, max_length=max_length, shuffle=False, label_encoder=label_encoder)
     model = build_model(num_classes=num_classes,
-                        model_name=model_name, pad_token_id=-1)
+                        model_name=model_name, pad_token_id=tokenizer.pad_token_id)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(  # type: ignore
         model.parameters(), lr=learning_rate)
