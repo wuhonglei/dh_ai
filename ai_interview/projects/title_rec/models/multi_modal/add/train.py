@@ -26,18 +26,25 @@ def is_distributed():
     return 'RANK' in os.environ and 'WORLD_SIZE' in os.environ
 
 
-def setup_distributed():
-    """Initialize distributed training."""
+def setup_distributed(port: int = 29500):
+    """Initialize distributed training.
+
+    Args:
+        port (int): The port number for distributed training. Default is 29500.
+                    Different distributed environments should use different ports.
+    """
     if is_distributed():
         rank = int(os.environ['RANK'])  # 当前进程的编号
         world_size = int(os.environ['WORLD_SIZE'])  # 总的进程数
         gpu = int(os.environ['LOCAL_RANK'])  # 当前进程的GPU编号
 
         # 分布式环境，执行初始化
-        dist.init_process_group(backend='nccl',
-                                init_method='env://',
-                                world_size=world_size,
-                                rank=rank)
+        dist.init_process_group(
+            backend='nccl',
+            init_method=f'tcp://127.0.0.1:{port}',  # 使用本地回环地址和指定端口
+            world_size=world_size,
+            rank=rank
+        )
     else:
         # 单机环境，不执行初始化
         rank = 0
@@ -284,7 +291,7 @@ def main():
         'text_learning_rate': 2e-5,
         'image_learning_rate': 1e-4,
         'classifier_learning_rate': 1e-4,
-        'epochs': 4,
+        'epochs': 6,
         'drop_rate': 0.5,
         'max_length': 28,
         'text_model_name': 'distilbert-base-uncased',
@@ -292,8 +299,8 @@ def main():
         'title_col_name': 'remove_prefix',
         'image_col_name': 'main_image_name',
         'label_col_name': 'level1_global_be_category_id',
-        'freeze_text_encoder': True,
-        'freeze_image_encoder': True
+        'freeze_text_encoder': False,
+        'freeze_image_encoder': False
     }
     train(config)
     return

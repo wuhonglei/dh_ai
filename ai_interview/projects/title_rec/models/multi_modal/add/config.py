@@ -1,0 +1,5 @@
+train_csv_path = '../../../dataset/level1_80/clean/valid.csv'
+# valid_csv_path = '../../dataset/level1_80/clean/train.csv'
+test_csv_path = '../../../dataset/level1_80/clean/test.csv'
+project_name = 'shopee_title_image_multi_modal_add_model'
+image_dir = '../../../dataset/level1_valid_test_images_resize'

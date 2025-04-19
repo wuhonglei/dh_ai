@@ -77,6 +77,13 @@ print(model.default_cfg)
    - 2 epochs, 使用 pad_token_id, batch_size=256, learning_rate=1e-5, 效果是 `0.889`
    - 1 epochs, pad_token_id 设置为 -1，既取 seq 最后一个 token 作为 embedding，效果是 `0.889`
   
+### 多模态模型
+
+特征融合方式:
+1. 使用 `concat` 方式融合, text 使用 distilbert-base-uncased, image 使用 resnet101, 特征维度是 768 + 2048, 全量微调, 效果是 `0.88249`
+2. 使用 `add` 方式融合, text 使用 distilbert-base-uncased, image 使用 resnet101, 将 image 的特征维度从 2048 降到 768, 然后将 text_features 和 image_features 相加, 效果是 `0.876`
+3. 使用 `mul` 方式融合
+
 ### 叶子分类模型
 
 1. 使用 fasttext 模型，使用联合搜索或者级联搜索，效果差不多，联合搜索最终只生成一个模型，级联搜索最终生成多个模型，准确率大概是 `0.75`, 级联训练使用 beam search k=2 时，能够提高 2% 的准确率

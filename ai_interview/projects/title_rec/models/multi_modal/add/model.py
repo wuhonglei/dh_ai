@@ -34,17 +34,14 @@ class ImageEncoder(nn.Module):
 
 
 class MultiModalModel(nn.Module):
-    def __init__(self, text_model_name: str, image_model_name: str, num_classes: int, drop_rate: float, freeze_text_encoder: bool = True, freeze_image_encoder: bool = True):
+    def __init__(self, text_model_name: str, image_model_name: str, num_classes: int, drop_rate: float, freeze_text_encoder: bool, freeze_image_encoder: bool):
         super(MultiModalModel, self).__init__()
         self.text_encoder = TextEncoder(text_model_name)
         self.image_encoder = ImageEncoder(image_model_name)
 
-        # 不进行梯度更新
         if freeze_text_encoder:
             for param in self.text_encoder.parameters():
                 param.requires_grad = False
-
-        # 不进行梯度更新
         if freeze_image_encoder:
             for param in self.image_encoder.parameters():
                 param.requires_grad = False
@@ -53,20 +50,25 @@ class MultiModalModel(nn.Module):
         text_features = self.text_encoder.model.config.hidden_size
         image_features = self.image_encoder.model.num_features
 
+        self.image_projection = nn.Linear(image_features, text_features)
+        self.image_weight = 0.5
+        self.text_weight = 0.5
+
         # Unified classifier
         self.classifier = nn.Sequential(
-            nn.Linear(text_features + image_features, 512),
+            nn.Linear(text_features, 768),
             nn.ReLU(),
             nn.Dropout(drop_rate),
-            nn.Linear(512, num_classes)
+            nn.Linear(768, num_classes)
         )
 
     def forward(self, text_input: torch.Tensor, attention_mask: torch.Tensor, image_input: torch.Tensor) -> torch.Tensor:
-        text_features = self.text_encoder(text_input, attention_mask)
         image_features = self.image_encoder(image_input)
+        image_features = self.image_projection(image_features)
+        text_features = self.text_encoder(text_input, attention_mask)
 
-        # Concatenate features
-        combined_features = torch.cat([text_features, image_features], dim=1)
+        combined_features = self.image_weight * \
+            image_features + self.text_weight * text_features
 
         # Final classification
         output = self.classifier(combined_features)
