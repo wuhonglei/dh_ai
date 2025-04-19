@@ -82,7 +82,10 @@ print(model.default_cfg)
 特征融合方式:
 1. 使用 `concat` 方式融合, text 使用 distilbert-base-uncased, image 使用 resnet101, 特征维度是 768 + 2048, 全量微调, 效果是 `0.88249`
 2. 使用 `add` 方式融合, text 使用 distilbert-base-uncased, image 使用 resnet101, 将 image 的特征维度从 2048 降到 768, 然后将 text_features 和 image_features 相加, 效果是 `0.876`
-3. 使用 `mul` 方式融合
+3. 单独训练 image 和 text 分类模型，输出 image_logits 和 text_logits, 训练阶段单独优化 image_logits 和 text_logits, 测试阶段将 image_logits 和 text_logits 相加, 效果是 `0.8721`
+4. 单独训练 image 和 text 分类模型，输出 image_logits 和 text_logits, 训练阶段一起优化 image_logits + text_logits, 测试阶段将 image_logits + text_logits 相加, 效果是 `0.8806`
+5. 单独训练 image 和 text 分类模型，输出 image_logits 和 text_logits 的可训练的加权求和, 效果是 `0.8816`
+
 
 ### 叶子分类模型
 
